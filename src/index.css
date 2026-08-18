@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+  }
+}
+
+/* Custom Leaflet Dark Theme Overrides */
+.leaflet-container {
+  background-color: #020617 !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.leaflet-marker-icon {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background-color: #ffffff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background-color: #ffffff !important;
+}
+
+/* Custom Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.35s ease-out forwards;
+}
+
+/* Marker Styles */
+.custom-ambulance-marker,
+.custom-hospital-marker,
+.custom-signal-marker,
+.shared-ambulance-marker,
+.shared-hospital-marker,
+.shared-signal-marker,
+.shared-ambulance-marker-icon,
+.shared-hospital-marker-icon,
+.shared-signal-marker-icon {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+}
