@@ -1,133 +1,213 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import {
+  INITIAL_HOSPITALS,
+  INITIAL_AMBULANCES,
+  INITIAL_TRAFFIC_SIGNALS,
+  INITIAL_ACTIVITY_LOGS,
+  INITIAL_TRIP_HISTORY
+} from '../../server/mockData';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [activeRole, setActiveRole] = useState('command');
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
-  const [hospitals, setHospitals] = useState([]);
-  const [ambulances, setAmbulances] = useState([]);
-  const [trafficSignals, setTrafficSignals] = useState([]);
-  const [alerts, setAlerts] = useState([]);
-  const [activityLogs, setActivityLogs] = useState([]);
-  const [tripHistory, setTripHistory] = useState([]);
+  const [hospitals, setHospitals] = useState(INITIAL_HOSPITALS);
+  const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
+  const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
+  const [alerts, setAlerts] = useState([
+    { id: "alt-1", timestamp: "10:16:05 AM", title: "Green Corridor Radar Active", message: "Signal TS-01 changed to GREEN for AMB-101 (2.1 km to ER)", severity: "HIGH" },
+    { id: "alt-2", timestamp: "10:15:20 AM", title: "New Critical Dispatch", message: "Patient David Miller (STEMI) assigned to Velammal Global Hospital", severity: "HIGH" }
+  ]);
+  const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
+  const [tripHistory, setTripHistory] = useState(INITIAL_TRIP_HISTORY);
   const [isSimulationRunning, setIsSimulationRunning] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    // Try Socket.io connection if backend is available
     const socketInstance = io(window.location.origin, {
-      reconnectionAttempts: 5,
-      timeout: 5000,
+      reconnectionAttempts: 3,
+      timeout: 3000,
     });
 
     socketInstance.on('connect', () => setIsConnected(true));
     socketInstance.on('disconnect', () => setIsConnected(false));
 
     socketInstance.on('STATE_UPDATE', (data) => {
-      if (data.hospitals) setHospitals(data.hospitals);
-      if (data.ambulances) setAmbulances(data.ambulances);
-      if (data.trafficSignals) setTrafficSignals(data.trafficSignals);
-      if (data.alerts) setAlerts(data.alerts);
-      if (data.activityLogs) setActivityLogs(data.activityLogs);
-      if (data.tripHistory) setTripHistory(data.tripHistory);
+      if (data.hospitals && data.hospitals.length > 0) setHospitals(data.hospitals);
+      if (data.ambulances && data.ambulances.length > 0) setAmbulances(data.ambulances);
+      if (data.trafficSignals && data.trafficSignals.length > 0) setTrafficSignals(data.trafficSignals);
+      if (data.alerts && data.alerts.length > 0) setAlerts(data.alerts);
+      if (data.activityLogs && data.activityLogs.length > 0) setActivityLogs(data.activityLogs);
+      if (data.tripHistory && data.tripHistory.length > 0) setTripHistory(data.tripHistory);
       if (data.isSimulationRunning !== undefined) setIsSimulationRunning(data.isSimulationRunning);
     });
 
-    socketInstance.on('NEW_ALERT', (newAlert) => {
-      setAlerts((prev) => [newAlert, ...prev.slice(0, 25)]);
-    });
-
-    socketInstance.on('NEW_LOG', (newLog) => {
-      setActivityLogs((prev) => [newLog, ...prev.slice(0, 45)]);
-    });
-
+    // Try API fetch if Express backend is running
     fetch('/api/state')
       .then((res) => res.json())
       .then((data) => {
-        if (data.hospitals) setHospitals(data.hospitals);
-        if (data.ambulances) setAmbulances(data.ambulances);
-        if (data.trafficSignals) setTrafficSignals(data.trafficSignals);
-        if (data.alerts) setAlerts(data.alerts);
-        if (data.activityLogs) setActivityLogs(data.activityLogs);
-        if (data.tripHistory) setTripHistory(data.tripHistory);
+        if (data.hospitals && data.hospitals.length > 0) setHospitals(data.hospitals);
+        if (data.ambulances && data.ambulances.length > 0) setAmbulances(data.ambulances);
+        if (data.trafficSignals && data.trafficSignals.length > 0) setTrafficSignals(data.trafficSignals);
+        if (data.alerts && data.alerts.length > 0) setAlerts(data.alerts);
+        if (data.activityLogs && data.activityLogs.length > 0) setActivityLogs(data.activityLogs);
+        if (data.tripHistory && data.tripHistory.length > 0) setTripHistory(data.tripHistory);
       })
-      .catch((err) => console.log('API state fetch fallback:', err));
+      .catch((err) => console.log('Standalone Netlify mode active (using client state engine)'));
 
     return () => socketInstance.disconnect();
   }, []);
 
-  const startEmergencyTrip = async (ambulanceId, patientDetails, targetHospitalId, startLocation) => {
+  // Client-side standalone simulation ticker for standalone Netlify deployments
+  useEffect(() => {
+    if (!isSimulationRunning) return;
+
+    const interval = setInterval(() => {
+      setAmbulances((prevAmbs) =>
+        prevAmbs.map((amb) => {
+          if (amb.status !== 'EN_ROUTE' || !amb.route || amb.route.length === 0) return amb;
+
+          const nextIndex = (amb.currentWaypointIndex + 1) % amb.route.length;
+          const nextLocation = amb.route[nextIndex];
+
+          return {
+            ...amb,
+            currentWaypointIndex: nextIndex,
+            currentLocation: nextLocation,
+            etaMinutes: Math.max(1, amb.etaMinutes - (nextIndex === 0 ? 0 : 0.1))
+          };
+        })
+      );
+
+      // Decrement signal countdowns
+      setTrafficSignals((prevSigs) =>
+        prevSigs.map((sig) => {
+          if (sig.countdownSeconds > 0) {
+            const nextCount = sig.countdownSeconds - 1;
+            return {
+              ...sig,
+              countdownSeconds: nextCount,
+              status: nextCount === 0 ? 'RED' : sig.status,
+              mode: nextCount === 0 ? 'AUTO_NORMAL' : sig.mode
+            };
+          }
+          return sig;
+        })
+      );
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isSimulationRunning]);
+
+  // Actions with both API try & instant client state fallback
+  const startTrip = async (tripData) => {
     try {
-      const res = await fetch('/api/trips/start', {
+      await fetch('/api/trips/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ambulanceId, patientDetails, targetHospitalId, startLocation })
+        body: JSON.stringify(tripData)
       });
-      return await res.json();
-    } catch (err) {
-      console.error('Failed to start trip:', err);
+    } catch (e) {
+      console.log('Client start trip fallback');
     }
+
+    setAmbulances((prev) =>
+      prev.map((amb) => {
+        if (amb.code === 'AMB-101' || amb.id === tripData.ambulanceId) {
+          return {
+            ...amb,
+            status: 'EN_ROUTE',
+            etaMinutes: 4,
+            patient: {
+              id: 'pat-' + Date.now(),
+              name: tripData.patientName || 'Menaga',
+              age: tripData.age || 54,
+              gender: tripData.gender || 'Male',
+              bloodGroup: tripData.bloodGroup || 'O+',
+              conditionCategory: tripData.conditionCategory || 'Cardiac Arrest / STEMI',
+              vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' }
+            }
+          };
+        }
+        return amb;
+      })
+    );
   };
 
   const stepCheckpoint = async () => {
     try {
       await fetch('/api/simulation/step-checkpoint', { method: 'POST' });
-    } catch (err) {
-      console.error('Failed to step checkpoint:', err);
-    }
+    } catch (e) {}
+
+    setAmbulances((prev) =>
+      prev.map((amb) => {
+        if (amb.status !== 'EN_ROUTE' || !amb.route) return amb;
+        const nextIdx = (amb.currentWaypointIndex + 1) % amb.route.length;
+        return {
+          ...amb,
+          currentWaypointIndex: nextIdx,
+          currentLocation: amb.route[nextIdx]
+        };
+      })
+    );
   };
 
   const simulateArrival = async () => {
     try {
       await fetch('/api/simulation/simulate-arrival', { method: 'POST' });
-    } catch (err) {
-      console.error('Failed to simulate arrival:', err);
-    }
+    } catch (e) {}
+
+    setAmbulances((prev) =>
+      prev.map((amb) => (amb.code === 'AMB-101' ? { ...amb, status: 'ARRIVED', etaMinutes: 0 } : amb))
+    );
   };
 
   const simulateDischarge = async () => {
     try {
       await fetch('/api/simulation/simulate-discharge', { method: 'POST' });
-    } catch (err) {
-      console.error('Failed to simulate discharge:', err);
-    }
+    } catch (e) {}
+
+    setAmbulances((prev) =>
+      prev.map((amb) => (amb.code === 'AMB-101' ? { ...amb, status: 'IDLE', patient: null, etaMinutes: 0 } : amb))
+    );
   };
 
-  const updatePatientTreatmentStatus = async (patientId, treatmentStatus, ambulanceCode) => {
+  const updatePatientStatus = async (patientId, treatmentStatus) => {
     try {
       await fetch(`/api/patients/${patientId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ treatmentStatus, ambulanceCode })
+        body: JSON.stringify({ treatmentStatus })
       });
-    } catch (err) {
-      console.error('Failed to update patient status:', err);
-    }
+    } catch (e) {}
   };
 
-  const updateBedStatus = async (hospitalId, bedId, newStatus, patientName) => {
+  const updateBedStatus = async (hospitalId, bedId, newStatus) => {
     try {
       await fetch(`/api/hospitals/${hospitalId}/beds/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bedId, newStatus, patientName })
+        body: JSON.stringify({ bedId, newStatus })
       });
-    } catch (err) {
-      console.error('Failed to update bed:', err);
-    }
-  };
+    } catch (e) {}
 
-  const assignDoctorToPatient = async (hospitalId, doctorId, patientName) => {
-    try {
-      await fetch(`/api/hospitals/${hospitalId}/doctors/assign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doctorId, patientName })
-      });
-    } catch (err) {
-      console.error('Failed to assign doctor:', err);
-    }
+    setHospitals((prev) =>
+      prev.map((hosp) => {
+        if (hosp.id === hospitalId || hosp.code === 'VGH' || hosp.name.includes('Velammal')) {
+          const updatedBeds = (hosp.beds || []).map((b) => (b.id === bedId ? { ...b, status: newStatus } : b));
+          const availCount = updatedBeds.filter((b) => b.status === 'AVAILABLE').length;
+          return {
+            ...hosp,
+            availableBeds: availCount,
+            beds: updatedBeds
+          };
+        }
+        return hosp;
+      })
+    );
   };
 
   const toggleTrafficSignal = async (signalId, targetStatus, extendSeconds) => {
@@ -137,39 +217,39 @@ export const AppProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: targetStatus, mode: 'MANUAL_OVERRIDE', extendSeconds })
       });
-    } catch (err) {
-      console.error('Failed to toggle signal:', err);
-    }
+    } catch (e) {}
+
+    setTrafficSignals((prev) =>
+      prev.map((sig) => {
+        if (sig.id === signalId || sig.code === signalId) {
+          return {
+            ...sig,
+            status: targetStatus,
+            mode: 'MANUAL_OVERRIDE',
+            countdownSeconds: extendSeconds || (targetStatus === 'GREEN' ? 30 : 0)
+          };
+        }
+        return sig;
+      })
+    );
   };
 
   const toggleSimulation = async () => {
     try {
       await fetch('/api/simulation/toggle', { method: 'POST' });
-    } catch (err) {
-      console.error('Failed to toggle simulation:', err);
-    }
+    } catch (e) {}
+    setIsSimulationRunning((prev) => !prev);
   };
 
   const resetSimulation = async () => {
     try {
       await fetch('/api/simulation/reset', { method: 'POST' });
-    } catch (err) {
-      console.error('Failed to reset simulation:', err);
-    }
-  };
-
-  const recommendHospitalsApi = async (patientLocation, conditionCategory) => {
-    try {
-      const res = await fetch('/api/recommend-hospital', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientLocation, conditionCategory })
-      });
-      return await res.json();
-    } catch (err) {
-      console.error('Failed to get recommendations:', err);
-      return [];
-    }
+    } catch (e) {}
+    setHospitals(INITIAL_HOSPITALS);
+    setAmbulances(INITIAL_AMBULANCES);
+    setTrafficSignals(INITIAL_TRAFFIC_SIGNALS);
+    setActivityLogs(INITIAL_ACTIVITY_LOGS);
+    setTripHistory(INITIAL_TRIP_HISTORY);
   };
 
   return (
@@ -187,17 +267,17 @@ export const AppProvider = ({ children }) => {
         tripHistory,
         isSimulationRunning,
         isConnected,
-        startEmergencyTrip,
+        startEmergencyTrip: startTrip,
+        startTrip,
         stepCheckpoint,
         simulateArrival,
         simulateDischarge,
-        updatePatientTreatmentStatus,
+        updatePatientStatus,
+        updatePatientTreatmentStatus: updatePatientStatus,
         updateBedStatus,
-        assignDoctorToPatient,
         toggleTrafficSignal,
         toggleSimulation,
-        resetSimulation,
-        recommendHospitalsApi
+        resetSimulation
       }}
     >
       {children}
