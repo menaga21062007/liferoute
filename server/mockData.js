@@ -243,39 +243,20 @@ export const INITIAL_AMBULANCES = [
     unitName: "Rapid Response Unit 1",
     driverName: "Marcus Vance",
     paramedicName: "Elena Rostova",
-    status: "EN_ROUTE",
+    status: "IDLE", // Default to IDLE so the Patient Registration & Intake form is ready on load
     currentLocation: { lat: 40.718000, lng: -73.950000 },
     heading: 45,
-    speedKm: 65,
-    destinationHospitalId: "hosp-1",
+    speedKm: 0,
+    destinationHospitalId: null,
     route: PREDEFINED_ROUTES.routeAlpha,
-    currentWaypointIndex: 1,
-    etaMinutes: 4,
-    distanceRemainingKm: 2.1,
-    patient: {
-      id: "pat-901",
-      name: "David Miller",
-      age: 62,
-      gender: "Male",
-      bloodGroup: "O+",
-      isConscious: false,
-      conditionCategory: "Cardiac Arrest / STEMI",
-      chiefComplaint: "Acute chest pressure, severe dyspnea, STEMI confirmed",
-      priorityLevel: "CRITICAL",
-      treatmentStatus: "Ambulance en route",
-      vitals: {
-        hr: 114,
-        bpSystolic: 145,
-        bpDiastolic: 92,
-        spo2: 93,
-        temp: 37.1,
-        ecgStatus: "ST-Elevation (STEMI Detected)"
-      }
-    },
-    teamReady: true,
-    allocatedBedNumber: "ICU-02",
-    allocatedOtNumber: "OT-2 (Cardiac)",
-    startTime: new Date().toISOString()
+    currentWaypointIndex: 0,
+    etaMinutes: 0,
+    distanceRemainingKm: 0,
+    patient: null,
+    teamReady: false,
+    allocatedBedNumber: null,
+    allocatedOtNumber: null,
+    startTime: null
   },
   {
     id: "amb-102",
@@ -301,10 +282,8 @@ export const INITIAL_AMBULANCES = [
 ];
 
 export const INITIAL_ACTIVITY_LOGS = [
-  { id: "log-101", timestamp: "10:15:20 AM", event: "Emergency Trip Dispatched", actor: "AMB-101 Crew", category: "AMBULANCE", details: "Patient David Miller assigned to Velammal Global Hospital" },
-  { id: "log-102", timestamp: "10:16:05 AM", event: "Green Corridor Activated", actor: "Traffic Controller", category: "TRAFFIC", details: "Signal TS-01 changed to GREEN for AMB-101" },
-  { id: "log-103", timestamp: "10:17:10 AM", event: "ICU Bed Reserved", actor: "ER Intake System", category: "HOSPITAL", details: "Bed ICU-02 auto-reserved for STEMI patient" },
-  { id: "log-104", timestamp: "10:18:30 AM", event: "ER Trauma Team Prepped", actor: "Dr. Aris Thorne", category: "STAFF", details: "Cardiology ER team prepped and waiting at bay 1" }
+  { id: "log-101", timestamp: "10:15:20 AM", event: "Emergency Dispatch Standby", actor: "AMB-101 Crew", category: "AMBULANCE", details: "AMB-101 unit ready for patient registration and emergency trip" },
+  { id: "log-102", timestamp: "10:16:05 AM", event: "Green Corridor Radar Ready", actor: "Traffic Controller", category: "TRAFFIC", details: "Signals TS-01 through TS-04 connected and ready for emergency green corridor" }
 ];
 
 export const INITIAL_TRIP_HISTORY = [

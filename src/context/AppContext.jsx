@@ -17,8 +17,7 @@ export const AppProvider = ({ children }) => {
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [alerts, setAlerts] = useState([
-    { id: "alt-1", timestamp: "10:16:05 AM", title: "Green Corridor Radar Active", message: "Signal TS-01 changed to GREEN for AMB-101 (2.1 km to ER)", severity: "HIGH" },
-    { id: "alt-2", timestamp: "10:15:20 AM", title: "New Critical Dispatch", message: "Patient David Miller (STEMI) assigned to Velammal Global Hospital", severity: "HIGH" }
+    { id: "alt-1", timestamp: "10:15:20 AM", title: "Emergency System Ready", message: "LifeRoute network active. Paramedic crew ready for patient intake.", severity: "NORMAL" }
   ]);
   const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
   const [tripHistory, setTripHistory] = useState(INITIAL_TRIP_HISTORY);
@@ -26,7 +25,6 @@ export const AppProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Try Socket.io connection if backend is available
     const socketInstance = io(window.location.origin, {
       reconnectionAttempts: 3,
       timeout: 3000,
@@ -45,7 +43,6 @@ export const AppProvider = ({ children }) => {
       if (data.isSimulationRunning !== undefined) setIsSimulationRunning(data.isSimulationRunning);
     });
 
-    // Try API fetch if Express backend is running
     fetch('/api/state')
       .then((res) => res.json())
       .then((data) => {
@@ -72,12 +69,14 @@ export const AppProvider = ({ children }) => {
 
           const nextIndex = (amb.currentWaypointIndex + 1) % amb.route.length;
           const nextLocation = amb.route[nextIndex];
+          const rawEta = amb.etaMinutes > 1 ? amb.etaMinutes - 0.5 : 1;
+          const cleanEta = Math.max(1, Math.round(rawEta));
 
           return {
             ...amb,
             currentWaypointIndex: nextIndex,
             currentLocation: nextLocation,
-            etaMinutes: Math.max(1, amb.etaMinutes - (nextIndex === 0 ? 0 : 0.1))
+            etaMinutes: cleanEta
           };
         })
       );
@@ -97,7 +96,7 @@ export const AppProvider = ({ children }) => {
           return sig;
         })
       );
-    }, 2000);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, [isSimulationRunning]);
@@ -135,6 +134,34 @@ export const AppProvider = ({ children }) => {
         return amb;
       })
     );
+
+    // Trigger green corridor on traffic signal TS-01 & TS-02
+    setTrafficSignals((prev) =>
+      prev.map((sig) => {
+        if (sig.code === 'TS-01' || sig.code === 'TS-02') {
+          return {
+            ...sig,
+            status: 'GREEN',
+            mode: 'GREEN_CORRIDOR_ACTIVE',
+            countdownSeconds: 30,
+            activeAmbulanceId: 'AMB-101',
+            distanceToAmbulance: 250
+          };
+        }
+        return sig;
+      })
+    );
+
+    setAlerts((prev) => [
+      {
+        id: 'alt-' + Date.now(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        title: 'Emergency Dispatch Active',
+        message: `AMB-101 en route with ${tripData.patientName || 'Menaga'} (${tripData.conditionCategory || 'Cardiac Arrest'}) to Velammal Global Hospital`,
+        severity: 'HIGH'
+      },
+      ...prev
+    ]);
   };
 
   const stepCheckpoint = async () => {
