@@ -52,14 +52,6 @@ export const EmergencyIntelligenceDashboard = () => {
     resetSimulation
   } = useApp();
 
-  // Intake Form State
-  const [patientName, setPatientName] = useState('Menaga');
-  const [age, setAge] = useState('54');
-  const [emergencyType, setEmergencyType] = useState('Cardiac Emergency');
-  const [severity, setSeverity] = useState('CRITICAL');
-  const [selectedLocationNodeId, setSelectedLocationNodeId] = useState('N3');
-  const [notes, setNotes] = useState('Chest pressure, STEMI suspected');
-
   // Map Layer Toggles
   const [showAmbulances, setShowAmbulances] = useState(true);
   const [showHospitals, setShowHospitals] = useState(true);
@@ -77,19 +69,6 @@ export const EmergencyIntelligenceDashboard = () => {
   const [eps, setEps] = useState(dbscanConfig?.eps || 1.2);
   const [minSamples, setMinSamples] = useState(dbscanConfig?.minSamples || 3);
 
-  const handleCreateRequest = (e) => {
-    e.preventDefault();
-    const nodeObj = (roadGraph?.nodes || []).find(n => n.id === selectedLocationNodeId) || { lat: 40.722, lng: -73.945, name: 'Grand Ave Crossing' };
-    createEmergencyRequest({
-      patientName,
-      age: parseInt(age, 10),
-      emergencyType,
-      severity,
-      location: { lat: nodeObj.lat, lng: nodeObj.lng, name: nodeObj.name },
-      notes
-    });
-  };
-
   const handleRunDBSCAN = () => {
     runDbscanAnalysis(eps, minSamples);
   };
@@ -100,8 +79,6 @@ export const EmergencyIntelligenceDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
       
-
-
       {/* TOP METRICS DASHBOARD CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-5 rounded-3xl shadow-xl space-y-1">
@@ -143,231 +120,118 @@ export const EmergencyIntelligenceDashboard = () => {
         </div>
       </div>
 
-      {/* SECTION 1: INTAKE FORM & DEMO GENERATORS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Request Intake Form */}
-        <div className="lg:col-span-6 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2.5">
-              <div className="p-2 rounded-xl bg-red-500/20 text-red-400 border border-red-500/40">
-                <PlusCircle className="h-5 w-5" />
-              </div>
-              <h3 className="text-lg font-black text-white tracking-tight">Create Emergency Request</h3>
+      {/* SECTION 1: DBSCAN HOTSPOT ANALYSIS CARD */}
+      <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40">
+              <Sliders className="h-5 w-5" />
             </div>
-            <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-              INTAKE ACTIVE
-            </span>
-          </div>
-
-          <form onSubmit={handleCreateRequest} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black text-slate-200 uppercase mb-1">Patient Name</label>
-                <input
-                  type="text"
-                  value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                  required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-slate-200 uppercase mb-1">Patient Age</label>
-                <input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black text-slate-200 uppercase mb-1">Emergency Category</label>
-                <select
-                  value={emergencyType}
-                  onChange={(e) => setEmergencyType(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-brand-blue"
-                >
-                  {['Cardiac Emergency', 'Road Accident', 'Stroke', 'Trauma', 'Respiratory Distress', 'Fire/Burn Injury', 'Other Emergency'].map(t => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-slate-200 uppercase mb-1">Severity Priority</label>
-                <select
-                  value={severity}
-                  onChange={(e) => setSeverity(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-brand-blue"
-                >
-                  <option value="CRITICAL">CRITICAL (Red)</option>
-                  <option value="HIGH">HIGH (Orange)</option>
-                  <option value="MEDIUM">MEDIUM (Yellow)</option>
-                  <option value="LOW">LOW (Blue)</option>
-                </select>
-              </div>
-            </div>
-
             <div>
-              <label className="block text-xs font-black text-slate-200 uppercase mb-1">Fictional Map Location</label>
-              <select
-                value={selectedLocationNodeId}
-                onChange={(e) => setSelectedLocationNodeId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-brand-blue"
-              >
-                {(roadGraph?.nodes || []).map(n => (
-                  <option key={n.id} value={n.id}>📍 {n.name} ({n.id})</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-slate-200 uppercase mb-1">Paramedic Notes</label>
-              <input
-                type="text"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-brand-blue"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-red-600 to-brand-red hover:from-red-500 hover:to-red-600 text-white font-black text-xs py-3 rounded-xl shadow-xl shadow-red-600/30 flex items-center justify-center space-x-2 transition-all"
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span>CREATE EMERGENCY REQUEST</span>
-            </button>
-          </form>
-
-          {/* Quick Demo Request Generators */}
-          <div className="pt-3 border-t border-slate-800 space-y-2">
-            <div className="text-xs font-black text-slate-400 uppercase tracking-wider">⚡ Instant Presentation Generators</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-bold">
-              <button
-                onClick={generateRandomRequests}
-                className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-blue-300 p-2 rounded-xl text-center transition-all"
-              >
-                +3 Random
-              </button>
-              <button
-                onClick={generateCriticalRequest}
-                className="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-200 p-2 rounded-xl text-center transition-all"
-              >
-                +1 Critical
-              </button>
-              <button
-                onClick={clearEmergencyRequests}
-                className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 p-2 rounded-xl text-center transition-all"
-              >
-                Clear Requests
-              </button>
-              <button
-                onClick={resetDemoData}
-                className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-amber-300 p-2 rounded-xl text-center transition-all"
-              >
-                Reset All
-              </button>
+              <h3 className="text-lg font-black text-white tracking-tight">DBSCAN Spatial Hotspot Clustering Radar</h3>
+              <p className="text-[11px] text-slate-300 font-semibold">Density-based Spatial Clustering of Applications with Noise</p>
             </div>
           </div>
 
-        </div>
-
-        {/* DBSCAN Hotspot Analysis Card */}
-        <div className="lg:col-span-6 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2.5">
-              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40">
-                <Sliders className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-white tracking-tight">DBSCAN Spatial Hotspot Clustering</h3>
-                <p className="text-[11px] text-slate-300 font-semibold">Density-based Spatial Clustering of Applications with Noise</p>
-              </div>
-            </div>
+          <div className="flex items-center space-x-2">
             <button
               onClick={handleRunDBSCAN}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow-lg transition-all"
+              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow-lg transition-all"
             >
               RUN ANALYSIS
             </button>
-          </div>
 
-          {/* Slider Controls */}
-          <div className="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs">
-            <div>
-              <div className="flex justify-between font-black text-slate-200 mb-1">
-                <span>Cluster Radius (eps):</span>
-                <span className="text-amber-400 font-mono">{eps} km</span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="3.0"
-                step="0.1"
-                value={eps}
-                onChange={(e) => setEps(parseFloat(e.target.value))}
-                className="w-full accent-amber-400 cursor-pointer"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between font-black text-slate-200 mb-1">
-                <span>Min Samples (minPts):</span>
-                <span className="text-amber-400 font-mono">{minSamples}</span>
-              </div>
-              <input
-                type="range"
-                min="2"
-                max="6"
-                step="1"
-                value={minSamples}
-                onChange={(e) => setMinSamples(parseInt(e.target.value, 10))}
-                className="w-full accent-amber-400 cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Detected Hotspot Cluster Cards */}
-          <div className="space-y-3">
-            <div className="text-xs font-black text-slate-300 uppercase tracking-wider">
-              Detected Hotspot Zones ({dbscanHotspots.length})
-            </div>
-
-            {dbscanHotspots.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1">
-                {dbscanHotspots.map((zone) => (
-                  <div
-                    key={zone.id}
-                    className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1.5 shadow-lg"
-                    style={{ borderLeftColor: zone.color, borderLeftWidth: '4px' }}
-                  >
-                    <div className="flex items-center justify-between font-black text-xs text-white">
-                      <span>🔥 {zone.zoneName} ({zone.label})</span>
-                      <span className="text-amber-400 font-mono">Score: {zone.priorityScore}</span>
-                    </div>
-                    <div className="text-[11px] text-slate-300 font-semibold">
-                      Requests: <strong className="text-white">{zone.totalRequests}</strong> | Critical: <strong className="text-red-400">{zone.criticalCount}</strong>
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-medium">
-                      Oldest Wait: {zone.oldestWaitMins}m | Avg Severity: {zone.avgSeverityWeight}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 bg-slate-950/60 rounded-2xl border border-slate-800 text-slate-400 text-xs font-semibold">
-                No dense hotspots detected. Click "Run Analysis" or "+3 Random" requests.
-              </div>
-            )}
+            {/* Presentation Quick Controls */}
+            <button
+              onClick={generateRandomRequests}
+              className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-blue-300 text-xs font-bold px-3 py-2 rounded-xl transition-all"
+            >
+              +3 Random
+            </button>
+            <button
+              onClick={generateCriticalRequest}
+              className="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-200 text-xs font-bold px-3 py-2 rounded-xl transition-all"
+            >
+              +1 Critical
+            </button>
+            <button
+              onClick={resetDemoData}
+              className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-amber-300 text-xs font-bold p-2 rounded-xl transition-all"
+              title="Reset Demo Data"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
+        {/* Slider Controls */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs">
+          <div>
+            <div className="flex justify-between font-black text-slate-200 mb-1">
+              <span>Cluster Radius (eps):</span>
+              <span className="text-amber-400 font-mono">{eps} km</span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="3.0"
+              step="0.1"
+              value={eps}
+              onChange={(e) => setEps(parseFloat(e.target.value))}
+              className="w-full accent-amber-400 cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between font-black text-slate-200 mb-1">
+              <span>Min Samples (minPts):</span>
+              <span className="text-amber-400 font-mono">{minSamples}</span>
+            </div>
+            <input
+              type="range"
+              min="2"
+              max="6"
+              step="1"
+              value={minSamples}
+              onChange={(e) => setMinSamples(parseInt(e.target.value, 10))}
+              className="w-full accent-amber-400 cursor-pointer"
+            />
+          </div>
+        </div>
+
+        {/* Detected Hotspot Cluster Cards */}
+        <div className="space-y-3">
+          <div className="text-xs font-black text-slate-300 uppercase tracking-wider">
+            Detected Hotspot Zones ({dbscanHotspots.length})
+          </div>
+
+          {dbscanHotspots.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {dbscanHotspots.map((zone) => (
+                <div
+                  key={zone.id}
+                  className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-1.5 shadow-lg"
+                  style={{ borderLeftColor: zone.color, borderLeftWidth: '4px' }}
+                >
+                  <div className="flex items-center justify-between font-black text-xs text-white">
+                    <span>🔥 {zone.zoneName} ({zone.label})</span>
+                    <span className="text-amber-400 font-mono">Score: {zone.priorityScore}</span>
+                  </div>
+                  <div className="text-xs text-slate-300 font-semibold">
+                    Requests: <strong className="text-white">{zone.totalRequests}</strong> | Critical: <strong className="text-red-400">{zone.criticalCount}</strong>
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium">
+                    Oldest Wait: {zone.oldestWaitMins}m | Avg Severity: {zone.avgSeverityWeight}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-slate-950/60 rounded-2xl border border-slate-800 text-slate-400 text-xs font-semibold">
+              No dense hotspots detected. Click "Run Analysis" or "+3 Random" requests.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* SECTION 2: UNIVERSAL MAP & LAYER CONTROLS */}
