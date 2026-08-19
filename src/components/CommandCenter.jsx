@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { SharedMap } from './SharedMap';
-import { AlertsPanel } from './AlertsPanel';
 import { VitalsMonitor } from './VitalsMonitor';
-import { Ambulance, Building2, Zap, Radio } from 'lucide-react';
+import { Ambulance, Building2, Zap, Radio, Activity, CheckCircle2 } from 'lucide-react';
 
 export const CommandCenter = () => {
-  const { ambulances, hospitals } = useApp();
+  const { ambulances, hospitals, activityLogs } = useApp();
   const [focusedAmbulanceId, setFocusedAmbulanceId] = useState(null);
 
   const activeAmbulance = ambulances.find((a) => a.status === 'EN_ROUTE') || ambulances[0];
 
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in">
+    <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
         {/* Left Sidebar: Active Fleet & Hospital Capacity */}
@@ -104,12 +103,35 @@ export const CommandCenter = () => {
           <SharedMap focusedEntityId={focusedAmbulanceId} height="h-[600px]" />
         </div>
 
-        {/* Right Sidebar: Telemetry & Alerts */}
+        {/* Right Sidebar: Telemetry & Activity Summary */}
         <div className="space-y-5">
           {activeAmbulance && activeAmbulance.patient && (
             <VitalsMonitor patient={activeAmbulance.patient} />
           )}
-          <AlertsPanel />
+
+          {/* Activity Log Summary Card */}
+          <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-5 rounded-3xl shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/40">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <span className="font-black text-white text-base tracking-tight">System Activity Audit Log</span>
+              </div>
+            </div>
+
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              {activityLogs && activityLogs.slice(0, 6).map((log) => (
+                <div key={log.id} className="bg-slate-950/80 border border-slate-800 p-3 rounded-2xl text-[11px] space-y-1">
+                  <div className="flex items-center justify-between font-bold text-white">
+                    <span>{log.event}</span>
+                    <span className="text-slate-400 font-mono text-[9px]">{log.timestamp}</span>
+                  </div>
+                  <p className="text-slate-300 font-medium">{log.details}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
       </div>

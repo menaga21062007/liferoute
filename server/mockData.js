@@ -19,29 +19,38 @@ export const INITIAL_HOSPITALS = [
     address: "500 Healthcare Blvd, Metro City",
     phone: "+1 (555) 019-2831",
     specialties: ["Cardiac", "Trauma", "Stroke", "ICU", "Pediatric"],
-    totalBeds: 50,
-    availableBeds: 8,
-    occupiedBeds: 42,
-    totalOTs: 6,
-    availableOTs: 2,
-    occupiedOTs: 4,
+    totalBeds: 120,
+    availableBeds: 18,
+    occupiedBeds: 102,
+    totalOTs: 12,
+    availableOTs: 4,
+    occupiedOTs: 8,
     status: "AVAILABLE",
     incomingAmbulances: [],
     beds: [
-      { id: "b-101", bedNumber: "EMG-01", type: "Emergency", category: "Emergency", status: "OCCUPIED", patientName: "Robert Davis" },
-      { id: "b-102", bedNumber: "EMG-02", type: "Emergency", category: "Emergency", status: "AVAILABLE", patientName: null },
-      { id: "b-103", bedNumber: "ICU-01", type: "ICU", category: "Cardiac ICU", status: "RESERVED", patientName: "David Miller" },
-      { id: "b-104", bedNumber: "ICU-02", type: "ICU", category: "Cardiac ICU", status: "AVAILABLE", patientName: null },
-      { id: "b-105", bedNumber: "WRD-101", type: "Ward", category: "General Ward", status: "OCCUPIED", patientName: "James Wilson" },
-      { id: "b-106", bedNumber: "WRD-102", type: "Ward", category: "General Ward", status: "CLEANING", patientName: null }
+      { id: "b-101", bedNumber: "EMG-01", type: "Emergency", category: "Emergency ER", status: "OCCUPIED", patientName: "Robert Davis" },
+      { id: "b-102", bedNumber: "EMG-02", type: "Emergency", category: "Emergency ER", status: "AVAILABLE", patientName: null },
+      { id: "b-103", bedNumber: "ICU-101", type: "ICU", category: "Cardiac ICU", status: "RESERVED", patientName: "David Miller" },
+      { id: "b-104", bedNumber: "ICU-102", type: "ICU", category: "Cardiac ICU", status: "AVAILABLE", patientName: null },
+      { id: "b-105", bedNumber: "ICU-103", type: "ICU", category: "Trauma ICU", status: "OCCUPIED", patientName: "James Wilson" },
+      { id: "b-106", bedNumber: "WRD-101", type: "Ward", category: "General Ward", status: "OCCUPIED", patientName: "Sarah Jenkins" },
+      { id: "b-107", bedNumber: "WRD-102", type: "Ward", category: "General Ward", status: "CLEANING", patientName: null },
+      { id: "b-108", bedNumber: "WRD-103", type: "Ward", category: "General Ward", status: "AVAILABLE", patientName: null },
+      { id: "b-109", bedNumber: "PED-101", type: "Pediatric", category: "Pediatric ER", status: "AVAILABLE", patientName: null },
+      { id: "b-110", bedNumber: "PED-102", type: "Pediatric", category: "Pediatric ICU", status: "AVAILABLE", patientName: null },
+      { id: "b-111", bedNumber: "BRN-101", type: "Burns", category: "Burn Care Unit", status: "AVAILABLE", patientName: null },
+      { id: "b-112", bedNumber: "BRN-102", type: "Burns", category: "Burn Care Unit", status: "OCCUPIED", patientName: "Carl Williams" }
     ],
     ots: [
       { id: "ot-101", otNumber: "OT-1 (Cardiac)", name: "Cardiac Surgical Suite", specialty: "Cardiology", status: "In_Use", patientName: "Robert Davis" },
-      { id: "ot-102", otNumber: "OT-2 (Trauma)", name: "Trauma Emergency Suite", specialty: "Trauma Surgery", status: "Free", patientName: null }
+      { id: "ot-102", otNumber: "OT-2 (Trauma)", name: "Trauma Emergency Suite", specialty: "Trauma Surgery", status: "Free", patientName: null },
+      { id: "ot-103", otNumber: "OT-3 (Neuro)", name: "Neurosurgery Suite", specialty: "Neurology", status: "Free", patientName: null },
+      { id: "ot-104", otNumber: "OT-4 (General)", name: "General Surgery Suite", specialty: "General", status: "Free", patientName: null }
     ],
     doctors: [
       { id: "doc-101", name: "Dr. Aris Thorne", specialty: "Cardiology & ER Lead", activePatients: 4, status: "ON_DUTY", phone: "Ext. 401" },
-      { id: "doc-102", name: "Dr. Sarah Lin", specialty: "Chief Trauma Surgeon", activePatients: 2, status: "IN_OT", phone: "Ext. 402" }
+      { id: "doc-102", name: "Dr. Sarah Lin", specialty: "Chief Trauma Surgeon", activePatients: 2, status: "IN_OT", phone: "Ext. 402" },
+      { id: "doc-103", name: "Dr. Marcus Vance", specialty: "Neurology Lead", activePatients: 3, status: "ON_DUTY", phone: "Ext. 403" }
     ]
   },
   {
@@ -52,25 +61,32 @@ export const INITIAL_HOSPITALS = [
     address: "120 Emergency Way, Midtown",
     phone: "+1 (555) 014-9922",
     specialties: ["Trauma", "Burns", "Stroke", "ICU"],
-    totalBeds: 40,
-    availableBeds: 12,
-    occupiedBeds: 28,
-    totalOTs: 8,
-    availableOTs: 4,
-    occupiedOTs: 4,
+    totalBeds: 90,
+    availableBeds: 15,
+    occupiedBeds: 75,
+    totalOTs: 10,
+    availableOTs: 3,
+    occupiedOTs: 7,
     status: "AVAILABLE",
     incomingAmbulances: [],
     beds: [
       { id: "b-201", bedNumber: "TRM-01", type: "Emergency", category: "Trauma Bay", status: "OCCUPIED", patientName: "Carl Jenkins" },
       { id: "b-202", bedNumber: "TRM-02", type: "Emergency", category: "Trauma Bay", status: "AVAILABLE", patientName: null },
       { id: "b-203", bedNumber: "ICU-201", type: "ICU", category: "Trauma ICU", status: "AVAILABLE", patientName: null },
-      { id: "b-204", bedNumber: "WRD-201", type: "Ward", category: "General Ward", status: "AVAILABLE", patientName: null }
+      { id: "b-204", bedNumber: "ICU-202", type: "ICU", category: "Trauma ICU", status: "OCCUPIED", patientName: "Kevin Durant" },
+      { id: "b-205", bedNumber: "WRD-201", type: "Ward", category: "General Ward", status: "AVAILABLE", patientName: null },
+      { id: "b-206", bedNumber: "WRD-202", type: "Ward", category: "General Ward", status: "AVAILABLE", patientName: null },
+      { id: "b-207", bedNumber: "BRN-201", type: "Burns", category: "Burn Care Unit", status: "AVAILABLE", patientName: null },
+      { id: "b-208", bedNumber: "BRN-202", type: "Burns", category: "Burn Care Unit", status: "CLEANING", patientName: null }
     ],
     ots: [
-      { id: "ot-201", otNumber: "OT-1 (Trauma)", name: "Trauma Suite 1", specialty: "Trauma Surgery", status: "Free", patientName: null }
+      { id: "ot-201", otNumber: "OT-1 (Trauma)", name: "Trauma Suite 1", specialty: "Trauma Surgery", status: "Free", patientName: null },
+      { id: "ot-202", otNumber: "OT-2 (Burns)", name: "Burn Reconstruction Suite", specialty: "Burns", status: "Free", patientName: null },
+      { id: "ot-203", otNumber: "OT-3 (General)", name: "General Operating Room", specialty: "General", status: "Free", patientName: null }
     ],
     doctors: [
-      { id: "doc-201", name: "Dr. Kevin Durant", specialty: "Chief Trauma Surgeon", activePatients: 3, status: "ON_DUTY", phone: "Ext. 501" }
+      { id: "doc-201", name: "Dr. Kevin Durant", specialty: "Chief Trauma Surgeon", activePatients: 3, status: "ON_DUTY", phone: "Ext. 501" },
+      { id: "doc-202", name: "Dr. Rachel Adams", specialty: "Burn Specialist", activePatients: 2, status: "ON_DUTY", phone: "Ext. 502" }
     ]
   },
   {
@@ -81,23 +97,31 @@ export const INITIAL_HOSPITALS = [
     address: "88 Cardiac Care Rd, South District",
     phone: "+1 (555) 017-4488",
     specialties: ["Cardiac", "Stroke", "ICU"],
-    totalBeds: 30,
-    availableBeds: 3,
-    occupiedBeds: 27,
-    totalOTs: 4,
-    availableOTs: 1,
-    occupiedOTs: 3,
+    totalBeds: 75,
+    availableBeds: 10,
+    occupiedBeds: 65,
+    totalOTs: 8,
+    availableOTs: 2,
+    occupiedOTs: 6,
     status: "LIMITED",
     incomingAmbulances: [],
     beds: [
       { id: "b-301", bedNumber: "CAR-01", type: "ICU", category: "Cardiac ICU", status: "OCCUPIED", patientName: "Elena Rostova" },
-      { id: "b-302", bedNumber: "CAR-02", type: "ICU", category: "Cardiac ICU", status: "AVAILABLE", patientName: null }
+      { id: "b-302", bedNumber: "CAR-02", type: "ICU", category: "Cardiac ICU", status: "AVAILABLE", patientName: null },
+      { id: "b-303", bedNumber: "CAR-03", type: "ICU", category: "CCU Ward", status: "AVAILABLE", patientName: null },
+      { id: "b-304", bedNumber: "STR-301", type: "Emergency", category: "Stroke Unit", status: "AVAILABLE", patientName: null },
+      { id: "b-305", bedNumber: "STR-302", type: "Emergency", category: "Stroke Unit", status: "OCCUPIED", patientName: "Samantha Chen" },
+      { id: "b-306", bedNumber: "WRD-301", type: "Ward", category: "Cardiology Ward", status: "AVAILABLE", patientName: null },
+      { id: "b-307", bedNumber: "WRD-302", type: "Ward", category: "Cardiology Ward", status: "CLEANING", patientName: null }
     ],
     ots: [
-      { id: "ot-301", otNumber: "OT-1 (Cath Lab)", name: "Angioplasty Cath Lab", specialty: "Cardiology", status: "In_Use", patientName: "Elena Rostova" }
+      { id: "ot-301", otNumber: "OT-1 (Cath Lab)", name: "Angioplasty Cath Lab 1", specialty: "Cardiology", status: "In_Use", patientName: "Elena Rostova" },
+      { id: "ot-302", otNumber: "OT-2 (Cath Lab)", name: "Angioplasty Cath Lab 2", specialty: "Cardiology", status: "Free", patientName: null },
+      { id: "ot-303", otNumber: "OT-3 (Vascular)", name: "Vascular Surgery Suite", specialty: "Vascular", status: "Free", patientName: null }
     ],
     doctors: [
-      { id: "doc-301", name: "Dr. Marcus Vance", specialty: "Interventional Cardiologist", activePatients: 5, status: "ON_DUTY", phone: "Ext. 601" }
+      { id: "doc-301", name: "Dr. Marcus Vance", specialty: "Interventional Cardiologist", activePatients: 5, status: "ON_DUTY", phone: "Ext. 601" },
+      { id: "doc-302", name: "Dr. Pooja Kumar", specialty: "Stroke Specialist", activePatients: 3, status: "ON_DUTY", phone: "Ext. 602" }
     ]
   },
   {
@@ -108,23 +132,30 @@ export const INITIAL_HOSPITALS = [
     address: "405 Hope Street, East Side",
     phone: "+1 (555) 012-3311",
     specialties: ["Pediatric", "ICU", "Burns"],
-    totalBeds: 25,
-    availableBeds: 15,
-    occupiedBeds: 10,
-    totalOTs: 3,
+    totalBeds: 60,
+    availableBeds: 14,
+    occupiedBeds: 46,
+    totalOTs: 6,
     availableOTs: 2,
-    occupiedOTs: 1,
+    occupiedOTs: 4,
     status: "AVAILABLE",
     incomingAmbulances: [],
     beds: [
       { id: "b-401", bedNumber: "PED-01", type: "ICU", category: "Pediatric ICU", status: "AVAILABLE", patientName: null },
-      { id: "b-402", bedNumber: "PED-02", type: "Emergency", category: "Pediatric ER", status: "AVAILABLE", patientName: null }
+      { id: "b-402", bedNumber: "PED-02", type: "Emergency", category: "Pediatric ER", status: "AVAILABLE", patientName: null },
+      { id: "b-403", bedNumber: "PED-03", type: "Emergency", category: "Pediatric ER", status: "OCCUPIED", patientName: "Emily Watson" },
+      { id: "b-404", bedNumber: "NIC-401", type: "ICU", category: "NICU Bay", status: "AVAILABLE", patientName: null },
+      { id: "b-405", bedNumber: "NIC-402", type: "ICU", category: "NICU Bay", status: "AVAILABLE", patientName: null },
+      { id: "b-406", bedNumber: "WRD-401", type: "Ward", category: "Pediatric Ward", status: "AVAILABLE", patientName: null },
+      { id: "b-407", bedNumber: "WRD-402", type: "Ward", category: "Pediatric Ward", status: "CLEANING", patientName: null }
     ],
     ots: [
-      { id: "ot-401", otNumber: "OT-1 (Pediatric)", name: "Pediatric Surgery Suite", specialty: "Pediatrics", status: "Free", patientName: null }
+      { id: "ot-401", otNumber: "OT-1 (Pediatric)", name: "Pediatric Surgery Suite", specialty: "Pediatrics", status: "Free", patientName: null },
+      { id: "ot-402", otNumber: "OT-2 (Neonatal)", name: "Neonatal Surgical Room", specialty: "Pediatrics", status: "Free", patientName: null }
     ],
     doctors: [
-      { id: "doc-401", name: "Dr. Emily Watson", specialty: "Chief Pediatric ER", activePatients: 2, status: "AVAILABLE", phone: "Ext. 701" }
+      { id: "doc-401", name: "Dr. Emily Watson", specialty: "Chief Pediatric ER", activePatients: 2, status: "AVAILABLE", phone: "Ext. 701" },
+      { id: "doc-402", name: "Dr. Siddharth Patel", specialty: "Pediatric Surgeon", activePatients: 4, status: "ON_DUTY", phone: "Ext. 702" }
     ]
   }
 ];

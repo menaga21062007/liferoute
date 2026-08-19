@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { SharedMap } from './SharedMap';
+import { UniversalSharedMap } from './UniversalSharedMap';
 import {
   Ambulance,
   Building2,
@@ -17,7 +17,8 @@ import {
 export const AmbulanceView = () => {
   const { ambulances, hospitals, startTrip } = useApp();
 
-  const activeAmbulance = ambulances.find((a) => a.code === 'AMB-101') || ambulances[0];
+  const [selectedAmbulanceCode, setSelectedAmbulanceCode] = useState('AMB-101');
+  const activeAmbulance = ambulances.find((a) => a.code === selectedAmbulanceCode || a.id === selectedAmbulanceCode) || ambulances[0];
   const isEnRoute = activeAmbulance?.status === 'EN_ROUTE';
 
   const [patientName, setPatientName] = useState('Menaga');
@@ -50,26 +51,39 @@ export const AmbulanceView = () => {
   };
 
   const targetHospital = hospitals.find(h => h.id === activeAmbulance.destinationHospitalId) || hospitals[0];
+  const vitals = activeAmbulance?.patient?.vitals || { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' };
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
       
-      {/* Active Trip Header Banner */}
+      {/* Header Banner & Ambulance Unit Selector */}
       <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-5 rounded-3xl flex flex-wrap items-center justify-between gap-4 shadow-2xl">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3.5">
           <div className="p-3.5 rounded-2xl bg-red-500/20 text-red-400 border border-red-500/40">
             <Ambulance className="h-7 w-7 animate-bounce" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-2xl font-black text-white tracking-tight">{activeAmbulance.code} ({activeAmbulance.unitName})</h2>
+            <div className="flex items-center space-x-3">
+              {/* Ambulance Selector Dropdown */}
+              <select
+                value={selectedAmbulanceCode}
+                onChange={(e) => setSelectedAmbulanceCode(e.target.value)}
+                className="bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-1.5 text-lg font-black text-white focus:outline-none focus:border-brand-blue"
+              >
+                {ambulances.map(a => (
+                  <option key={a.id} value={a.code}>🚑 {a.code} ({a.unitName})</option>
+                ))}
+              </select>
+
               <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                 isEnRoute ? 'bg-red-500/25 text-red-300 border border-red-500/50 animate-pulse' : 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'
               }`}>
                 {activeAmbulance.status}
               </span>
             </div>
-            <p className="text-xs text-slate-300 font-semibold mt-0.5">Crew: Marcus Vance & Elena Rostova • Lead Paramedic</p>
+            <p className="text-xs text-slate-300 font-semibold mt-1">
+              Driver: {activeAmbulance.driverName || 'Marcus Vance'} • Paramedic: {activeAmbulance.paramedicName || 'Elena Rostova'}
+            </p>
           </div>
         </div>
 
@@ -184,7 +198,7 @@ export const AmbulanceView = () => {
                   className="w-full bg-gradient-to-r from-red-600 to-brand-red hover:from-red-500 hover:to-red-600 text-white font-black text-sm py-3.5 rounded-2xl shadow-xl shadow-red-600/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
                 >
                   <Play className="h-4 w-4 fill-white" />
-                  <span>START EMERGENCY TRIP & GREEN CORRIDOR</span>
+                  <span>DISPATCH {activeAmbulance.code} & GREEN CORRIDOR</span>
                 </button>
               </form>
             </div>
@@ -194,7 +208,7 @@ export const AmbulanceView = () => {
               {/* Active Dispatch Details Card */}
               <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <div className="text-xs font-extrabold text-slate-300 uppercase">Active Patient Dispatch</div>
+                  <div className="text-xs font-extrabold text-slate-300 uppercase">Active Patient Dispatch ({activeAmbulance.code})</div>
                   <span className="bg-red-500/25 text-red-300 border border-red-500/50 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">EN ROUTE</span>
                 </div>
 
@@ -230,7 +244,7 @@ export const AmbulanceView = () => {
                       <span>HEART RATE</span>
                       <Heart className="h-3.5 w-3.5 fill-red-500 text-red-500 animate-ping" />
                     </div>
-                    <div className="text-2xl font-black text-white mt-1">117 <span className="text-xs text-slate-400">BPM</span></div>
+                    <div className="text-2xl font-black text-white mt-1">{vitals.hr || 117} <span className="text-xs text-slate-400">BPM</span></div>
                   </div>
 
                   <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
@@ -238,7 +252,7 @@ export const AmbulanceView = () => {
                       <span>BP PRESS.</span>
                       <Activity className="h-3.5 w-3.5" />
                     </div>
-                    <div className="text-2xl font-black text-white mt-1">148/94</div>
+                    <div className="text-2xl font-black text-white mt-1">{vitals.bp || '148/94'}</div>
                   </div>
 
                   <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
@@ -246,7 +260,7 @@ export const AmbulanceView = () => {
                       <span>SPO2 SAT.</span>
                       <Wind className="h-3.5 w-3.5" />
                     </div>
-                    <div className="text-2xl font-black text-white mt-1">94%</div>
+                    <div className="text-2xl font-black text-white mt-1">{vitals.spo2 || '94%'}</div>
                   </div>
 
                   <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
@@ -254,7 +268,7 @@ export const AmbulanceView = () => {
                       <span>TEMP</span>
                       <Thermometer className="h-3.5 w-3.5" />
                     </div>
-                    <div className="text-2xl font-black text-white mt-1">37.2°C</div>
+                    <div className="text-2xl font-black text-white mt-1">{vitals.temp || '37.2°C'}</div>
                   </div>
                 </div>
               </div>
@@ -266,19 +280,7 @@ export const AmbulanceView = () => {
 
         {/* Right Column: Universal Shared Map */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-4 rounded-3xl shadow-2xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-white font-extrabold text-sm">
-                <Navigation className="h-4 w-4 text-emerald-400 animate-pulse" />
-                <span>Live Shared Ambulance GPS Simulation Map</span>
-              </div>
-              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
-                SIMULATED GPS ACTIVE
-              </span>
-            </div>
-
-            <SharedMap height="h-[560px]" />
-          </div>
+          <UniversalSharedMap height="h-[560px]" selectedAmbulanceId={activeAmbulance.id} />
         </div>
 
       </div>

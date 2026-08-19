@@ -15,7 +15,7 @@ import {
   Heart,
   Activity,
   Wind,
-  Zap,
+  Thermometer,
   RotateCcw
 } from 'lucide-react';
 
@@ -26,8 +26,7 @@ export const HospitalView = () => {
     selectedHospitalId,
     setSelectedHospitalId,
     updatePatientTreatmentStatus,
-    startTrip,
-    resetDemoData
+    startTrip
   } = useApp();
 
   const currentHospital = hospitals.find(h => h.id === selectedHospitalId || h.code === selectedHospitalId) || hospitals[0] || {
@@ -35,33 +34,37 @@ export const HospitalView = () => {
     name: "Velammal Global Hospital",
     code: "VGH",
     address: "500 Healthcare Blvd, Metro City",
-    availableBeds: 8,
-    totalBeds: 50,
-    availableOTs: 2,
-    totalOTs: 6
+    availableBeds: 18,
+    totalBeds: 120,
+    availableOTs: 4,
+    totalOTs: 12
   };
 
-  // Find incoming ambulances or fallback standby patient for demo
-  const activeEnRouteAmbulances = ambulances.filter(a => a.status === 'EN_ROUTE' || a.status === 'Assigned' || a.status === 'ARRIVED');
+  // Filter incoming ambulances and patients STRICTLY for this selected hospital alone!
+  const incomingForThisHospital = ambulances.filter(a =>
+    (a.status === 'EN_ROUTE' || a.status === 'ARRIVED') &&
+    (a.destinationHospitalId === currentHospital.id || a.destinationHospitalId === currentHospital.code || a.destinationHospitalId === selectedHospitalId)
+  );
 
-  // Fallback demo patient so ER page is NEVER empty or blank
+  // Standby demonstration patient specific to this hospital if no active dispatch
   const standbyPatient = {
-    id: 'pat-standby',
-    code: 'AMB-101',
+    id: `amb-standby-${currentHospital.code}`,
+    code: `AMB-101`,
     patient: {
-      id: 'pat-demo-1',
-      name: 'Menaga',
+      id: `pat-demo-${currentHospital.code}`,
+      name: `Emergency Patient (${currentHospital.code})`,
       age: 54,
       gender: 'Male',
       bloodGroup: 'O+',
-      conditionCategory: 'Cardiac Arrest / STEMI',
-      treatmentStatus: 'En route'
+      conditionCategory: 'Cardiac Emergency',
+      treatmentStatus: 'En route',
+      vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C', ecgStatus: 'Live Telemetry Active' }
     },
-    etaMinutes: 3,
+    etaMinutes: 4,
     status: 'EN_ROUTE'
   };
 
-  const displayList = activeEnRouteAmbulances.length > 0 ? activeEnRouteAmbulances : [standbyPatient];
+  const displayList = incomingForThisHospital.length > 0 ? incomingForThisHospital : [standbyPatient];
 
   const handleSimulateIncoming = () => {
     startTrip({
@@ -70,7 +73,7 @@ export const HospitalView = () => {
       age: 54,
       gender: 'Male',
       bloodGroup: 'O+',
-      conditionCategory: 'Cardiac Arrest / STEMI',
+      conditionCategory: 'Cardiac Emergency',
       hospitalId: currentHospital.id
     });
   };
@@ -86,6 +89,7 @@ export const HospitalView = () => {
           </div>
           <div>
             <div className="flex items-center space-x-2">
+              {/* Hospital Selector Dropdown */}
               <select
                 value={selectedHospitalId}
                 onChange={(e) => setSelectedHospitalId(e.target.value)}
@@ -110,12 +114,12 @@ export const HospitalView = () => {
             className="bg-gradient-to-r from-red-600 to-brand-red hover:from-red-500 hover:to-red-600 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-red-600/30 flex items-center space-x-2 transition-all"
           >
             <PlusCircle className="h-4 w-4" />
-            <span>SIMULATE INCOMING ER DISPATCH</span>
+            <span>DISPATCH TO {currentHospital.code}</span>
           </button>
 
           <div className="flex items-center space-x-4 bg-slate-950/90 p-2.5 px-4 rounded-2xl border border-slate-800 shadow-xl">
             <div className="text-center">
-              <div className="text-[10px] text-slate-400 font-extrabold uppercase">Available ER Beds</div>
+              <div className="text-[10px] text-slate-400 font-extrabold uppercase">Available Beds</div>
               <div className="text-xl font-black text-emerald-400">{currentHospital.availableBeds} / {currentHospital.totalBeds}</div>
             </div>
             <div className="h-7 w-px bg-slate-800" />
@@ -129,17 +133,17 @@ export const HospitalView = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: Interactive Triage Queue & Patient Lifecycle Control */}
+        {/* Left Column: Triage Queue & Patient Vitals Telemetry for THIS Hospital Alone */}
         <div className="lg:col-span-6 space-y-5">
           
           <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2">
                 <Ambulance className="h-5 w-5 text-red-400 animate-bounce" />
-                <h3 className="text-lg font-black text-white tracking-tight">Hospital ER Triage Queue ({displayList.length})</h3>
+                <h3 className="text-lg font-black text-white tracking-tight">{currentHospital.name} ER Triage Queue</h3>
               </div>
               <span className="bg-red-500/25 text-red-300 border border-red-500/50 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-                TRIAGE LIVE
+                {currentHospital.code} EXCLUSIVE
               </span>
             </div>
 
@@ -147,6 +151,7 @@ export const HospitalView = () => {
               {displayList.map((amb) => {
                 const patient = amb.patient || standbyPatient.patient;
                 const status = patient.treatmentStatus || 'En route';
+                const vitals = patient.vitals || { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' };
 
                 return (
                   <div key={amb.id} className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
@@ -168,14 +173,65 @@ export const HospitalView = () => {
                       </div>
                     </div>
 
-                    <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                      <div className="text-[10px] text-slate-400 font-black uppercase">Emergency Diagnosis / Category</div>
-                      <div className="text-sm font-black text-red-400 mt-0.5">{patient.conditionCategory}</div>
+                    <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="text-[10px] text-slate-400 font-black uppercase">Emergency Category</div>
+                        <div className="text-sm font-black text-red-400 mt-0.5">{patient.conditionCategory}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-slate-400 font-black uppercase">Target Hospital</div>
+                        <div className="text-xs font-black text-white">{currentHospital.code}</div>
+                      </div>
+                    </div>
+
+                    {/* LIVE PATIENT VITALS TELEMETRY MONITOR FOR THIS HOSPITAL */}
+                    <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <div className="flex items-center space-x-2">
+                          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                          <span className="font-extrabold text-white text-xs">PATIENT TELEMETRY VITALS</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-emerald-400 font-bold">STREAM LIVE</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                          <div className="text-[9px] text-red-400 font-black flex items-center justify-center space-x-1">
+                            <Heart className="h-3 w-3 fill-red-500 text-red-500 animate-ping" />
+                            <span>HR</span>
+                          </div>
+                          <div className="text-lg font-black text-white mt-0.5">{vitals.hr || 117} <span className="text-[9px] text-slate-400">BPM</span></div>
+                        </div>
+
+                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                          <div className="text-[9px] text-blue-400 font-black flex items-center justify-center space-x-1">
+                            <Activity className="h-3 w-3" />
+                            <span>BP</span>
+                          </div>
+                          <div className="text-lg font-black text-white mt-0.5">{vitals.bp || '148/94'}</div>
+                        </div>
+
+                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                          <div className="text-[9px] text-emerald-400 font-black flex items-center justify-center space-x-1">
+                            <Wind className="h-3 w-3" />
+                            <span>SPO2</span>
+                          </div>
+                          <div className="text-lg font-black text-white mt-0.5">{vitals.spo2 || '94%'}</div>
+                        </div>
+
+                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                          <div className="text-[9px] text-amber-400 font-black flex items-center justify-center space-x-1">
+                            <Thermometer className="h-3 w-3" />
+                            <span>TEMP</span>
+                          </div>
+                          <div className="text-lg font-black text-white mt-0.5">{vitals.temp || '37.2°C'}</div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Interactive Patient Lifecycle Buttons */}
                     <div className="pt-2 border-t border-slate-800 space-y-2">
-                      <div className="text-xs font-black text-slate-300 uppercase">Paramedic & ER Preparation Lifecycle</div>
+                      <div className="text-xs font-black text-slate-300 uppercase">Hospital Preparation Lifecycle</div>
                       
                       <div className="grid grid-cols-2 gap-2">
                         <button

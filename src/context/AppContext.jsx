@@ -23,7 +23,7 @@ export const AppProvider = ({ children }) => {
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [alerts, setAlerts] = useState([
-    { id: "alt-1", timestamp: "10:15:00 AM", title: "Emergency Intelligence Active", message: "DBSCAN Radar & Dijkstra Route Planner Ready.", severity: "NORMAL" }
+    { id: "alt-1", timestamp: "10:15:00 AM", title: "Emergency Intelligence Active", message: "All 3 ambulance units ready for dispatch.", severity: "NORMAL" }
   ]);
   const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
   const [tripHistory, setTripHistory] = useState(INITIAL_TRIP_HISTORY);
@@ -33,7 +33,7 @@ export const AppProvider = ({ children }) => {
   const [dbscanHotspots, setDbscanHotspots] = useState([]);
   const [roadGraph, setRoadGraph] = useState(FICTIONAL_ROAD_GRAPH);
   const [blockedEdges, setBlockedEdges] = useState([]);
-  
+
   // Helper to compute Dijkstra 2-stage route
   const computeDijkstraRoute = (ambLoc, reqLoc, hospId, currentBlocked = []) => {
     const startNode = findNearestGraphNode(roadGraph, ambLoc || { lat: 40.718, lng: -73.950 }) || roadGraph.nodes[1]; // N2
@@ -60,6 +60,7 @@ export const AppProvider = ({ children }) => {
       startNodeName: startNode.name,
       emergencyNodeName: emergencyNode.name,
       targetHospitalName: targetHosp.name,
+      targetHospitalId: targetHosp.id,
       pathNodes: combinedCoords,
       polylineCoords: combinedCoords,
       totalDistanceKm: combinedDist,
@@ -83,7 +84,7 @@ export const AppProvider = ({ children }) => {
 
   const dispatchQueue = sortPriorityQueue(emergencyRequests, dbscanHotspots);
 
-  // Standalone Ambulance Movement Ticker
+  // Standalone Ambulance Movement Ticker (Moves ALL 3 EN_ROUTE Ambulances)
   useEffect(() => {
     if (!isSimulationRunning) return;
 
@@ -99,11 +100,19 @@ export const AppProvider = ({ children }) => {
 
           const newEta = Math.max(1, Math.round((route.length - nextIdx) * 0.8));
 
+          // Fluctuating live vitals telemetry
+          const currentVitals = amb.patient?.vitals || { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' };
+          const newHr = Math.min(160, Math.max(75, (currentVitals.hr || 117) + Math.floor(Math.random() * 5) - 2));
+
           return {
             ...amb,
             currentWaypointIndex: nextIdx,
             currentLocation: nextLoc,
-            etaMinutes: newEta
+            etaMinutes: newEta,
+            patient: amb.patient ? {
+              ...amb.patient,
+              vitals: { ...currentVitals, hr: newHr }
+            } : null
           };
         })
       );
@@ -128,36 +137,46 @@ export const AppProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [isSimulationRunning]);
 
-  // Main Emergency Trip Starter & Dijkstra Route Generator
+  // Main Emergency Trip Starter - Supports ALL 3 Ambulances (AMB-101, AMB-102, AMB-103)
   const startTrip = (tripData) => {
     const targetHospId = tripData.hospitalId || 'hosp-1';
-    const targetHosp = hospitals.find((h) => h.id === targetHospId) || hospitals[0];
+    const targetHosp = hospitals.find((h) => h.id === targetHospId || h.code === targetHospId) || hospitals[0];
 
+    // Pick target ambulance or next available unit
+    let ambToUseId = tripData.ambulanceId;
+    if (!ambToUseId) {
+      const availAmb = ambulances.find(a => a.status === 'AVAILABLE' || a.status === 'IDLE') || ambulances[0];
+      ambToUseId = availAmb.id;
+    }
+
+    const ambObj = ambulances.find(a => a.id === ambToUseId || a.code === ambToUseId) || ambulances[0];
     const reqLoc = tripData.location || { lat: 40.722, lng: -73.945 };
-    const ambLoc = { lat: 40.718, lng: -73.950 };
+    const ambLoc = ambObj.currentLocation || { lat: 40.718, lng: -73.950 };
 
-    // Compute Dijkstra 2-Stage Route
+    // Compute Dijkstra 2-Stage Route for this specific trip
     const dijkstraRoute = computeDijkstraRoute(ambLoc, reqLoc, targetHospId, blockedEdges);
     setActiveDijkstraRoute(dijkstraRoute);
 
     const patientObj = {
-      id: 'pat-' + Date.now(),
-      name: tripData.patientName || 'Menaga',
+      id: 'pat-' + Date.now() + '-' + Math.floor(Math.random()*100),
+      name: tripData.patientName || 'Emergency Patient',
       age: tripData.age || 54,
       gender: tripData.gender || 'Male',
       bloodGroup: tripData.bloodGroup || 'O+',
       conditionCategory: tripData.conditionCategory || 'Cardiac Emergency',
       treatmentStatus: 'En route',
-      vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' }
+      destinationHospitalId: targetHosp.id,
+      vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C', ecgStatus: 'Live Telemetry Active' }
     };
 
+    // Update the chosen ambulance state to EN_ROUTE
     setAmbulances((prev) =>
       prev.map((amb) => {
-        if (amb.code === 'AMB-101' || amb.id === tripData.ambulanceId || amb.id === 'amb-101') {
+        if (amb.id === ambObj.id || amb.code === ambObj.code) {
           return {
             ...amb,
             status: 'EN_ROUTE',
-            destinationHospitalId: targetHospId,
+            destinationHospitalId: targetHosp.id,
             route: dijkstraRoute.polylineCoords,
             currentWaypointIndex: 0,
             currentLocation: dijkstraRoute.polylineCoords[0] || ambLoc,
@@ -169,18 +188,20 @@ export const AppProvider = ({ children }) => {
       })
     );
 
+    // Update request state
     setEmergencyRequests((prev) =>
       prev.map((r) => {
         if (r.id === tripData.requestId || r.patientName === tripData.patientName) {
-          return { ...r, status: 'Ambulance En Route', assignedAmbulanceId: 'AMB-101' };
+          return { ...r, status: 'Ambulance En Route', assignedAmbulanceId: ambObj.code };
         }
         return r;
       })
     );
 
+    // Reserve Bed at Target Hospital
     setHospitals((prev) =>
       prev.map((hosp) => {
-        if (hosp.id === targetHospId || hosp.code === targetHospId) {
+        if (hosp.id === targetHosp.id || hosp.code === targetHosp.code) {
           const updatedBeds = (hosp.beds || []).map((b, idx) =>
             idx === 0 ? { ...b, status: 'RESERVED', patientName: patientObj.name } : b
           );
@@ -194,6 +215,7 @@ export const AppProvider = ({ children }) => {
       })
     );
 
+    // Trigger Green Corridor on Traffic Signals
     setTrafficSignals((prev) =>
       prev.map((sig) => {
         if (sig.code === 'TS-01' || sig.code === 'TS-02') {
@@ -202,31 +224,20 @@ export const AppProvider = ({ children }) => {
             status: 'GREEN',
             mode: 'GREEN_CORRIDOR_ACTIVE',
             countdownSeconds: 30,
-            activeAmbulanceId: 'AMB-101'
+            activeAmbulanceId: ambObj.code
           };
         }
         return sig;
       })
     );
-
-    setAlerts((prev) => [
-      {
-        id: 'alt-' + Date.now(),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        title: '🚨 Emergency Dispatch Started',
-        message: `AMB-101 en route with ${patientObj.name} (${patientObj.conditionCategory}) to ${targetHosp.name}. Dijkstra path: ${dijkstraRoute.totalDistanceKm}km`,
-        severity: 'HIGH'
-      },
-      ...prev
-    ]);
   };
 
   const selectRequestAndComputeDijkstra = (reqId) => {
     const req = emergencyRequests.find((r) => r.id === reqId);
     if (!req) return;
 
-    const amb = ambulances.find((a) => a.code === 'AMB-101') || ambulances[0];
-    const route = computeDijkstraRoute(amb.currentLocation, req.location, 'hosp-1', blockedEdges);
+    const availAmb = ambulances.find(a => a.status === 'AVAILABLE' || a.status === 'IDLE') || ambulances[0];
+    const route = computeDijkstraRoute(availAmb.currentLocation, req.location, 'hosp-1', blockedEdges);
     setActiveDijkstraRoute(route);
   };
 
@@ -235,38 +246,35 @@ export const AppProvider = ({ children }) => {
     const unassigned = sorted.find((r) => r.status === 'Waiting' || r.status === 'Queued');
     if (!unassigned) return;
 
+    // Pick next available ambulance from ALL 3 units
+    const availAmb = ambulances.find(a => a.status === 'AVAILABLE' || a.status === 'IDLE') || ambulances[0];
+
+    // Pick target hospital based on category requirement
+    let targetHospId = 'hosp-1';
+    if (unassigned.emergencyType.includes('Trauma') || unassigned.emergencyType.includes('Accident')) targetHospId = 'hosp-2';
+    if (unassigned.emergencyType.includes('Stroke') || unassigned.emergencyType.includes('Cardiac')) targetHospId = 'hosp-3';
+    if (unassigned.emergencyType.includes('Pediatric') || unassigned.emergencyType.includes('Respiratory')) targetHospId = 'hosp-4';
+
     startTrip({
       requestId: unassigned.id,
-      ambulanceId: 'amb-101',
+      ambulanceId: availAmb.id,
       patientName: unassigned.patientName,
       age: unassigned.age,
       conditionCategory: unassigned.emergencyType,
       location: unassigned.location,
-      hospitalId: 'hosp-1'
+      hospitalId: targetHospId
     });
   };
 
   const toggleRoadBlock = () => {
-    const edgeToBlock = 'E3'; // Grand Corridor Edge
+    const edgeToBlock = 'E3';
     const isAlreadyBlocked = blockedEdges.includes(edgeToBlock);
     const newBlocked = isAlreadyBlocked ? [] : [edgeToBlock];
     setBlockedEdges(newBlocked);
 
-    // Recompute current active Dijkstra route with updated road block
     const req = emergencyRequests[0] || { location: { lat: 40.722, lng: -73.945 } };
     const newRoute = computeDijkstraRoute({ lat: 40.718, lng: -73.950 }, req.location, 'hosp-1', newBlocked);
     setActiveDijkstraRoute(newRoute);
-
-    setAlerts((prev) => [
-      {
-        id: 'alt-' + Date.now(),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        title: isAlreadyBlocked ? '🟢 Road Block Cleared' : '🛑 Road Block Activated (Re-Routed)',
-        message: isAlreadyBlocked ? 'Grand Corridor Edge E3 restored.' : 'Grand Corridor Edge E3 blocked. Dijkstra re-routed path dynamically!',
-        severity: isAlreadyBlocked ? 'NORMAL' : 'HIGH'
-      },
-      ...prev
-    ]);
   };
 
   const updateBedStatus = (hospitalId, bedId, newStatus) => {
@@ -355,13 +363,15 @@ export const AppProvider = ({ children }) => {
         dispatchNextRequest,
         autoDispatchAll: () => {
           dispatchNextRequest();
+          setTimeout(() => dispatchNextRequest(), 500);
         },
         manualAssignAmbulance: (reqId) => {
           const req = emergencyRequests.find(r => r.id === reqId);
           if (!req) return;
+          const availAmb = ambulances.find(a => a.status === 'AVAILABLE' || a.status === 'IDLE') || ambulances[0];
           startTrip({
             requestId: req.id,
-            ambulanceId: 'amb-101',
+            ambulanceId: availAmb.id,
             patientName: req.patientName,
             age: req.age,
             conditionCategory: req.emergencyType,
