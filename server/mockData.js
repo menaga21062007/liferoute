@@ -107,6 +107,21 @@ export const INITIAL_HOSPITALS = [
   }
 ];
 
+export const PREDEFINED_ROUTES = {
+  routeAlpha: [
+    { lat: 40.715000, lng: -73.955000 },
+    { lat: 40.718000, lng: -73.950000 },
+    { lat: 40.722000, lng: -73.945000 },
+    { lat: 40.727000, lng: -73.939000 },
+    { lat: 40.730610, lng: -73.935242 }
+  ],
+  routeBeta: [
+    { lat: 40.738000, lng: -73.972000 },
+    { lat: 40.745000, lng: -73.980000 },
+    { lat: 40.748817, lng: -73.985428 }
+  ]
+};
+
 // Fictional City Road Graph (12 Nodes, 18 Edges)
 export const FICTIONAL_ROAD_GRAPH = {
   nodes: [
