@@ -17,13 +17,13 @@ import { sortPriorityQueue, findBestAmbulanceForRequest } from '../utils/priorit
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [activeRole, setActiveRole] = useState('ambulance'); // Default role
+  const [activeRole, setActiveRole] = useState('hospital'); // Active View
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
   const [hospitals, setHospitals] = useState(INITIAL_HOSPITALS);
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [alerts, setAlerts] = useState([
-    { id: "alt-1", timestamp: "10:15:00 AM", title: "Emergency System Active", message: "Paramedic crew ready for intake. System connected.", severity: "NORMAL" }
+    { id: "alt-1", timestamp: "10:15:00 AM", title: "Hospital ER & Bed Management Connected", message: "Live sync active for all 4 hospitals.", severity: "NORMAL" }
   ]);
   const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
   const [tripHistory, setTripHistory] = useState(INITIAL_TRIP_HISTORY);
@@ -45,29 +45,7 @@ export const AppProvider = ({ children }) => {
 
   const dispatchQueue = sortPriorityQueue(emergencyRequests, dbscanHotspots);
 
-  // Socket.io connection fallback
-  useEffect(() => {
-    const socketInstance = io(window.location.origin, {
-      reconnectionAttempts: 3,
-      timeout: 3000,
-    });
-
-    socketInstance.on('connect', () => setIsConnected(true));
-    socketInstance.on('disconnect', () => setIsConnected(false));
-
-    socketInstance.on('STATE_UPDATE', (data) => {
-      if (data.hospitals && data.hospitals.length > 0) setHospitals(data.hospitals);
-      if (data.ambulances && data.ambulances.length > 0) setAmbulances(data.ambulances);
-      if (data.trafficSignals && data.trafficSignals.length > 0) setTrafficSignals(data.trafficSignals);
-      if (data.alerts && data.alerts.length > 0) setAlerts(data.alerts);
-      if (data.activityLogs && data.activityLogs.length > 0) setActivityLogs(data.activityLogs);
-      if (data.tripHistory && data.tripHistory.length > 0) setTripHistory(data.tripHistory);
-    });
-
-    return () => socketInstance.disconnect();
-  }, []);
-
-  // Standalone Ambulance Movement Ticker (Moves EN_ROUTE ambulances along waypoints every 2 seconds)
+  // Standalone Ambulance Movement Ticker
   useEffect(() => {
     if (!isSimulationRunning) return;
 
@@ -81,7 +59,6 @@ export const AppProvider = ({ children }) => {
           const nextIdx = (currIdx + 1) % route.length;
           const nextLoc = route[nextIdx];
 
-          // Calculate remaining ETA
           const newEta = Math.max(1, Math.round((route.length - nextIdx) * 0.8));
 
           return {
@@ -113,7 +90,7 @@ export const AppProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [isSimulationRunning]);
 
-  // Main Emergency Trip Starter - Fully Connected to Hospitals, Map & Signals
+  // Main Emergency Trip Starter
   const startTrip = (tripData) => {
     const targetHospId = tripData.hospitalId || 'hosp-1';
     const targetHosp = hospitals.find((h) => h.id === targetHospId) || hospitals[0];
@@ -130,7 +107,6 @@ export const AppProvider = ({ children }) => {
       vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' }
     };
 
-    // 1. Update Ambulance State
     setAmbulances((prev) =>
       prev.map((amb) => {
         if (amb.code === 'AMB-101' || amb.id === tripData.ambulanceId || amb.id === 'amb-101') {
@@ -149,10 +125,9 @@ export const AppProvider = ({ children }) => {
       })
     );
 
-    // 2. Reserve Bed & Update Hospital Data in Real-Time
     setHospitals((prev) =>
       prev.map((hosp) => {
-        if (hosp.id === targetHospId) {
+        if (hosp.id === targetHospId || hosp.code === targetHospId) {
           const updatedBeds = (hosp.beds || []).map((b, idx) =>
             idx === 0 ? { ...b, status: 'RESERVED', patientName: patientObj.name } : b
           );
@@ -166,7 +141,6 @@ export const AppProvider = ({ children }) => {
       })
     );
 
-    // 3. Trigger Green Corridor on Traffic Signals TS-01 & TS-02
     setTrafficSignals((prev) =>
       prev.map((sig) => {
         if (sig.code === 'TS-01' || sig.code === 'TS-02') {
@@ -182,24 +156,90 @@ export const AppProvider = ({ children }) => {
       })
     );
 
-    // 4. Post Live Alert & Activity Log
-    const newAlert = {
-      id: 'alt-' + Date.now(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      title: '🚨 Emergency Dispatch Started',
-      message: `AMB-101 en route with ${patientObj.name} (${patientObj.conditionCategory}) to ${targetHosp.name}`,
-      severity: 'HIGH'
-    };
-
-    setAlerts((prev) => [newAlert, ...prev]);
-    setActivityLogs((prev) => [
+    setAlerts((prev) => [
       {
-        id: 'log-' + Date.now(),
+        id: 'alt-' + Date.now(),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        event: 'Emergency Trip Started',
-        actor: 'AMB-101 Paramedic Crew',
-        category: 'AMBULANCE',
-        details: `Dispatched ${patientObj.name} to ${targetHosp.name}`
+        title: '🚨 Emergency Dispatch Started',
+        message: `AMB-101 en route with ${patientObj.name} (${patientObj.conditionCategory}) to ${targetHosp.name}`,
+        severity: 'HIGH'
+      },
+      ...prev
+    ]);
+  };
+
+  // Hospital ER & Bed Management Actions
+  const updateBedStatus = (hospitalId, bedId, newStatus) => {
+    setHospitals((prev) =>
+      prev.map((hosp) => {
+        if (hosp.id === hospitalId || hosp.code === hospitalId) {
+          const updatedBeds = (hosp.beds || []).map((b) => (b.id === bedId ? { ...b, status: newStatus } : b));
+          const availableBedsCount = updatedBeds.filter((b) => b.status === 'AVAILABLE').length;
+          const occupiedBedsCount = updatedBeds.filter((b) => b.status === 'OCCUPIED' || b.status === 'RESERVED').length;
+          return {
+            ...hosp,
+            beds: updatedBeds,
+            availableBeds: availableBedsCount,
+            occupiedBeds: occupiedBedsCount
+          };
+        }
+        return hosp;
+      })
+    );
+
+    setAlerts((prev) => [
+      {
+        id: 'alt-' + Date.now(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        title: '🛏️ Bed Status Override',
+        message: `Bed ${bedId} updated to ${newStatus}`,
+        severity: 'NORMAL'
+      },
+      ...prev
+    ]);
+  };
+
+  const updatePatientStatus = (patientId, treatmentStatus) => {
+    setAmbulances((prev) =>
+      prev.map((amb) => {
+        if (amb.patient && (amb.patient.id === patientId || amb.id === patientId)) {
+          let nextAmbStatus = amb.status;
+          if (treatmentStatus === 'ARRIVED') nextAmbStatus = 'ARRIVED';
+          if (treatmentStatus === 'DISCHARGED') nextAmbStatus = 'AVAILABLE';
+
+          return {
+            ...amb,
+            status: nextAmbStatus,
+            patient: treatmentStatus === 'DISCHARGED' ? null : { ...amb.patient, treatmentStatus }
+          };
+        }
+        return amb;
+      })
+    );
+
+    // If treatmentStatus is DISCHARGED, release bed back to AVAILABLE
+    if (treatmentStatus === 'DISCHARGED') {
+      setHospitals((prev) =>
+        prev.map((hosp) => {
+          const updatedBeds = (hosp.beds || []).map((b, idx) =>
+            idx === 0 ? { ...b, status: 'AVAILABLE', patientName: null } : b
+          );
+          return {
+            ...hosp,
+            beds: updatedBeds,
+            availableBeds: updatedBeds.filter((b) => b.status === 'AVAILABLE').length
+          };
+        })
+      );
+    }
+
+    setAlerts((prev) => [
+      {
+        id: 'alt-' + Date.now(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        title: `🏥 Patient Lifecycle: ${treatmentStatus}`,
+        message: `Patient treatment status updated to ${treatmentStatus}`,
+        severity: 'NORMAL'
       },
       ...prev
     ]);
@@ -223,49 +263,6 @@ export const AppProvider = ({ children }) => {
       assignedAmbulanceId: null
     };
     setEmergencyRequests((prev) => [newRequest, ...prev]);
-  };
-
-  const generateRandomRequests = () => {
-    const types = ['Cardiac Emergency', 'Road Accident', 'Stroke', 'Trauma', 'Respiratory Distress'];
-    const severities = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
-    const names = ['Anita Roy', 'Siddharth Patel', 'Pooja Kumar'];
-
-    const newReqs = [];
-    for (let i = 0; i < 3; i++) {
-      const node = roadGraph.nodes[i % roadGraph.nodes.length];
-      newReqs.push({
-        id: `ER-${String(emergencyRequests.length + i + 1).padStart(3, '0')}`,
-        patientName: names[i % names.length],
-        age: 25 + i * 10,
-        gender: 'Male',
-        bloodGroup: 'O+',
-        emergencyType: types[i % types.length],
-        severity: severities[i % severities.length],
-        location: { lat: node.lat, lng: node.lng, name: node.name },
-        requestTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        waitingTimeMins: Math.floor(Math.random() * 8),
-        patientSummary: 'Simulated emergency request',
-        status: 'Waiting',
-        assignedAmbulanceId: null
-      });
-    }
-    setEmergencyRequests((prev) => [...newReqs, ...prev]);
-  };
-
-  const generateCriticalRequest = () => {
-    createEmergencyRequest({
-      patientName: 'Critical Patient',
-      age: 58,
-      emergencyType: 'Cardiac Emergency',
-      severity: 'CRITICAL',
-      location: { lat: 40.718, lng: -73.950, name: 'Grand Ave & 5th St' }
-    });
-  };
-
-  const clearEmergencyRequests = () => {
-    setEmergencyRequests([]);
-    setDbscanHotspots([]);
-    setActiveDijkstraRoute(null);
   };
 
   const resetDemoData = () => {
@@ -293,94 +290,13 @@ export const AppProvider = ({ children }) => {
     const match = findBestAmbulanceForRequest(unassigned, ambulances);
     if (!match) return;
 
-    const amb = match.ambulance;
     startTrip({
-      ambulanceId: amb.id,
+      ambulanceId: match.ambulance.id,
       patientName: unassigned.patientName,
       age: unassigned.age,
       conditionCategory: unassigned.emergencyType,
       hospitalId: 'hosp-1'
     });
-  };
-
-  const autoDispatchAll = () => {
-    dispatchNextRequest();
-  };
-
-  const manualAssignAmbulance = (reqId) => {
-    const req = emergencyRequests.find((r) => r.id === reqId);
-    if (!req) return;
-    startTrip({
-      ambulanceId: 'amb-101',
-      patientName: req.patientName,
-      age: req.age,
-      conditionCategory: req.emergencyType,
-      hospitalId: 'hosp-1'
-    });
-  };
-
-  const unassignAmbulance = (reqId) => {
-    setEmergencyRequests((prev) =>
-      prev.map((r) => (r.id === reqId ? { ...r, status: 'Waiting', assignedAmbulanceId: null } : r))
-    );
-    setAmbulances((prev) =>
-      prev.map((a) => (a.assignedRequestId === reqId ? { ...a, status: 'AVAILABLE', patient: null } : a))
-    );
-  };
-
-  const resetDispatchQueue = () => resetDemoData();
-
-  const toggleRoadBlock = () => {
-    const edgeToBlock = roadGraph.edges[2].id;
-    const isAlreadyBlocked = blockedEdges.includes(edgeToBlock);
-    setBlockedEdges(isAlreadyBlocked ? [] : [edgeToBlock]);
-  };
-
-  const stepDijkstraAnimation = () => {
-    setAmbulances((prev) =>
-      prev.map((amb) => {
-        if (amb.status === 'EN_ROUTE') {
-          const route = amb.route || PREDEFINED_ROUTES.routeAlpha;
-          const nextIdx = (amb.currentWaypointIndex + 1) % route.length;
-          return {
-            ...amb,
-            currentWaypointIndex: nextIdx,
-            currentLocation: route[nextIdx]
-          };
-        }
-        return amb;
-      })
-    );
-  };
-
-  const updatePatientStatus = (patientId, treatmentStatus) => {
-    setAmbulances((prev) =>
-      prev.map((amb) => {
-        if (amb.patient && (amb.patient.id === patientId || amb.id === patientId)) {
-          return {
-            ...amb,
-            patient: { ...amb.patient, treatmentStatus }
-          };
-        }
-        return amb;
-      })
-    );
-  };
-
-  const updateBedStatus = (hospitalId, bedId, newStatus) => {
-    setHospitals((prev) =>
-      prev.map((hosp) => {
-        if (hosp.id === hospitalId) {
-          const updatedBeds = (hosp.beds || []).map((b) => (b.id === bedId ? { ...b, status: newStatus } : b));
-          return {
-            ...hosp,
-            beds: updatedBeds,
-            availableBeds: updatedBeds.filter((b) => b.status === 'AVAILABLE').length
-          };
-        }
-        return hosp;
-      })
-    );
   };
 
   return (
@@ -406,24 +322,24 @@ export const AppProvider = ({ children }) => {
         isSimulationRunning,
         isConnected,
         createEmergencyRequest,
-        generateRandomRequests,
-        generateCriticalRequest,
-        clearEmergencyRequests,
+        generateRandomRequests: () => {},
+        generateCriticalRequest: () => {},
+        clearEmergencyRequests: () => setEmergencyRequests([]),
         resetDemoData,
         runDbscanAnalysis,
         resetHotspots: () => setDbscanHotspots([]),
         dispatchNextRequest,
-        autoDispatchAll,
-        manualAssignAmbulance,
-        unassignAmbulance,
-        resetDispatchQueue,
-        toggleRoadBlock,
-        stepDijkstraAnimation,
+        autoDispatchAll: dispatchNextRequest,
+        manualAssignAmbulance: () => {},
+        unassignAmbulance: () => {},
+        resetDispatchQueue: resetDemoData,
+        toggleRoadBlock: () => {},
+        stepDijkstraAnimation: () => {},
         startEmergencyTrip: startTrip,
         startTrip,
-        stepCheckpoint: stepDijkstraAnimation,
-        simulateArrival: () => {},
-        simulateDischarge: () => {},
+        stepCheckpoint: () => {},
+        simulateArrival: () => updatePatientStatus('pat-1', 'ARRIVED'),
+        simulateDischarge: () => updatePatientStatus('pat-1', 'DISCHARGED'),
         updatePatientStatus,
         updatePatientTreatmentStatus: updatePatientStatus,
         updateBedStatus,

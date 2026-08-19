@@ -28,18 +28,20 @@ export const INITIAL_HOSPITALS = [
     status: "AVAILABLE",
     incomingAmbulances: [],
     beds: [
-      { id: "b-1", bedNumber: "EMG-01", type: "Emergency", status: "OCCUPIED", patientName: "Robert Davis" },
-      { id: "b-2", bedNumber: "EMG-02", type: "Emergency", status: "AVAILABLE", patientName: null },
-      { id: "b-3", bedNumber: "ICU-01", type: "ICU", status: "RESERVED", patientName: "David Miller" },
-      { id: "b-4", bedNumber: "ICU-02", type: "ICU", status: "AVAILABLE", patientName: null }
+      { id: "b-101", bedNumber: "EMG-01", type: "Emergency", category: "Emergency", status: "OCCUPIED", patientName: "Robert Davis" },
+      { id: "b-102", bedNumber: "EMG-02", type: "Emergency", category: "Emergency", status: "AVAILABLE", patientName: null },
+      { id: "b-103", bedNumber: "ICU-01", type: "ICU", category: "Cardiac ICU", status: "RESERVED", patientName: "David Miller" },
+      { id: "b-104", bedNumber: "ICU-02", type: "ICU", category: "Cardiac ICU", status: "AVAILABLE", patientName: null },
+      { id: "b-105", bedNumber: "WRD-101", type: "Ward", category: "General Ward", status: "OCCUPIED", patientName: "James Wilson" },
+      { id: "b-106", bedNumber: "WRD-102", type: "Ward", category: "General Ward", status: "CLEANING", patientName: null }
     ],
     ots: [
-      { id: "ot-1", otNumber: "OT-1 (Cardiac)", status: "In_Use", patientName: "Robert Davis" },
-      { id: "ot-2", otNumber: "OT-2 (Trauma)", status: "Free", patientName: null }
+      { id: "ot-101", otNumber: "OT-1 (Cardiac)", name: "Cardiac Surgical Suite", specialty: "Cardiology", status: "In_Use", patientName: "Robert Davis" },
+      { id: "ot-102", otNumber: "OT-2 (Trauma)", name: "Trauma Emergency Suite", specialty: "Trauma Surgery", status: "Free", patientName: null }
     ],
     doctors: [
-      { id: "doc-1", name: "Dr. Aris Thorne", specialty: "Cardiology & ER Lead", status: "ON_DUTY" },
-      { id: "doc-2", name: "Dr. Sarah Lin", specialty: "Trauma Surgeon", status: "IN_OT" }
+      { id: "doc-101", name: "Dr. Aris Thorne", specialty: "Cardiology & ER Lead", activePatients: 4, status: "ON_DUTY", phone: "Ext. 401" },
+      { id: "doc-102", name: "Dr. Sarah Lin", specialty: "Chief Trauma Surgeon", activePatients: 2, status: "IN_OT", phone: "Ext. 402" }
     ]
   },
   {
@@ -59,11 +61,17 @@ export const INITIAL_HOSPITALS = [
     status: "AVAILABLE",
     incomingAmbulances: [],
     beds: [
-      { id: "b-201", bedNumber: "TRM-01", type: "Emergency", status: "OCCUPIED", patientName: "Carl Jenkins" },
-      { id: "b-202", bedNumber: "TRM-02", type: "Emergency", status: "AVAILABLE", patientName: null }
+      { id: "b-201", bedNumber: "TRM-01", type: "Emergency", category: "Trauma Bay", status: "OCCUPIED", patientName: "Carl Jenkins" },
+      { id: "b-202", bedNumber: "TRM-02", type: "Emergency", category: "Trauma Bay", status: "AVAILABLE", patientName: null },
+      { id: "b-203", bedNumber: "ICU-201", type: "ICU", category: "Trauma ICU", status: "AVAILABLE", patientName: null },
+      { id: "b-204", bedNumber: "WRD-201", type: "Ward", category: "General Ward", status: "AVAILABLE", patientName: null }
     ],
-    ots: [],
-    doctors: []
+    ots: [
+      { id: "ot-201", otNumber: "OT-1 (Trauma)", name: "Trauma Suite 1", specialty: "Trauma Surgery", status: "Free", patientName: null }
+    ],
+    doctors: [
+      { id: "doc-201", name: "Dr. Kevin Durant", specialty: "Chief Trauma Surgeon", activePatients: 3, status: "ON_DUTY", phone: "Ext. 501" }
+    ]
   },
   {
     id: "hosp-3",
@@ -81,9 +89,16 @@ export const INITIAL_HOSPITALS = [
     occupiedOTs: 3,
     status: "LIMITED",
     incomingAmbulances: [],
-    beds: [],
-    ots: [],
-    doctors: []
+    beds: [
+      { id: "b-301", bedNumber: "CAR-01", type: "ICU", category: "Cardiac ICU", status: "OCCUPIED", patientName: "Elena Rostova" },
+      { id: "b-302", bedNumber: "CAR-02", type: "ICU", category: "Cardiac ICU", status: "AVAILABLE", patientName: null }
+    ],
+    ots: [
+      { id: "ot-301", otNumber: "OT-1 (Cath Lab)", name: "Angioplasty Cath Lab", specialty: "Cardiology", status: "In_Use", patientName: "Elena Rostova" }
+    ],
+    doctors: [
+      { id: "doc-301", name: "Dr. Marcus Vance", specialty: "Interventional Cardiologist", activePatients: 5, status: "ON_DUTY", phone: "Ext. 601" }
+    ]
   },
   {
     id: "hosp-4",
@@ -101,9 +116,16 @@ export const INITIAL_HOSPITALS = [
     occupiedOTs: 1,
     status: "AVAILABLE",
     incomingAmbulances: [],
-    beds: [],
-    ots: [],
-    doctors: []
+    beds: [
+      { id: "b-401", bedNumber: "PED-01", type: "ICU", category: "Pediatric ICU", status: "AVAILABLE", patientName: null },
+      { id: "b-402", bedNumber: "PED-02", type: "Emergency", category: "Pediatric ER", status: "AVAILABLE", patientName: null }
+    ],
+    ots: [
+      { id: "ot-401", otNumber: "OT-1 (Pediatric)", name: "Pediatric Surgery Suite", specialty: "Pediatrics", status: "Free", patientName: null }
+    ],
+    doctors: [
+      { id: "doc-401", name: "Dr. Emily Watson", specialty: "Chief Pediatric ER", activePatients: 2, status: "AVAILABLE", phone: "Ext. 701" }
+    ]
   }
 ];
 
