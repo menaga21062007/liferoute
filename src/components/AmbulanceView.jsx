@@ -11,11 +11,12 @@ import {
   Wind,
   Thermometer,
   Zap,
-  Navigation
+  Navigation,
+  RotateCcw
 } from 'lucide-react';
 
 export const AmbulanceView = () => {
-  const { ambulances, hospitals, startTrip } = useApp();
+  const { ambulances, hospitals, startTrip, updatePatientTreatmentStatus } = useApp();
 
   const [selectedAmbulanceCode, setSelectedAmbulanceCode] = useState('AMB-101');
   const activeAmbulance = ambulances.find((a) => a.code === selectedAmbulanceCode || a.id === selectedAmbulanceCode) || ambulances[0];
@@ -104,105 +105,119 @@ export const AmbulanceView = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: Intake Form / Active Dispatch Info */}
+        {/* Left Column: ALWAYS VISIBLE Patient Registration Intake Form & Active Dispatch Info */}
         <div className="lg:col-span-5 space-y-6">
           
-          {!isEnRoute ? (
-            <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-5">
-              <div className="flex items-center space-x-2.5 border-b border-slate-800 pb-3">
+          {/* 1. Patient Registration Intake Form (ALWAYS VISIBLE) */}
+          <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2.5">
                 <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/40">
                   <Zap className="h-5 w-5" />
                 </div>
                 <h3 className="text-lg font-black text-white tracking-tight">Patient Registration & Dispatch Intake</h3>
               </div>
+              {isEnRoute && (
+                <button
+                  onClick={() => updatePatientTreatmentStatus(activeAmbulance.id, 'DISCHARGED')}
+                  className="bg-slate-950 hover:bg-slate-800 border border-slate-700 text-amber-300 font-bold text-[10px] px-2.5 py-1 rounded-xl flex items-center space-x-1"
+                  title="Clear Active Trip"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  <span>Reset Trip</span>
+                </button>
+              )}
+            </div>
 
-              <form onSubmit={handleStartEmergencyTrip} className="space-y-4">
+            <form onSubmit={handleStartEmergencyTrip} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-slate-200 uppercase mb-1">Patient Full Name</label>
+                <input
+                  type="text"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-xs font-black text-slate-200 uppercase mb-1">Patient Full Name</label>
+                  <label className="block text-xs font-black text-slate-200 uppercase mb-1">Age</label>
                   <input
-                    type="text"
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
                     required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
                   />
                 </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-xs font-black text-slate-200 uppercase mb-1">Age</label>
-                    <input
-                      type="number"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-slate-200 uppercase mb-1">Gender</label>
-                    <select
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-slate-200 uppercase mb-1">Blood</label>
-                    <select
-                      value={bloodGroup}
-                      onChange={(e) => setBloodGroup(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
-                    >
-                      {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map(b => (
-                        <option key={b} value={b}>{b}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-xs font-black text-slate-200 uppercase mb-1">Emergency Category</label>
+                  <label className="block text-xs font-black text-slate-200 uppercase mb-1">Gender</label>
                   <select
-                    value={conditionCategory}
-                    onChange={(e) => setConditionCategory(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
                   >
-                    {emergencyCategories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-200 uppercase mb-1">Blood</label>
+                  <select
+                    value={bloodGroup}
+                    onChange={(e) => setBloodGroup(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
+                  >
+                    {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map(b => (
+                      <option key={b} value={b}>{b}</option>
                     ))}
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-black text-slate-200 uppercase mb-1">Hospital Destination Match</label>
-                  <select
-                    value={selectedHospitalId}
-                    onChange={(e) => setSelectedHospitalId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
-                  >
-                    {hospitals.map(h => (
-                      <option key={h.id} value={h.id}>
-                        🏥 {h.name} (Beds: {h.availableBeds}/{h.totalBeds})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-red-600 to-brand-red hover:from-red-500 hover:to-red-600 text-white font-black text-sm py-3.5 rounded-2xl shadow-xl shadow-red-600/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
+              <div>
+                <label className="block text-xs font-black text-slate-200 uppercase mb-1">Emergency Category</label>
+                <select
+                  value={conditionCategory}
+                  onChange={(e) => setConditionCategory(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
                 >
-                  <Play className="h-4 w-4 fill-white" />
-                  <span>DISPATCH {activeAmbulance.code} & GREEN CORRIDOR</span>
-                </button>
-              </form>
-            </div>
-          ) : (
+                  {emergencyCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-slate-200 uppercase mb-1">Hospital Destination Match</label>
+                <select
+                  value={selectedHospitalId}
+                  onChange={(e) => setSelectedHospitalId(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-brand-blue"
+                >
+                  {hospitals.map(h => (
+                    <option key={h.id} value={h.id}>
+                      🏥 {h.name} (Beds: {h.availableBeds}/{h.totalBeds})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-red-600 to-brand-red hover:from-red-500 hover:to-red-600 text-white font-black text-sm py-3.5 rounded-2xl shadow-xl shadow-red-600/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
+              >
+                <Play className="h-4 w-4 fill-white" />
+                <span>DISPATCH {activeAmbulance.code} & GREEN CORRIDOR</span>
+              </button>
+            </form>
+          </div>
+
+          {/* 2. Active Patient Telemetry Card (Shown when Ambulance is EN_ROUTE) */}
+          {isEnRoute && (
             <div className="space-y-5">
               
               {/* Active Dispatch Details Card */}
@@ -213,13 +228,13 @@ export const AmbulanceView = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-2xl font-black text-white">{activeAmbulance.patient ? activeAmbulance.patient.name : 'Menaga'}</h3>
-                  <p className="text-xs text-slate-200 font-bold mt-0.5">{activeAmbulance.patient?.age || 54} Yrs • {activeAmbulance.patient?.gender || 'Male'} • Blood: <strong className="text-red-400 font-black">{activeAmbulance.patient?.bloodGroup || 'O+'}</strong></p>
+                  <h3 className="text-2xl font-black text-white">{activeAmbulance.patient ? activeAmbulance.patient.name : patientName}</h3>
+                  <p className="text-xs text-slate-200 font-bold mt-0.5">{activeAmbulance.patient?.age || age} Yrs • {activeAmbulance.patient?.gender || gender} • Blood: <strong className="text-red-400 font-black">{activeAmbulance.patient?.bloodGroup || bloodGroup}</strong></p>
                 </div>
 
                 <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
                   <div className="text-[10px] text-slate-400 font-black uppercase">Chief Emergency Complaint</div>
-                  <div className="text-sm font-black text-red-400 mt-0.5">{activeAmbulance.patient?.conditionCategory || 'Cardiac Arrest / STEMI'}</div>
+                  <div className="text-sm font-black text-red-400 mt-0.5">{activeAmbulance.patient?.conditionCategory || conditionCategory}</div>
                 </div>
 
                 <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
@@ -280,7 +295,7 @@ export const AmbulanceView = () => {
 
         {/* Right Column: Universal Shared Map */}
         <div className="lg:col-span-7 space-y-4">
-          <UniversalSharedMap height="h-[560px]" selectedAmbulanceId={activeAmbulance.id} />
+          <UniversalSharedMap height="h-[640px]" selectedAmbulanceId={activeAmbulance.id} />
         </div>
 
       </div>
