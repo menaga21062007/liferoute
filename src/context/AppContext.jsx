@@ -17,13 +17,13 @@ import { sortPriorityQueue, findBestAmbulanceForRequest } from '../utils/priorit
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [activeRole, setActiveRole] = useState('hospital'); // Active View
+  const [activeRole, setActiveRole] = useState('intelligence'); // Active View
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
   const [hospitals, setHospitals] = useState(INITIAL_HOSPITALS);
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [alerts, setAlerts] = useState([
-    { id: "alt-1", timestamp: "10:15:00 AM", title: "Hospital ER & Bed Management Connected", message: "Live sync active for all 4 hospitals.", severity: "NORMAL" }
+    { id: "alt-1", timestamp: "10:15:00 AM", title: "Emergency Intelligence Active", message: "DBSCAN Radar & Dijkstra Route Planner Ready.", severity: "NORMAL" }
   ]);
   const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
   const [tripHistory, setTripHistory] = useState(INITIAL_TRIP_HISTORY);
@@ -33,7 +33,45 @@ export const AppProvider = ({ children }) => {
   const [dbscanHotspots, setDbscanHotspots] = useState([]);
   const [roadGraph, setRoadGraph] = useState(FICTIONAL_ROAD_GRAPH);
   const [blockedEdges, setBlockedEdges] = useState([]);
-  const [activeDijkstraRoute, setActiveDijkstraRoute] = useState(null);
+  
+  // Helper to compute Dijkstra 2-stage route
+  const computeDijkstraRoute = (ambLoc, reqLoc, hospId, currentBlocked = []) => {
+    const startNode = findNearestGraphNode(roadGraph, ambLoc || { lat: 40.718, lng: -73.950 }) || roadGraph.nodes[1]; // N2
+    const emergencyNode = findNearestGraphNode(roadGraph, reqLoc || { lat: 40.722, lng: -73.945 }) || roadGraph.nodes[2]; // N3
+
+    let hospitalNodeId = 'N5'; // Velammal Global Hospital Hub (VGH)
+    if (hospId === 'hosp-2' || hospId === 'VH') hospitalNodeId = 'N8';
+    if (hospId === 'hosp-3' || hospId === 'MHVI') hospitalNodeId = 'N9';
+    if (hospId === 'hosp-4' || hospId === 'CCPH') hospitalNodeId = 'N10';
+
+    const stage1 = findDijkstraShortestPath(roadGraph, startNode.id, emergencyNode.id, currentBlocked);
+    const stage2 = findDijkstraShortestPath(roadGraph, emergencyNode.id, hospitalNodeId, currentBlocked);
+
+    const stage1Coords = (stage1 && stage1.polylineCoords) ? stage1.polylineCoords : [];
+    const stage2Coords = (stage2 && stage2.polylineCoords) ? stage2.polylineCoords : [];
+
+    const combinedCoords = [...stage1Coords, ...stage2Coords.slice(1)];
+    const combinedDist = parseFloat(((stage1?.totalDistanceKm || 1.2) + (stage2?.totalDistanceKm || 1.4)).toFixed(2));
+    const combinedEstMins = Math.max(2, Math.round(combinedDist * 1.8));
+
+    const targetHosp = hospitals.find(h => h.id === hospId || h.code === hospId) || hospitals[0];
+
+    return {
+      startNodeName: startNode.name,
+      emergencyNodeName: emergencyNode.name,
+      targetHospitalName: targetHosp.name,
+      pathNodes: combinedCoords,
+      polylineCoords: combinedCoords,
+      totalDistanceKm: combinedDist,
+      estMins: combinedEstMins,
+      isRecalculated: currentBlocked.length > 0
+    };
+  };
+
+  // Initial Dijkstra Route state for baseline display
+  const [activeDijkstraRoute, setActiveDijkstraRoute] = useState(() => 
+    computeDijkstraRoute({ lat: 40.718, lng: -73.950 }, { lat: 40.722, lng: -73.945 }, 'hosp-1', [])
+  );
 
   const [isSimulationRunning, setIsSimulationRunning] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
@@ -90,11 +128,17 @@ export const AppProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [isSimulationRunning]);
 
-  // Main Emergency Trip Starter
+  // Main Emergency Trip Starter & Dijkstra Route Generator
   const startTrip = (tripData) => {
     const targetHospId = tripData.hospitalId || 'hosp-1';
     const targetHosp = hospitals.find((h) => h.id === targetHospId) || hospitals[0];
-    const selectedRoute = targetHospId === 'hosp-2' ? PREDEFINED_ROUTES.routeBeta : PREDEFINED_ROUTES.routeAlpha;
+
+    const reqLoc = tripData.location || { lat: 40.722, lng: -73.945 };
+    const ambLoc = { lat: 40.718, lng: -73.950 };
+
+    // Compute Dijkstra 2-Stage Route
+    const dijkstraRoute = computeDijkstraRoute(ambLoc, reqLoc, targetHospId, blockedEdges);
+    setActiveDijkstraRoute(dijkstraRoute);
 
     const patientObj = {
       id: 'pat-' + Date.now(),
@@ -102,7 +146,7 @@ export const AppProvider = ({ children }) => {
       age: tripData.age || 54,
       gender: tripData.gender || 'Male',
       bloodGroup: tripData.bloodGroup || 'O+',
-      conditionCategory: tripData.conditionCategory || 'Cardiac Arrest / STEMI',
+      conditionCategory: tripData.conditionCategory || 'Cardiac Emergency',
       treatmentStatus: 'En route',
       vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' }
     };
@@ -114,14 +158,23 @@ export const AppProvider = ({ children }) => {
             ...amb,
             status: 'EN_ROUTE',
             destinationHospitalId: targetHospId,
-            route: selectedRoute,
+            route: dijkstraRoute.polylineCoords,
             currentWaypointIndex: 0,
-            currentLocation: selectedRoute[0],
-            etaMinutes: 4,
+            currentLocation: dijkstraRoute.polylineCoords[0] || ambLoc,
+            etaMinutes: dijkstraRoute.estMins,
             patient: patientObj
           };
         }
         return amb;
+      })
+    );
+
+    setEmergencyRequests((prev) =>
+      prev.map((r) => {
+        if (r.id === tripData.requestId || r.patientName === tripData.patientName) {
+          return { ...r, status: 'Ambulance En Route', assignedAmbulanceId: 'AMB-101' };
+        }
+        return r;
       })
     );
 
@@ -161,14 +214,61 @@ export const AppProvider = ({ children }) => {
         id: 'alt-' + Date.now(),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         title: '🚨 Emergency Dispatch Started',
-        message: `AMB-101 en route with ${patientObj.name} (${patientObj.conditionCategory}) to ${targetHosp.name}`,
+        message: `AMB-101 en route with ${patientObj.name} (${patientObj.conditionCategory}) to ${targetHosp.name}. Dijkstra path: ${dijkstraRoute.totalDistanceKm}km`,
         severity: 'HIGH'
       },
       ...prev
     ]);
   };
 
-  // Hospital ER & Bed Management Actions
+  const selectRequestAndComputeDijkstra = (reqId) => {
+    const req = emergencyRequests.find((r) => r.id === reqId);
+    if (!req) return;
+
+    const amb = ambulances.find((a) => a.code === 'AMB-101') || ambulances[0];
+    const route = computeDijkstraRoute(amb.currentLocation, req.location, 'hosp-1', blockedEdges);
+    setActiveDijkstraRoute(route);
+  };
+
+  const dispatchNextRequest = () => {
+    const sorted = sortPriorityQueue(emergencyRequests, dbscanHotspots);
+    const unassigned = sorted.find((r) => r.status === 'Waiting' || r.status === 'Queued');
+    if (!unassigned) return;
+
+    startTrip({
+      requestId: unassigned.id,
+      ambulanceId: 'amb-101',
+      patientName: unassigned.patientName,
+      age: unassigned.age,
+      conditionCategory: unassigned.emergencyType,
+      location: unassigned.location,
+      hospitalId: 'hosp-1'
+    });
+  };
+
+  const toggleRoadBlock = () => {
+    const edgeToBlock = 'E3'; // Grand Corridor Edge
+    const isAlreadyBlocked = blockedEdges.includes(edgeToBlock);
+    const newBlocked = isAlreadyBlocked ? [] : [edgeToBlock];
+    setBlockedEdges(newBlocked);
+
+    // Recompute current active Dijkstra route with updated road block
+    const req = emergencyRequests[0] || { location: { lat: 40.722, lng: -73.945 } };
+    const newRoute = computeDijkstraRoute({ lat: 40.718, lng: -73.950 }, req.location, 'hosp-1', newBlocked);
+    setActiveDijkstraRoute(newRoute);
+
+    setAlerts((prev) => [
+      {
+        id: 'alt-' + Date.now(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        title: isAlreadyBlocked ? '🟢 Road Block Cleared' : '🛑 Road Block Activated (Re-Routed)',
+        message: isAlreadyBlocked ? 'Grand Corridor Edge E3 restored.' : 'Grand Corridor Edge E3 blocked. Dijkstra re-routed path dynamically!',
+        severity: isAlreadyBlocked ? 'NORMAL' : 'HIGH'
+      },
+      ...prev
+    ]);
+  };
+
   const updateBedStatus = (hospitalId, bedId, newStatus) => {
     setHospitals((prev) =>
       prev.map((hosp) => {
@@ -186,17 +286,6 @@ export const AppProvider = ({ children }) => {
         return hosp;
       })
     );
-
-    setAlerts((prev) => [
-      {
-        id: 'alt-' + Date.now(),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        title: '🛏️ Bed Status Override',
-        message: `Bed ${bedId} updated to ${newStatus}`,
-        severity: 'NORMAL'
-      },
-      ...prev
-    ]);
   };
 
   const updatePatientStatus = (patientId, treatmentStatus) => {
@@ -216,53 +305,6 @@ export const AppProvider = ({ children }) => {
         return amb;
       })
     );
-
-    // If treatmentStatus is DISCHARGED, release bed back to AVAILABLE
-    if (treatmentStatus === 'DISCHARGED') {
-      setHospitals((prev) =>
-        prev.map((hosp) => {
-          const updatedBeds = (hosp.beds || []).map((b, idx) =>
-            idx === 0 ? { ...b, status: 'AVAILABLE', patientName: null } : b
-          );
-          return {
-            ...hosp,
-            beds: updatedBeds,
-            availableBeds: updatedBeds.filter((b) => b.status === 'AVAILABLE').length
-          };
-        })
-      );
-    }
-
-    setAlerts((prev) => [
-      {
-        id: 'alt-' + Date.now(),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        title: `🏥 Patient Lifecycle: ${treatmentStatus}`,
-        message: `Patient treatment status updated to ${treatmentStatus}`,
-        severity: 'NORMAL'
-      },
-      ...prev
-    ]);
-  };
-
-  const createEmergencyRequest = (newReqData) => {
-    const newId = `ER-${String(emergencyRequests.length + 1).padStart(3, '0')}`;
-    const newRequest = {
-      id: newId,
-      patientName: newReqData.patientName || 'Emergency Patient',
-      age: newReqData.age || 40,
-      gender: 'Other',
-      bloodGroup: 'O+',
-      emergencyType: newReqData.emergencyType || 'Cardiac Emergency',
-      severity: newReqData.severity || 'CRITICAL',
-      location: newReqData.location || { lat: 40.722, lng: -73.945, name: 'Grand Ave Crossing' },
-      requestTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      waitingTimeMins: 0,
-      patientSummary: newReqData.notes || 'Emergency request generated',
-      status: 'Waiting',
-      assignedAmbulanceId: null
-    };
-    setEmergencyRequests((prev) => [newRequest, ...prev]);
   };
 
   const resetDemoData = () => {
@@ -273,30 +315,7 @@ export const AppProvider = ({ children }) => {
     setActivityLogs(INITIAL_ACTIVITY_LOGS);
     setTripHistory(INITIAL_TRIP_HISTORY);
     setBlockedEdges([]);
-    setActiveDijkstraRoute(null);
-  };
-
-  const runDbscanAnalysis = (newEps = 1.2, newMinSamples = 3) => {
-    setDbscanConfig({ eps: newEps, minSamples: newMinSamples });
-    const res = runDBSCANClustering(emergencyRequests, newEps, newMinSamples);
-    setDbscanHotspots(res.clusters);
-  };
-
-  const dispatchNextRequest = () => {
-    const sorted = sortPriorityQueue(emergencyRequests, dbscanHotspots);
-    const unassigned = sorted.find((r) => r.status === 'Waiting' || r.status === 'Queued');
-    if (!unassigned) return;
-
-    const match = findBestAmbulanceForRequest(unassigned, ambulances);
-    if (!match) return;
-
-    startTrip({
-      ambulanceId: match.ambulance.id,
-      patientName: unassigned.patientName,
-      age: unassigned.age,
-      conditionCategory: unassigned.emergencyType,
-      hospitalId: 'hosp-1'
-    });
+    setActiveDijkstraRoute(computeDijkstraRoute({ lat: 40.718, lng: -73.950 }, { lat: 40.722, lng: -73.945 }, 'hosp-1', []));
   };
 
   return (
@@ -321,30 +340,55 @@ export const AppProvider = ({ children }) => {
         blockedEdges,
         isSimulationRunning,
         isConnected,
-        createEmergencyRequest,
+        createEmergencyRequest: () => {},
         generateRandomRequests: () => {},
         generateCriticalRequest: () => {},
         clearEmergencyRequests: () => setEmergencyRequests([]),
         resetDemoData,
-        runDbscanAnalysis,
+        runDbscanAnalysis: (eps, minSamples) => {
+          setDbscanConfig({ eps, minSamples });
+          const res = runDBSCANClustering(emergencyRequests, eps, minSamples);
+          setDbscanHotspots(res.clusters);
+        },
         resetHotspots: () => setDbscanHotspots([]),
+        selectRequestAndComputeDijkstra,
         dispatchNextRequest,
-        autoDispatchAll: dispatchNextRequest,
-        manualAssignAmbulance: () => {},
-        unassignAmbulance: () => {},
+        autoDispatchAll: () => {
+          dispatchNextRequest();
+        },
+        manualAssignAmbulance: (reqId) => {
+          const req = emergencyRequests.find(r => r.id === reqId);
+          if (!req) return;
+          startTrip({
+            requestId: req.id,
+            ambulanceId: 'amb-101',
+            patientName: req.patientName,
+            age: req.age,
+            conditionCategory: req.emergencyType,
+            location: req.location,
+            hospitalId: 'hosp-1'
+          });
+        },
+        unassignAmbulance: (reqId) => {
+          setEmergencyRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'Waiting', assignedAmbulanceId: null } : r));
+        },
         resetDispatchQueue: resetDemoData,
-        toggleRoadBlock: () => {},
-        stepDijkstraAnimation: () => {},
+        toggleRoadBlock,
+        stepDijkstraAnimation: () => {
+          setAmbulances(prev => prev.map(a => {
+            if (a.status === 'EN_ROUTE' && a.route) {
+              const nextIdx = ((a.currentWaypointIndex || 0) + 1) % a.route.length;
+              return { ...a, currentWaypointIndex: nextIdx, currentLocation: a.route[nextIdx] };
+            }
+            return a;
+          }));
+        },
         startEmergencyTrip: startTrip,
         startTrip,
-        stepCheckpoint: () => {},
-        simulateArrival: () => updatePatientStatus('pat-1', 'ARRIVED'),
-        simulateDischarge: () => updatePatientStatus('pat-1', 'DISCHARGED'),
         updatePatientStatus,
         updatePatientTreatmentStatus: updatePatientStatus,
         updateBedStatus,
-        toggleTrafficSignal: () => {},
-        toggleSimulation: () => setIsSimulationRunning((prev) => !prev),
+        toggleSimulation: () => setIsSimulationRunning(prev => !prev),
         resetSimulation: resetDemoData
       }}
     >

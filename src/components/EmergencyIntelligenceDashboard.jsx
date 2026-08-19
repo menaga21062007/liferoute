@@ -34,13 +34,10 @@ export const EmergencyIntelligenceDashboard = () => {
     activeDijkstraRoute,
     blockedEdges,
     isSimulationRunning,
-    createEmergencyRequest,
-    generateRandomRequests,
-    generateCriticalRequest,
     clearEmergencyRequests,
     resetDemoData,
     runDbscanAnalysis,
-    resetHotspots,
+    selectRequestAndComputeDijkstra,
     dispatchNextRequest,
     autoDispatchAll,
     manualAssignAmbulance,
@@ -48,8 +45,7 @@ export const EmergencyIntelligenceDashboard = () => {
     resetDispatchQueue,
     toggleRoadBlock,
     stepDijkstraAnimation,
-    toggleSimulation,
-    resetSimulation
+    toggleSimulation
   } = useApp();
 
   // Map Layer Toggles
@@ -71,6 +67,11 @@ export const EmergencyIntelligenceDashboard = () => {
 
   const handleRunDBSCAN = () => {
     runDbscanAnalysis(eps, minSamples);
+  };
+
+  const handleSelectRequestRow = (reqId) => {
+    setSelectedRequestId(reqId);
+    selectRequestAndComputeDijkstra(reqId);
   };
 
   const criticalCount = emergencyRequests.filter(r => r.severity === 'CRITICAL').length;
@@ -139,20 +140,6 @@ export const EmergencyIntelligenceDashboard = () => {
               className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow-lg transition-all"
             >
               RUN ANALYSIS
-            </button>
-
-            {/* Presentation Quick Controls */}
-            <button
-              onClick={generateRandomRequests}
-              className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-blue-300 text-xs font-bold px-3 py-2 rounded-xl transition-all"
-            >
-              +3 Random
-            </button>
-            <button
-              onClick={generateCriticalRequest}
-              className="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-200 text-xs font-bold px-3 py-2 rounded-xl transition-all"
-            >
-              +1 Critical
             </button>
             <button
               onClick={resetDemoData}
@@ -228,7 +215,7 @@ export const EmergencyIntelligenceDashboard = () => {
             </div>
           ) : (
             <div className="text-center py-8 bg-slate-950/60 rounded-2xl border border-slate-800 text-slate-400 text-xs font-semibold">
-              No dense hotspots detected. Click "Run Analysis" or "+3 Random" requests.
+              No dense hotspots detected. Click "Run Analysis".
             </div>
           )}
         </div>
@@ -302,7 +289,7 @@ export const EmergencyIntelligenceDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Priority Dispatch Queue Table */}
-        <div className="lg:col-span-8 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
+        <div className="lg:col-span-7 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div className="flex items-center space-x-2.5">
               <div className="p-2 rounded-xl bg-brand-blue/20 text-brand-lightBlue border border-brand-blue/40">
@@ -316,7 +303,7 @@ export const EmergencyIntelligenceDashboard = () => {
                 onClick={dispatchNextRequest}
                 className="bg-brand-blue hover:bg-blue-600 text-white font-black text-xs px-3.5 py-2 rounded-xl shadow-lg transition-all"
               >
-                DISPATCH NEXT
+                ⚡ DISPATCH NEXT
               </button>
               <button
                 onClick={autoDispatchAll}
@@ -356,7 +343,7 @@ export const EmergencyIntelligenceDashboard = () => {
                   return (
                     <tr
                       key={req.id}
-                      onClick={() => setSelectedRequestId(req.id)}
+                      onClick={() => handleSelectRequestRow(req.id)}
                       className={`hover:bg-slate-950/80 transition-colors cursor-pointer ${selectedRequestId === req.id ? 'bg-slate-950 font-bold' : ''}`}
                     >
                       <td className="py-3 px-3 font-black text-slate-300">#{idx + 1}</td>
@@ -379,14 +366,20 @@ export const EmergencyIntelligenceDashboard = () => {
                       <td className="py-3 px-3">
                         {!isAssigned ? (
                           <button
-                            onClick={() => manualAssignAmbulance(req.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              manualAssignAmbulance(req.id);
+                            }}
                             className="bg-brand-blue hover:bg-blue-600 text-white font-black text-[10px] px-2.5 py-1 rounded-lg"
                           >
                             Assign Unit
                           </button>
                         ) : (
                           <button
-                            onClick={() => unassignAmbulance(req.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              unassignAmbulance(req.id);
+                            }}
                             className="bg-slate-950 hover:bg-slate-800 text-rose-400 font-bold text-[10px] px-2 py-1 rounded-lg border border-slate-800"
                           >
                             Unassign
@@ -402,59 +395,72 @@ export const EmergencyIntelligenceDashboard = () => {
         </div>
 
         {/* Dijkstra Route Simulator Panel */}
-        <div className="lg:col-span-4 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
+        <div className="lg:col-span-5 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center space-x-2">
               <Navigation className="h-5 w-5 text-emerald-400 animate-pulse" />
-              <h3 className="text-lg font-black text-white tracking-tight">Dijkstra Route Planning</h3>
+              <h3 className="text-lg font-black text-white tracking-tight">Dijkstra Shortest Path Solver</h3>
             </div>
             <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-              GRAPH ACTIVE
+              GRAPH SOLVER LIVE
             </span>
           </div>
 
           {activeDijkstraRoute ? (
             <div className="space-y-4">
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-extrabold text-white">Route Distance:</span>
-                  <span className="font-mono font-black text-emerald-400">{activeDijkstraRoute.totalDistanceKm} km</span>
+                  <span className="font-extrabold text-slate-300">Route Distance:</span>
+                  <span className="font-mono font-black text-emerald-400 text-sm">{activeDijkstraRoute.totalDistanceKm} km</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-extrabold text-white">Estimated Transit:</span>
-                  <span className="font-mono font-black text-emerald-400">~{activeDijkstraRoute.estMins} mins</span>
+                  <span className="font-extrabold text-slate-300">Estimated Transit:</span>
+                  <span className="font-mono font-black text-emerald-400 text-sm">~{activeDijkstraRoute.estMins} mins</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-extrabold text-white">Target Hospital:</span>
-                  <span className="font-bold text-blue-400">🏥 Velammal Global Hospital</span>
+                  <span className="font-extrabold text-slate-300">Target Hospital:</span>
+                  <span className="font-bold text-blue-400">🏥 {activeDijkstraRoute.targetHospitalName}</span>
+                </div>
+              </div>
+
+              {/* Waypoint Nodes Chain */}
+              <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-2">
+                <div className="text-[10px] text-slate-400 font-black uppercase">Computed Graph Waypoints ({activeDijkstraRoute.polylineCoords.length} Nodes)</div>
+                <div className="flex flex-wrap gap-1.5 text-[11px] font-bold">
+                  {activeDijkstraRoute.polylineCoords.map((pt, idx) => (
+                    <span key={idx} className="bg-slate-900 border border-slate-700 text-slate-200 px-2 py-0.5 rounded-lg flex items-center space-x-1">
+                      <span className="text-emerald-400 font-mono text-[10px]">{idx + 1}.</span>
+                      <span>{pt.name || `Node ${pt.id}`}</span>
+                    </span>
+                  ))}
                 </div>
               </div>
 
               {/* Road Block Simulator Button */}
               <button
                 onClick={toggleRoadBlock}
-                className={`w-full py-2.5 rounded-xl font-black text-xs flex items-center justify-center space-x-2 transition-all ${
+                className={`w-full py-3 rounded-2xl font-black text-xs flex items-center justify-center space-x-2 transition-all ${
                   blockedEdges && blockedEdges.length > 0
-                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-600/30'
+                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-600/30 animate-pulse'
                     : 'bg-slate-950 hover:bg-slate-800 text-amber-300 border border-slate-800'
                 }`}
               >
                 <AlertTriangle className="h-4 w-4" />
-                <span>{blockedEdges && blockedEdges.length > 0 ? 'ROAD BLOCK ACTIVE (RE-ROUTED)' : 'SIMULATE ROAD BLOCK'}</span>
+                <span>{blockedEdges && blockedEdges.length > 0 ? '🛑 ROAD BLOCK ACTIVE (RE-ROUTED)' : '🚧 SIMULATE ROAD BLOCK'}</span>
               </button>
 
               {/* Route Controls */}
               <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800">
                 <button
                   onClick={toggleSimulation}
-                  className="flex-1 bg-slate-950 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-xs py-2 rounded-xl flex items-center justify-center space-x-1"
+                  className="flex-1 bg-slate-950 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-xs py-2.5 rounded-xl flex items-center justify-center space-x-1"
                 >
                   {isSimulationRunning ? <Pause className="h-3.5 w-3.5 text-amber-400" /> : <Play className="h-3.5 w-3.5 text-emerald-400" />}
                   <span>{isSimulationRunning ? 'Pause' : 'Resume'}</span>
                 </button>
                 <button
                   onClick={stepDijkstraAnimation}
-                  className="flex-1 bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs py-2 rounded-xl flex items-center justify-center space-x-1"
+                  className="flex-1 bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center space-x-1"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                   <span>Next Step</span>
@@ -463,7 +469,7 @@ export const EmergencyIntelligenceDashboard = () => {
             </div>
           ) : (
             <div className="text-center py-10 bg-slate-950/60 rounded-2xl border border-slate-800 text-slate-400 text-xs font-semibold">
-              Select a dispatch to compute Dijkstra shortest path route.
+              Select a dispatch row to compute Dijkstra shortest path route.
             </div>
           )}
         </div>
