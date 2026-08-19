@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export const AmbulanceView = () => {
-  const { ambulances, hospitals, startTrip, activeTrip } = useApp();
+  const { ambulances, hospitals, startTrip } = useApp();
 
   const activeAmbulance = ambulances.find((a) => a.code === 'AMB-101') || ambulances[0];
   const isEnRoute = activeAmbulance?.status === 'EN_ROUTE';
@@ -49,8 +49,10 @@ export const AmbulanceView = () => {
     });
   };
 
+  const targetHospital = hospitals.find(h => h.id === activeAmbulance.destinationHospitalId) || hospitals[0];
+
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in">
+    <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
       
       {/* Active Trip Header Banner */}
       <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-5 rounded-3xl flex flex-wrap items-center justify-between gap-4 shadow-2xl">
@@ -67,7 +69,7 @@ export const AmbulanceView = () => {
                 {activeAmbulance.status}
               </span>
             </div>
-            <p className="text-xs text-slate-300 font-semibold mt-0.5">Crew: {activeAmbulance.crew} • Driver: {activeAmbulance.driver}</p>
+            <p className="text-xs text-slate-300 font-semibold mt-0.5">Crew: Marcus Vance & Elena Rostova • Lead Paramedic</p>
           </div>
         </div>
 
@@ -75,12 +77,12 @@ export const AmbulanceView = () => {
           <div className="flex items-center space-x-4 bg-slate-950/90 p-3 px-5 rounded-2xl border border-slate-800 shadow-xl">
             <div className="text-center">
               <div className="text-[10px] text-slate-400 font-extrabold uppercase">Arrival ETA</div>
-              <div className="text-xl font-black text-emerald-400">~{activeAmbulance.etaMinutes} Mins</div>
+              <div className="text-xl font-black text-emerald-400 font-mono">~{activeAmbulance.etaMinutes} Mins</div>
             </div>
             <div className="h-8 w-px bg-slate-800" />
             <div className="text-center">
-              <div className="text-[10px] text-slate-400 font-extrabold uppercase">Distance</div>
-              <div className="text-xl font-black text-white">2.7 km</div>
+              <div className="text-[10px] text-slate-400 font-extrabold uppercase">Target Hospital</div>
+              <div className="text-sm font-black text-white">{targetHospital.name}</div>
             </div>
           </div>
         )}
@@ -197,18 +199,18 @@ export const AmbulanceView = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-2xl font-black text-white">{activeAmbulance.patient.name}</h3>
-                  <p className="text-xs text-slate-200 font-bold mt-0.5">{activeAmbulance.patient.age} Yrs • {activeAmbulance.patient.gender} • Blood: <strong className="text-red-400 font-black">{activeAmbulance.patient.bloodGroup}</strong></p>
+                  <h3 className="text-2xl font-black text-white">{activeAmbulance.patient ? activeAmbulance.patient.name : 'Menaga'}</h3>
+                  <p className="text-xs text-slate-200 font-bold mt-0.5">{activeAmbulance.patient?.age || 54} Yrs • {activeAmbulance.patient?.gender || 'Male'} • Blood: <strong className="text-red-400 font-black">{activeAmbulance.patient?.bloodGroup || 'O+'}</strong></p>
                 </div>
 
                 <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400 font-black uppercase">Chief Complaint</div>
-                  <div className="text-sm font-black text-red-400 mt-0.5">{activeAmbulance.patient.conditionCategory}</div>
+                  <div className="text-[10px] text-slate-400 font-black uppercase">Chief Emergency Complaint</div>
+                  <div className="text-sm font-black text-red-400 mt-0.5">{activeAmbulance.patient?.conditionCategory || 'Cardiac Arrest / STEMI'}</div>
                 </div>
 
                 <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400 font-black uppercase">Target ER Bay</div>
-                  <div className="text-sm font-black text-white mt-0.5">🏥 Velammal Global Hospital</div>
+                  <div className="text-[10px] text-slate-400 font-black uppercase">Target Hospital Destination</div>
+                  <div className="text-sm font-black text-white mt-0.5">🏥 {targetHospital.name}</div>
                 </div>
               </div>
 
