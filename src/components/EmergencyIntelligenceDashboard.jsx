@@ -100,13 +100,7 @@ export const EmergencyIntelligenceDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
       
-      {/* REQUIRED ACADEMIC DEMO DISCLAIMER BANNER */}
-      <div className="bg-slate-900/95 border border-slate-700/80 p-4 rounded-3xl flex items-start space-x-3.5 shadow-2xl">
-        <ShieldAlert className="h-6 w-6 text-amber-400 shrink-0 mt-0.5" />
-        <div className="text-xs leading-relaxed text-slate-300 font-medium">
-          <strong className="text-amber-400 font-black uppercase tracking-wide">Academic Simulation Disclaimer:</strong> This is an academic demonstration platform for presentation purposes only. Emergency requests, patients, ambulances, locations, GPS coordinates, hospitals, routes, road networks, DBSCAN hotspot analysis, dispatch decisions, and travel times are fictional and generated inside the application. No real emergency services, vehicles, hospitals, traffic systems, or public infrastructure are connected.
-        </div>
-      </div>
+
 
       {/* TOP METRICS DASHBOARD CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

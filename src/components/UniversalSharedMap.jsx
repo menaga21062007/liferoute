@@ -393,9 +393,6 @@ export const UniversalSharedMap = ({
             </div>
           </div>
 
-          <div className="pt-1.5 border-t border-slate-800/80 text-[9px] text-slate-400 leading-tight">
-            ⚠ All locations, GPS data, DBSCAN zones & routes are fictional simulations.
-          </div>
         </div>
       )}
     </div>
