@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useApp } from '../context/AppContext';
 import { ShieldAlert } from 'lucide-react';
 
@@ -49,7 +50,7 @@ const createHospitalIcon = (code, status, beds, name) => {
           </svg>
         </div>
         <div style="position: absolute; top: -6px; right: -6px; background: ${badgeBg}; color: #020617; font-size: 10px; font-weight: 900; width: 18px; height: 18px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; border: 1.5px solid #ffffff;">
-          ${beds}
+          ${beds || 0}
         </div>
         <div style="margin-top: 2px; background: rgba(2, 6, 23, 0.95); color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #1E293B; white-space: nowrap;">
           🏥 ${code}
@@ -151,20 +152,33 @@ export const UniversalSharedMap = ({
         L.control.zoom({ position: 'bottomright' }).addTo(map);
       }
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      // CARTO Dark Tile Layer with OpenStreetMap Fallback
+      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; CARTO • OpenStreetMap',
         maxZoom: 19,
         subdomains: 'abcd',
-      }).addTo(map);
+      });
+
+      tileLayer.on('tileerror', () => {
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+      });
+
+      tileLayer.addTo(map);
 
       const layerGroup = L.layerGroup().addTo(map);
       layerGroupRef.current = layerGroup;
 
       mapInstanceRef.current = map;
 
-      // Auto-fit bounds on initial load so ALL 4 Hospitals and emergency requests are visible
-      setTimeout(() => {
-        if (mapInstanceRef.current && hospitals && hospitals.length > 0) {
+      // Invalidate size & fit bounds across multiple ticks to prevent blank map canvas
+      const fitBoundsTimer = () => {
+        if (!mapInstanceRef.current) return;
+        mapInstanceRef.current.invalidateSize();
+
+        if (hospitals && hospitals.length > 0) {
           const points = hospitals.map(h => [h.location.lat, h.location.lng]);
           if (emergencyRequests && emergencyRequests.length > 0) {
             emergencyRequests.forEach(r => points.push([r.location.lat, r.location.lng]));
@@ -174,7 +188,11 @@ export const UniversalSharedMap = ({
             mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
           }
         }
-      }, 300);
+      };
+
+      setTimeout(fitBoundsTimer, 100);
+      setTimeout(fitBoundsTimer, 300);
+      setTimeout(fitBoundsTimer, 600);
     }
 
     return () => {
@@ -338,7 +356,7 @@ export const UniversalSharedMap = ({
 
   return (
     <div className={`relative w-full ${height} rounded-3xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950`}>
-      <div ref={mapRef} className="w-full h-full z-0" />
+      <div ref={mapRef} className="w-full h-full z-0 min-h-[400px]" />
 
       {/* Persistent Badge & Legend Overlay */}
       {!isMiniMap && (
