@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LandingPage } from './components/LandingPage';
 import { Navbar } from './components/Navbar';
 import { LoginPage } from './components/LoginPage';
+import { EmergencyIntelligenceDashboard } from './components/EmergencyIntelligenceDashboard';
 import { CommandCenter } from './components/CommandCenter';
 import { AmbulanceView } from './components/AmbulanceView';
 import { HospitalView } from './components/HospitalView';
@@ -59,6 +60,7 @@ const MainLayout = () => {
         <Navbar onOpenLanding={() => setViewMode('landing')} />
 
         <main className="flex-1 py-4">
+          {activeRole === 'intelligence' && <EmergencyIntelligenceDashboard />}
           {activeRole === 'command' && <CommandCenter />}
           {activeRole === 'ambulance' && <AmbulanceView />}
           {activeRole === 'hospital' && <HospitalView />}

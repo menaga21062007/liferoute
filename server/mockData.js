@@ -1,60 +1,13 @@
-// Seed mock data for LifeRoute 3.0 Emergency Response & Hospital Management Platform
+// Seed mock data for LifeRoute 3.0 Emergency Response, Intelligence & Hospital Management System
 
 export const EMERGENCY_CATEGORIES = [
-  {
-    id: "cardiac",
-    name: "Cardiac Arrest / STEMI",
-    priority: "CRITICAL",
-    requiredSpecialty: "Cardiac",
-    requiresOT: true,
-    recommendedBedType: "Cardiac ICU",
-    description: "Acute myocardial infarction, arrest, or severe arrhythmias."
-  },
-  {
-    id: "stroke",
-    name: "Stroke / Acute Neurological",
-    priority: "CRITICAL",
-    requiredSpecialty: "Stroke",
-    requiresOT: false,
-    recommendedBedType: "Stroke Unit Bed",
-    description: "Sudden onset paralysis, facial drooping, speech difficulty."
-  },
-  {
-    id: "trauma",
-    name: "Major Trauma / Accident",
-    priority: "CRITICAL",
-    requiredSpecialty: "Trauma",
-    requiresOT: true,
-    recommendedBedType: "Trauma ICU Bed",
-    description: "Multiple severe fractures, internal bleeding, penetrating wound."
-  },
-  {
-    id: "respiratory",
-    name: "Severe Respiratory Distress",
-    priority: "HIGH",
-    requiredSpecialty: "ICU",
-    requiresOT: false,
-    recommendedBedType: "Emergency ICU Bed",
-    description: "Severe asthma attack, acute pulmonary edema, low SpO2."
-  },
-  {
-    id: "burns",
-    name: "Severe Burns",
-    priority: "CRITICAL",
-    requiredSpecialty: "Burns",
-    requiresOT: true,
-    recommendedBedType: "Burn Unit Bed",
-    description: "2nd or 3rd degree burns >20% body surface area."
-  },
-  {
-    id: "pediatric",
-    name: "Pediatric Emergency",
-    priority: "HIGH",
-    requiredSpecialty: "Pediatric",
-    requiresOT: false,
-    recommendedBedType: "PICU Bed",
-    description: "Child emergency under 14 requiring specialized pediatric care."
-  }
+  { id: "cardiac", name: "Cardiac Emergency", priority: "CRITICAL", requiredSpecialty: "Cardiac", requiresOT: true, recommendedBedType: "Cardiac ICU" },
+  { id: "stroke", name: "Stroke", priority: "CRITICAL", requiredSpecialty: "Stroke", requiresOT: false, recommendedBedType: "Stroke Unit Bed" },
+  { id: "trauma", name: "Trauma", priority: "CRITICAL", requiredSpecialty: "Trauma", requiresOT: true, recommendedBedType: "Trauma ICU Bed" },
+  { id: "road_accident", name: "Road Accident", priority: "CRITICAL", requiredSpecialty: "Trauma", requiresOT: true, recommendedBedType: "Trauma ICU Bed" },
+  { id: "respiratory", name: "Respiratory Distress", priority: "HIGH", requiredSpecialty: "ICU", requiresOT: false, recommendedBedType: "Emergency ICU Bed" },
+  { id: "burns", name: "Fire/Burn Injury", priority: "HIGH", requiredSpecialty: "Burns", requiresOT: true, recommendedBedType: "Burn Unit Bed" },
+  { id: "other", name: "Other Emergency", priority: "MEDIUM", requiredSpecialty: "General", requiresOT: false, recommendedBedType: "Emergency Bed" }
 ];
 
 export const INITIAL_HOSPITALS = [
@@ -74,30 +27,19 @@ export const INITIAL_HOSPITALS = [
     occupiedOTs: 4,
     status: "AVAILABLE",
     incomingAmbulances: [],
-    
     beds: [
-      { id: "b-1", bedNumber: "EMG-01", type: "Emergency", status: "OCCUPIED", patientName: "Robert Davis", condition: "Cardiac Arrest", assignedDoctor: "Dr. Aris Thorne" },
-      { id: "b-2", bedNumber: "EMG-02", type: "Emergency", status: "AVAILABLE", patientName: null, condition: null, assignedDoctor: null },
-      { id: "b-3", bedNumber: "EMG-03", type: "Emergency", status: "CLEANING", patientName: null, condition: null, assignedDoctor: null },
-      { id: "b-4", bedNumber: "ICU-01", type: "ICU", status: "OCCUPIED", patientName: "Elena Rostova", condition: "Severe STEMI", assignedDoctor: "Dr. Sarah Lin" },
-      { id: "b-5", bedNumber: "ICU-02", type: "ICU", status: "RESERVED", patientName: "David Miller", condition: "Cardiac Arrest", assignedDoctor: "Dr. Aris Thorne" },
-      { id: "b-6", bedNumber: "ICU-03", type: "ICU", status: "AVAILABLE", patientName: null, condition: null, assignedDoctor: null },
-      { id: "b-7", bedNumber: "WRD-101", type: "Ward", status: "OCCUPIED", patientName: "James Wilson", condition: "Post-op Recovery", assignedDoctor: "Dr. Marcus Vance" },
-      { id: "b-8", bedNumber: "WRD-102", type: "Ward", status: "OUT_OF_SERVICE", patientName: null, condition: null, assignedDoctor: null }
+      { id: "b-1", bedNumber: "EMG-01", type: "Emergency", status: "OCCUPIED", patientName: "Robert Davis" },
+      { id: "b-2", bedNumber: "EMG-02", type: "Emergency", status: "AVAILABLE", patientName: null },
+      { id: "b-3", bedNumber: "ICU-01", type: "ICU", status: "RESERVED", patientName: "David Miller" },
+      { id: "b-4", bedNumber: "ICU-02", type: "ICU", status: "AVAILABLE", patientName: null }
     ],
-
     ots: [
-      { id: "ot-1", otNumber: "OT-1 (Cardiac)", status: "In_Use", patientName: "Robert Davis", procedure: "Emergency Angioplasty", startTime: "10:30 AM", endTime: "12:15 PM" },
-      { id: "ot-2", otNumber: "OT-2 (Trauma)", status: "Scheduled", patientName: "David Miller", procedure: "STEMI Reperfusion", startTime: "11:45 AM", endTime: "01:00 PM" },
-      { id: "ot-3", otNumber: "OT-3 (General)", status: "Free", patientName: null, procedure: null, startTime: null, endTime: null },
-      { id: "ot-4", otNumber: "OT-4 (Neuro)", status: "Free", patientName: null, procedure: null, startTime: null, endTime: null }
+      { id: "ot-1", otNumber: "OT-1 (Cardiac)", status: "In_Use", patientName: "Robert Davis" },
+      { id: "ot-2", otNumber: "OT-2 (Trauma)", status: "Free", patientName: null }
     ],
-
     doctors: [
-      { id: "doc-1", name: "Dr. Aris Thorne", specialty: "Cardiology & ER Lead", activePatients: 4, status: "ON_DUTY", phone: "Ext. 401" },
-      { id: "doc-2", name: "Dr. Sarah Lin", specialty: "Trauma Surgeon", activePatients: 2, status: "IN_OT", phone: "Ext. 402" },
-      { id: "doc-3", name: "Dr. Marcus Vance", specialty: "Neurology Specialist", activePatients: 1, status: "ON_DUTY", phone: "Ext. 403" },
-      { id: "doc-4", name: "Dr. Emily Watson", specialty: "Pediatric ER", activePatients: 0, status: "AVAILABLE", phone: "Ext. 404" }
+      { id: "doc-1", name: "Dr. Aris Thorne", specialty: "Cardiology & ER Lead", status: "ON_DUTY" },
+      { id: "doc-2", name: "Dr. Sarah Lin", specialty: "Trauma Surgeon", status: "IN_OT" }
     ]
   },
   {
@@ -117,15 +59,11 @@ export const INITIAL_HOSPITALS = [
     status: "AVAILABLE",
     incomingAmbulances: [],
     beds: [
-      { id: "b-201", bedNumber: "TRM-01", type: "Emergency", status: "OCCUPIED", patientName: "Carl Jenkins", condition: "Polytrauma", assignedDoctor: "Dr. Kevin Durant" },
-      { id: "b-202", bedNumber: "TRM-02", type: "Emergency", status: "AVAILABLE", patientName: null, condition: null, assignedDoctor: null }
+      { id: "b-201", bedNumber: "TRM-01", type: "Emergency", status: "OCCUPIED", patientName: "Carl Jenkins" },
+      { id: "b-202", bedNumber: "TRM-02", type: "Emergency", status: "AVAILABLE", patientName: null }
     ],
-    ots: [
-      { id: "ot-201", otNumber: "OT-1", status: "Free", patientName: null, procedure: null, startTime: null, endTime: null }
-    ],
-    doctors: [
-      { id: "doc-201", name: "Dr. Kevin Durant", specialty: "Chief Trauma Surgeon", activePatients: 3, status: "ON_DUTY", phone: "Ext. 501" }
-    ]
+    ots: [],
+    doctors: []
   },
   {
     id: "hosp-3",
@@ -169,72 +107,174 @@ export const INITIAL_HOSPITALS = [
   }
 ];
 
-export const INITIAL_TRAFFIC_SIGNALS = [
+// Fictional City Road Graph (12 Nodes, 18 Edges)
+export const FICTIONAL_ROAD_GRAPH = {
+  nodes: [
+    { id: "N1", name: "Suburban Pickup Intersection", lat: 40.715000, lng: -73.955000, type: "INTERSECTION" },
+    { id: "N2", name: "5th Ave & Grand St", lat: 40.718000, lng: -73.950000, type: "INTERSECTION" },
+    { id: "N3", name: "Grand Ave Crossing (TS-01)", lat: 40.722000, lng: -73.945000, type: "INTERSECTION" },
+    { id: "N4", name: "Healthcare Ring Junction (TS-02)", lat: 40.727000, lng: -73.939000, type: "INTERSECTION" },
+    { id: "N5", name: "Velammal Global Hospital Hub (VGH)", lat: 40.730610, lng: -73.935242, type: "HOSPITAL" },
+    { id: "N6", name: "Midtown Expressway Gate (TS-03)", lat: 40.738000, lng: -73.972000, type: "INTERSECTION" },
+    { id: "N7", name: "Hospital Approach 50th Ave (TS-04)", lat: 40.745000, lng: -73.980000, type: "INTERSECTION" },
+    { id: "N8", name: "Velammal Hospital Hub (VH)", lat: 40.748817, lng: -73.985428, type: "HOSPITAL" },
+    { id: "N9", name: "South Cardiac District Gate", lat: 40.712776, lng: -74.005974, type: "HOSPITAL" },
+    { id: "N10", name: "East Pediatric Avenue", lat: 40.761421, lng: -73.977621, type: "HOSPITAL" },
+    { id: "N11", name: "Ambulance Depot Alpha", lat: 40.755000, lng: -73.965000, type: "DEPOT" },
+    { id: "N12", name: "Central Metro Hub", lat: 40.735000, lng: -73.950000, type: "INTERSECTION" }
+  ],
+  edges: [
+    { id: "E1", source: "N1", target: "N2", weight: 0.6, name: "Suburban Arterial" },
+    { id: "E2", source: "N2", target: "N3", weight: 0.8, name: "5th Ave Link" },
+    { id: "E3", source: "N3", target: "N4", weight: 0.9, name: "Grand Corridor" },
+    { id: "E4", source: "N4", target: "N5", weight: 0.5, name: "Healthcare Blvd" },
+    { id: "E5", source: "N3", target: "N12", weight: 1.2, name: "Cross-Metro Connector" },
+    { id: "E6", source: "N12", target: "N6", weight: 1.1, name: "Central Bypass" },
+    { id: "E7", source: "N6", target: "N7", weight: 0.9, name: "Midtown Expressway" },
+    { id: "E8", source: "N7", target: "N8", weight: 0.5, name: "Velammal Approach" },
+    { id: "E9", source: "N1", target: "N9", weight: 2.1, name: "South Ring Road" },
+    { id: "E10", source: "N7", target: "N10", weight: 1.4, name: "East Pediatric Expressway" },
+    { id: "E11", source: "N11", target: "N6", weight: 1.0, name: "Depot North Feed" },
+    { id: "E12", source: "N11", target: "N12", weight: 0.8, name: "Depot Central Feed" },
+    { id: "E13", source: "N4", target: "N10", weight: 2.2, name: "North-East Connector" },
+    { id: "E14", source: "N9", target: "N12", weight: 1.8, name: "South Metro Link" },
+    { id: "E15", source: "N2", target: "N9", weight: 1.7, name: "West Side Arterial" },
+    { id: "E16", source: "N6", target: "N8", weight: 1.3, name: "Midtown Direct Cut" },
+    { id: "E17", source: "N5", target: "N10", weight: 1.9, name: "East Hospital Corridor" },
+    { id: "E18", source: "N12", target: "N4", weight: 0.7, name: "Metro Ring Inner" }
+  ]
+};
+
+// Seed Fictional Emergency Requests (8 Requests, 3 Clustered in Midtown/Grand Ave)
+export const INITIAL_EMERGENCY_REQUESTS = [
   {
-    id: "sig-1",
-    code: "TS-01",
-    name: "Grand Ave & 5th St",
-    location: { lat: 40.722000, lng: -73.945000 },
-    status: "RED",
-    mode: "AUTO_NORMAL",
-    activeAmbulanceId: null,
-    distanceToAmbulance: null,
-    countdownSeconds: 0
+    id: "ER-001",
+    patientName: "Menaga",
+    age: 54,
+    gender: "Male",
+    bloodGroup: "O+",
+    emergencyType: "Cardiac Emergency",
+    severity: "CRITICAL",
+    location: { lat: 40.718000, lng: -73.950000, name: "Grand Ave & 5th St" },
+    requestTimestamp: "10:15:00 AM",
+    waitingTimeMins: 14,
+    patientSummary: "Acute chest pressure, STEMI suspected, unresponsive",
+    status: "Waiting",
+    assignedAmbulanceId: null
   },
   {
-    id: "sig-2",
-    code: "TS-02",
-    name: "Healthcare Blvd & Metro Ring",
-    location: { lat: 40.727000, lng: -73.939000 },
-    status: "GREEN",
-    mode: "AUTO_NORMAL",
-    activeAmbulanceId: null,
-    distanceToAmbulance: null,
-    countdownSeconds: 0
+    id: "ER-002",
+    patientName: "David Miller",
+    age: 62,
+    gender: "Male",
+    bloodGroup: "A+",
+    emergencyType: "Road Accident",
+    severity: "CRITICAL",
+    location: { lat: 40.722000, lng: -73.945000, name: "Grand Ave Crossing" },
+    requestTimestamp: "10:18:20 AM",
+    waitingTimeMins: 11,
+    patientSummary: "Vehicle rollover, multiple trauma, compound leg fracture",
+    status: "Waiting",
+    assignedAmbulanceId: null
   },
   {
-    id: "sig-3",
-    code: "TS-03",
-    name: "Midtown Expressway & 12th St",
-    location: { lat: 40.738000, lng: -73.972000 },
-    status: "RED",
-    mode: "AUTO_NORMAL",
-    activeAmbulanceId: null,
-    distanceToAmbulance: null,
-    countdownSeconds: 0
+    id: "ER-003",
+    patientName: "Sarah Jenkins",
+    age: 48,
+    gender: "Female",
+    bloodGroup: "B+",
+    emergencyType: "Stroke",
+    severity: "HIGH",
+    location: { lat: 40.720000, lng: -73.948000, name: "5th St Commercial Block" },
+    requestTimestamp: "10:20:10 AM",
+    waitingTimeMins: 9,
+    patientSummary: "Facial drooping, right side paralysis, speech difficulty",
+    status: "Waiting",
+    assignedAmbulanceId: null
   },
   {
-    id: "sig-4",
-    code: "TS-04",
-    name: "Hospital Approach & 50th Ave",
-    location: { lat: 40.745000, lng: -73.980000 },
-    status: "RED",
-    mode: "AUTO_NORMAL",
-    activeAmbulanceId: null,
-    distanceToAmbulance: null,
-    countdownSeconds: 0
+    id: "ER-004",
+    patientName: "Carl Williams",
+    age: 38,
+    gender: "Male",
+    bloodGroup: "O-",
+    emergencyType: "Fire/Burn Injury",
+    severity: "HIGH",
+    location: { lat: 40.738000, lng: -73.972000, name: "Midtown Industrial Park" },
+    requestTimestamp: "10:22:00 AM",
+    waitingTimeMins: 7,
+    patientSummary: "2nd degree burns on arms and torso, chemical inhalation",
+    status: "Waiting",
+    assignedAmbulanceId: null
+  },
+  {
+    id: "ER-005",
+    patientName: "Emily Watson",
+    age: 9,
+    gender: "Female",
+    bloodGroup: "AB+",
+    emergencyType: "Respiratory Distress",
+    severity: "MEDIUM",
+    location: { lat: 40.755000, lng: -73.965000, name: "East Side Academy" },
+    requestTimestamp: "10:24:30 AM",
+    waitingTimeMins: 5,
+    patientSummary: "Severe asthma exacerbation, SpO2 88%",
+    status: "Waiting",
+    assignedAmbulanceId: null
+  },
+  {
+    id: "ER-006",
+    patientName: "Robert Davis",
+    age: 71,
+    gender: "Male",
+    bloodGroup: "A-",
+    emergencyType: "Cardiac Emergency",
+    severity: "CRITICAL",
+    location: { lat: 40.748817, lng: -73.985428, name: "Midtown Transit Plaza" },
+    requestTimestamp: "10:25:00 AM",
+    waitingTimeMins: 4,
+    patientSummary: "Sudden collapse, pulseless electrical activity",
+    status: "Waiting",
+    assignedAmbulanceId: null
+  },
+  {
+    id: "ER-007",
+    patientName: "Jessica Taylor",
+    age: 29,
+    gender: "Female",
+    bloodGroup: "O+",
+    emergencyType: "Trauma",
+    severity: "LOW",
+    location: { lat: 40.712776, lng: -74.005974, name: "South Market Mall" },
+    requestTimestamp: "10:26:15 AM",
+    waitingTimeMins: 3,
+    patientSummary: "Laceration on forearm, bleeding controlled",
+    status: "Waiting",
+    assignedAmbulanceId: null
+  },
+  {
+    id: "ER-008",
+    patientName: "Michael Chang",
+    age: 42,
+    gender: "Male",
+    bloodGroup: "B-",
+    emergencyType: "Road Accident",
+    severity: "HIGH",
+    location: { lat: 40.761421, lng: -73.977621, name: "Pediatric Expressway Exit" },
+    requestTimestamp: "10:27:40 AM",
+    waitingTimeMins: 2,
+    patientSummary: "Motorcycle collision, head injury, conscious",
+    status: "Waiting",
+    assignedAmbulanceId: null
   }
 ];
 
-export const PREDEFINED_ROUTES = {
-  routeAlpha: [
-    { lat: 40.715000, lng: -73.955000 },
-    { lat: 40.718000, lng: -73.950000 },
-    { lat: 40.722000, lng: -73.945000 },
-    { lat: 40.725000, lng: -73.941000 },
-    { lat: 40.727000, lng: -73.939000 },
-    { lat: 40.729000, lng: -73.936500 },
-    { lat: 40.730610, lng: -73.935242 }
-  ],
-  routeBeta: [
-    { lat: 40.730000, lng: -73.960000 },
-    { lat: 40.734000, lng: -73.966000 },
-    { lat: 40.738000, lng: -73.972000 },
-    { lat: 40.742000, lng: -73.976000 },
-    { lat: 40.745000, lng: -73.980000 },
-    { lat: 40.748817, lng: -73.985428 }
-  ]
-};
+export const INITIAL_TRAFFIC_SIGNALS = [
+  { id: "sig-1", code: "TS-01", name: "Grand Ave & 5th St", location: { lat: 40.722000, lng: -73.945000 }, status: "RED", mode: "AUTO_NORMAL", activeAmbulanceId: null, countdownSeconds: 0 },
+  { id: "sig-2", code: "TS-02", name: "Healthcare Blvd & Metro Ring", location: { lat: 40.727000, lng: -73.939000 }, status: "GREEN", mode: "AUTO_NORMAL", activeAmbulanceId: null, countdownSeconds: 0 },
+  { id: "sig-3", code: "TS-03", name: "Midtown Expressway & 12th St", location: { lat: 40.738000, lng: -73.972000 }, status: "RED", mode: "AUTO_NORMAL", activeAmbulanceId: null, countdownSeconds: 0 },
+  { id: "sig-4", code: "TS-04", name: "Hospital Approach & 50th Ave", location: { lat: 40.745000, lng: -73.980000 }, status: "RED", mode: "AUTO_NORMAL", activeAmbulanceId: null, countdownSeconds: 0 }
+];
 
 export const INITIAL_AMBULANCES = [
   {
@@ -243,20 +283,13 @@ export const INITIAL_AMBULANCES = [
     unitName: "Rapid Response Unit 1",
     driverName: "Marcus Vance",
     paramedicName: "Elena Rostova",
-    status: "IDLE", // Default to IDLE so the Patient Registration & Intake form is ready on load
+    status: "AVAILABLE",
+    capabilities: ["Cardiac Support", "Trauma Support", "ICU Ambulance"],
     currentLocation: { lat: 40.718000, lng: -73.950000 },
-    heading: 45,
-    speedKm: 0,
-    destinationHospitalId: null,
-    route: PREDEFINED_ROUTES.routeAlpha,
-    currentWaypointIndex: 0,
+    currentLocationName: "5th Ave & Grand St",
+    assignedRequestId: null,
     etaMinutes: 0,
-    distanceRemainingKm: 0,
-    patient: null,
-    teamReady: false,
-    allocatedBedNumber: null,
-    allocatedOtNumber: null,
-    startTime: null
+    patient: null
   },
   {
     id: "amb-102",
@@ -264,26 +297,33 @@ export const INITIAL_AMBULANCES = [
     unitName: "Metro Medic 4",
     driverName: "Kevin Durant",
     paramedicName: "Samantha Chen",
-    status: "IDLE",
+    status: "AVAILABLE",
+    capabilities: ["Trauma Support", "General Emergency"],
     currentLocation: { lat: 40.755000, lng: -73.965000 },
-    heading: 180,
-    speedKm: 0,
-    destinationHospitalId: null,
-    route: [],
-    currentWaypointIndex: 0,
+    currentLocationName: "Ambulance Depot Alpha",
+    assignedRequestId: null,
     etaMinutes: 0,
-    distanceRemainingKm: 0,
-    patient: null,
-    teamReady: false,
-    allocatedBedNumber: null,
-    allocatedOtNumber: null,
-    startTime: null
+    patient: null
+  },
+  {
+    id: "amb-103",
+    code: "AMB-103",
+    unitName: "Critical Care Unit 9",
+    driverName: "Dr. Aris Thorne",
+    paramedicName: "Rachel Adams",
+    status: "AVAILABLE",
+    capabilities: ["ICU Ambulance", "Cardiac Support"],
+    currentLocation: { lat: 40.735000, lng: -73.950000 },
+    currentLocationName: "Central Metro Hub",
+    assignedRequestId: null,
+    etaMinutes: 0,
+    patient: null
   }
 ];
 
 export const INITIAL_ACTIVITY_LOGS = [
-  { id: "log-101", timestamp: "10:15:20 AM", event: "Emergency Dispatch Standby", actor: "AMB-101 Crew", category: "AMBULANCE", details: "AMB-101 unit ready for patient registration and emergency trip" },
-  { id: "log-102", timestamp: "10:16:05 AM", event: "Green Corridor Radar Ready", actor: "Traffic Controller", category: "TRAFFIC", details: "Signals TS-01 through TS-04 connected and ready for emergency green corridor" }
+  { id: "log-101", timestamp: "10:15:00 AM", event: "Emergency Request Created", actor: "System Intake", category: "EMERGENCY", details: "ER-001 created for patient Menaga at Grand Ave & 5th St" },
+  { id: "log-102", timestamp: "10:16:05 AM", event: "DBSCAN Clustering Active", actor: "Intelligence Engine", category: "HOTSPOT", details: "Detected 1 Emergency Hotspot Zone in Midtown/Grand Ave" }
 ];
 
 export const INITIAL_TRIP_HISTORY = [
@@ -299,20 +339,6 @@ export const INITIAL_TRIP_HISTORY = [
     hospitalName: "Velammal Hospital",
     outcome: "Successfully admitted to ICU • Surgery completed",
     durationMins: 14,
-    route: PREDEFINED_ROUTES.routeBeta
-  },
-  {
-    id: "hist-2",
-    tripDate: "2026-08-16",
-    ambulanceCode: "AMB-102",
-    driverName: "Kevin Durant",
-    patientName: "Michael Chang",
-    age: 34,
-    gender: "Male",
-    conditionCategory: "Stroke / Neurological",
-    hospitalName: "Velammal Global Hospital",
-    outcome: "Thrombolysis administered • Discharged to rehab",
-    durationMins: 11,
-    route: PREDEFINED_ROUTES.routeAlpha
+    route: []
   }
 ];

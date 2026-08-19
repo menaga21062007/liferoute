@@ -16,7 +16,8 @@ import {
   FileCheck2,
   LogOut,
   User,
-  Home
+  Home,
+  Zap
 } from 'lucide-react';
 
 export const Navbar = ({ onOpenLanding }) => {
@@ -33,12 +34,13 @@ export const Navbar = ({ onOpenLanding }) => {
 
   const { user, logout } = useAuth();
 
-  const activeAmbulancesCount = ambulances.filter((a) => a.status === 'EN_ROUTE').length;
+  const activeAmbulancesCount = ambulances.filter((a) => a.status === 'EN_ROUTE' || a.status === 'Assigned').length;
   const activeGreenCorridorsCount = trafficSignals.filter((s) => s.mode === 'GREEN_CORRIDOR_ACTIVE' || s.mode === 'EMERGENCY_GREEN').length;
   const totalFreeBeds = hospitals.reduce((sum, h) => sum + (h.availableBeds || 0), 0);
 
-  // Updated Tab Order: Landing Page -> Command Center -> Ambulance Crew -> Traffic Control -> Hospital ER -> Hospital Admin & Beds -> Trip History & Replay
+  // Tab Order: Emergency Intelligence -> Command Center -> Ambulance Crew -> Traffic Control -> Hospital ER -> Hospital Admin & Beds -> Trip History & Replay
   const roles = [
+    { id: 'intelligence', label: 'Emergency Intelligence', icon: Zap },
     { id: 'command', label: 'Command Center', icon: LayoutDashboard },
     { id: 'ambulance', label: 'Ambulance Crew', icon: Ambulance },
     { id: 'traffic', label: 'Traffic Control', icon: TrafficCone },
@@ -52,7 +54,7 @@ export const Navbar = ({ onOpenLanding }) => {
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         
         {/* Brand Logo & Tagline */}
-        <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => setActiveRole('command')}>
+        <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => setActiveRole('intelligence')}>
           <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-brand-blue to-brand-red flex items-center justify-center shadow-lg shadow-brand-red/20 ring-2 ring-white/10">
             <HeartPulse className="h-5 w-5 text-white animate-pulse" />
           </div>
@@ -71,7 +73,7 @@ export const Navbar = ({ onOpenLanding }) => {
         <div className="hidden xl:flex items-center space-x-2 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/80 text-xs">
           <div className="flex items-center space-x-1.5 px-2.5 py-0.5 bg-slate-900 rounded-lg border border-slate-800">
             <Ambulance className="h-3.5 w-3.5 text-brand-red animate-bounce" />
-            <span><strong className="text-white">{activeAmbulancesCount}</strong> En-Route</span>
+            <span><strong className="text-white">{activeAmbulancesCount}</strong> Active Units</span>
           </div>
 
           <div className="flex items-center space-x-1.5 px-2.5 py-0.5 bg-slate-900 rounded-lg border border-slate-800">
@@ -81,7 +83,7 @@ export const Navbar = ({ onOpenLanding }) => {
 
           <div className="flex items-center space-x-1.5 px-2.5 py-0.5 bg-slate-900 rounded-lg border border-slate-800">
             <Bed className="h-3.5 w-3.5 text-blue-400" />
-            <span><strong className="text-white">{totalFreeBeds}</strong> ICU Beds</span>
+            <span><strong className="text-white">{totalFreeBeds}</strong> Free ICU Beds</span>
           </div>
         </div>
 
