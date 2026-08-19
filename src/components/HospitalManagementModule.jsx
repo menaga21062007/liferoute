@@ -13,11 +13,11 @@ import {
 } from 'lucide-react';
 
 export const HospitalManagementModule = () => {
-  const { hospitals, activityLogs, updateBedStatus } = useApp();
+  const { hospitals, selectedHospitalId, setSelectedHospitalId, activityLogs, updateBedStatus } = useApp();
   const [activeTab, setActiveTab] = useState('beds'); // 'beds' | 'ots' | 'doctors' | 'logs'
 
-  // Safely extract current hospital & fallback data
-  const currentHospital = hospitals?.[0] || {
+  // Safely extract selected hospital or fallback
+  const currentHospital = hospitals.find(h => h.id === selectedHospitalId || h.code === selectedHospitalId) || hospitals[0] || {
     id: 'hosp-1',
     name: 'Velammal Global Hospital',
     beds: [],
@@ -49,17 +49,27 @@ export const HospitalManagementModule = () => {
   const logs = activityLogs || [];
 
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in">
+    <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
       
-      {/* Header Banner */}
+      {/* Header Banner & Hospital Selector Dropdown */}
       <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-5 rounded-3xl flex flex-wrap items-center justify-between gap-4 shadow-2xl">
         <div className="flex items-center space-x-3.5">
           <div className="p-3.5 rounded-2xl bg-brand-blue/20 text-brand-lightBlue border border-brand-blue/40">
             <FileCheck2 className="h-7 w-7" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-white tracking-tight">Hospital Resource & Bed Management</h2>
-            <p className="text-xs text-slate-300 font-semibold mt-0.5">🏥 {currentHospital.name} • Visual Bed Allocator & Doctor Roster</p>
+            <div className="flex items-center space-x-2">
+              <select
+                value={selectedHospitalId}
+                onChange={(e) => setSelectedHospitalId(e.target.value)}
+                className="bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-1.5 text-lg font-black text-white focus:outline-none focus:border-brand-blue"
+              >
+                {hospitals.map(h => (
+                  <option key={h.id} value={h.id}>🏥 {h.name} ({h.code})</option>
+                ))}
+              </select>
+            </div>
+            <p className="text-xs text-slate-300 font-semibold mt-1">Resource & Bed Allocation Board</p>
           </div>
         </div>
 
@@ -146,7 +156,7 @@ export const HospitalManagementModule = () => {
                   <div key={ot.id} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
                     <div>
                       <div className="font-black text-base text-white">🏥 {ot.otNumber || ot.name}</div>
-                      <div className="text-slate-300 font-semibold mt-0.5">Specialty: {ot.specialty}</div>
+                      <div className="text-slate-300 font-semibold mt-0.5">Specialty: {ot.specialty || 'Surgery'}</div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-black ${
                       ot.status === 'Free' || ot.status === 'READY' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-red-500/25 text-red-300 border border-red-500/40'
@@ -168,7 +178,7 @@ export const HospitalManagementModule = () => {
                   <div key={doc.id} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
                     <div>
                       <div className="font-black text-base text-white">👨‍⚕️ {doc.name}</div>
-                      <div className="text-slate-300 font-semibold mt-0.5">{doc.specialty} • {doc.phone}</div>
+                      <div className="text-slate-300 font-semibold mt-0.5">{doc.specialty}</div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-black ${
                       doc.status === 'ON_DUTY' || doc.status === 'AVAILABLE' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/25 text-amber-300 border border-amber-500/40'
