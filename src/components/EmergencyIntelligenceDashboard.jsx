@@ -20,7 +20,9 @@ import {
   ChevronRight,
   CheckCircle2,
   ListFilter,
-  Sparkles
+  Sparkles,
+  Search,
+  Filter
 } from 'lucide-react';
 
 export const EmergencyIntelligenceDashboard = () => {
@@ -49,6 +51,10 @@ export const EmergencyIntelligenceDashboard = () => {
     toggleSimulation
   } = useApp();
 
+  // Search & Filtering State for Data Density Console
+  const [searchTerm, setSearchTerm] = useState('');
+  const [severityFilter, setSeverityFilter] = useState('ALL'); // 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
+
   // Map Layer Toggles
   const [showAmbulances, setShowAmbulances] = useState(true);
   const [showHospitals, setShowHospitals] = useState(true);
@@ -74,6 +80,19 @@ export const EmergencyIntelligenceDashboard = () => {
     setSelectedRequestId(reqId);
     selectRequestAndComputeDijkstra(reqId);
   };
+
+  // Filtered Dispatch Queue List
+  const filteredQueue = dispatchQueue.filter((req) => {
+    const matchesSearch =
+      (req.patientName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (req.emergencyType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (req.location?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (req.id || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesSeverity = severityFilter === 'ALL' || req.severity === severityFilter;
+
+    return matchesSearch && matchesSeverity;
+  });
 
   const criticalCount = emergencyRequests.filter(r => r.severity === 'CRITICAL').length;
   const unassignedCount = emergencyRequests.filter(r => r.status === 'Waiting' || r.status === 'Queued').length;
@@ -315,14 +334,14 @@ export const EmergencyIntelligenceDashboard = () => {
       {/* SECTION 3: PRIORITY DISPATCH QUEUE & DIJKSTRA ROUTE SIMULATION */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Priority Dispatch Queue Table */}
+        {/* Priority Dispatch Queue Table with Search & Category Filters */}
         <div className="lg:col-span-7 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div className="flex items-center space-x-2.5">
               <div className="p-2 rounded-xl bg-brand-blue/20 text-brand-lightBlue border border-brand-blue/40">
                 <ListFilter className="h-5 w-5" />
               </div>
-              <h3 className="text-lg font-black text-white tracking-tight">Ambulance Dispatch Priority Queue ({dispatchQueue.length})</h3>
+              <h3 className="text-lg font-black text-white tracking-tight">Ambulance Dispatch Priority Queue ({filteredQueue.length})</h3>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -348,6 +367,36 @@ export const EmergencyIntelligenceDashboard = () => {
             </div>
           </div>
 
+          {/* Search Bar & Severity Category Filter Pills */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+            <div className="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 flex-1 max-w-xs">
+              <Search className="h-4 w-4 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search patient, type, location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent text-xs font-bold text-white focus:outline-none w-full"
+              />
+            </div>
+
+            <div className="flex items-center space-x-1 text-xs font-bold">
+              {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((sev) => (
+                <button
+                  key={sev}
+                  onClick={() => setSeverityFilter(sev)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] uppercase font-black transition-all ${
+                    severityFilter === sev
+                      ? 'bg-brand-blue text-white shadow'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                  }`}
+                >
+                  {sev}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
@@ -363,59 +412,67 @@ export const EmergencyIntelligenceDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80">
-                {dispatchQueue.map((req, idx) => {
-                  const colors = SEVERITY_COLORS[req.severity?.toUpperCase()] || SEVERITY_COLORS.LOW;
-                  const isAssigned = req.status === 'Ambulance Assigned' || req.status === 'Ambulance En Route';
+                {filteredQueue.length > 0 ? (
+                  filteredQueue.map((req, idx) => {
+                    const colors = SEVERITY_COLORS[req.severity?.toUpperCase()] || SEVERITY_COLORS.LOW;
+                    const isAssigned = req.status === 'Ambulance Assigned' || req.status === 'Ambulance En Route';
 
-                  return (
-                    <tr
-                      key={req.id}
-                      onClick={() => handleSelectRequestRow(req.id)}
-                      className={`hover:bg-slate-950/80 transition-colors cursor-pointer ${selectedRequestId === req.id ? 'bg-slate-950 font-bold border-l-4 border-l-brand-blue' : ''}`}
-                    >
-                      <td className="py-3 px-3 font-black text-slate-300">#{idx + 1}</td>
-                      <td className="py-3 px-3 font-black text-white">🚨 {req.id}</td>
-                      <td className="py-3 px-3 font-bold text-slate-200">{req.emergencyType}</td>
-                      <td className="py-3 px-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border uppercase ${colors.bg} ${colors.text} ${colors.border}`}>
-                          {req.severity}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-slate-300 font-semibold truncate max-w-[140px]">{req.location.name}</td>
-                      <td className="py-3 px-3 font-mono text-amber-400 font-bold">{req.waitingTimeMins}m</td>
-                      <td className="py-3 px-3 font-bold">
-                        {req.assignedAmbulanceId ? (
-                          <span className="text-emerald-400">🚑 {req.assignedAmbulanceId}</span>
-                        ) : (
-                          <span className="text-slate-500 font-normal">Unassigned</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3">
-                        {!isAssigned ? (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              manualAssignAmbulance(req.id);
-                            }}
-                            className="bg-brand-blue hover:bg-blue-600 text-white font-black text-[10px] px-2.5 py-1 rounded-lg transition-all"
-                          >
-                            Assign Unit
-                          </button>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              unassignAmbulance(req.id);
-                            }}
-                            className="bg-slate-950 hover:bg-slate-800 text-rose-400 font-bold text-[10px] px-2 py-1 rounded-lg border border-slate-800"
-                          >
-                            Unassign
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    return (
+                      <tr
+                        key={req.id}
+                        onClick={() => handleSelectRequestRow(req.id)}
+                        className={`hover:bg-slate-950/80 transition-colors cursor-pointer ${selectedRequestId === req.id ? 'bg-slate-950 font-bold border-l-4 border-l-brand-blue' : ''}`}
+                      >
+                        <td className="py-3 px-3 font-black text-slate-300">#{idx + 1}</td>
+                        <td className="py-3 px-3 font-black text-white">🚨 {req.id}</td>
+                        <td className="py-3 px-3 font-bold text-slate-200">{req.emergencyType}</td>
+                        <td className="py-3 px-3">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border uppercase ${colors.bg} ${colors.text} ${colors.border}`}>
+                            {req.severity}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-slate-300 font-semibold truncate max-w-[140px]">{req.location.name}</td>
+                        <td className="py-3 px-3 font-mono text-amber-400 font-bold">{req.waitingTimeMins}m</td>
+                        <td className="py-3 px-3 font-bold">
+                          {req.assignedAmbulanceId ? (
+                            <span className="text-emerald-400">🚑 {req.assignedAmbulanceId}</span>
+                          ) : (
+                            <span className="text-slate-500 font-normal">Unassigned</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3">
+                          {!isAssigned ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                manualAssignAmbulance(req.id);
+                              }}
+                              className="bg-brand-blue hover:bg-blue-600 text-white font-black text-[10px] px-2.5 py-1 rounded-lg transition-all"
+                            >
+                              Assign Unit
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                unassignAmbulance(req.id);
+                              }}
+                              className="bg-slate-950 hover:bg-slate-800 text-rose-400 font-bold text-[10px] px-2 py-1 rounded-lg border border-slate-800"
+                            >
+                              Unassign
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="8" className="text-center py-6 text-slate-400 text-xs font-semibold">
+                      No matching emergency requests found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

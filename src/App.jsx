@@ -12,6 +12,7 @@ import { HospitalManagementModule } from './components/HospitalManagementModule'
 import { TrafficView } from './components/TrafficView';
 import { TripHistoryView } from './components/TripHistoryView';
 import { DemoControlsPanel } from './components/DemoControlsPanel';
+import { ToastNotifications } from './components/ToastNotifications';
 
 const MainLayout = () => {
   const [viewMode, setViewMode] = useState('landing');
@@ -47,7 +48,7 @@ const MainLayout = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Exact Same 90-Degree Dark Navy Overlay as the Landing Page */}
+      {/* 90-Degree Dark Navy Overlay */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
@@ -69,6 +70,7 @@ const MainLayout = () => {
           {activeRole === 'history' && <TripHistoryView />}
         </main>
 
+        <ToastNotifications />
         <DemoControlsPanel />
 
         <footer className="border-t border-slate-900 bg-slate-950/90 backdrop-blur py-3 text-center text-xs text-slate-500 font-medium">
