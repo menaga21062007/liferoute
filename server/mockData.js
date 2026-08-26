@@ -397,16 +397,118 @@ export const INITIAL_ACTIVITY_LOGS = [
 export const INITIAL_TRIP_HISTORY = [
   {
     id: "hist-1",
-    tripDate: "2026-08-17",
+    tripDate: "2026-08-25",
     ambulanceCode: "AMB-101",
     driverName: "Marcus Vance",
-    patientName: "Sarah Jenkins",
-    age: 48,
-    gender: "Female",
-    conditionCategory: "Major Trauma",
-    hospitalName: "Velammal Hospital",
-    outcome: "Successfully admitted to ICU • Surgery completed",
-    durationMins: 14,
-    route: []
+    paramedicName: "Elena Rostova",
+    patientName: "John Sterling",
+    age: 54,
+    gender: "Male",
+    conditionCategory: "Cardiac Emergency",
+    hospitalName: "Velammal Global Hospital",
+    outcome: "Admitted to Cardiac ICU • Successful Stent Placement",
+    durationMins: 8,
+    replayData: [
+      { timeSec: 0, timeLabel: "00:00", location: { lat: 40.715000, lng: -73.955000 }, speedKm: 0, hr: 135, spo2: 91, signal: "TS-01 (RED)", event: "Dispatch & Patient Intake" },
+      { timeSec: 30, timeLabel: "00:30", location: { lat: 40.716500, lng: -73.952500 }, speedKm: 58, hr: 138, spo2: 91, signal: "TS-01 (RED)", event: "Transit Started" },
+      { timeSec: 60, timeLabel: "01:00", location: { lat: 40.718000, lng: -73.950000 }, speedKm: 65, hr: 142, spo2: 92, signal: "TS-01 (GREEN)", event: "Green Corridor Activated at TS-01" },
+      { timeSec: 90, timeLabel: "01:30", location: { lat: 40.720000, lng: -73.947500 }, speedKm: 70, hr: 140, spo2: 93, signal: "TS-01 (GREEN)", event: "Crossed TS-01 Intersection" },
+      { timeSec: 120, timeLabel: "02:00", location: { lat: 40.722000, lng: -73.945000 }, speedKm: 68, hr: 136, spo2: 94, signal: "TS-02 (GREEN)", event: "Green Corridor Activated at TS-02" },
+      { timeSec: 150, timeLabel: "02:30", location: { lat: 40.724500, lng: -73.942000 }, speedKm: 72, hr: 132, spo2: 95, signal: "TS-02 (GREEN)", event: "ER Trauma Team Prepped" },
+      { timeSec: 180, timeLabel: "03:00", location: { lat: 40.727000, lng: -73.939000 }, speedKm: 60, hr: 128, spo2: 95, signal: "Approach", event: "Entering Hospital Gate" },
+      { timeSec: 210, timeLabel: "03:30", location: { lat: 40.730610, lng: -73.935242 }, speedKm: 0, hr: 124, spo2: 96, signal: "Arrival", event: "Patient Handoff at ER Bay 1" }
+    ]
   }
 ];
+
+export const PREDICTIVE_ANALYTICS_DATA = {
+  peakHours: [
+    { hour: "00:00", incidents: 3, riskLevel: "LOW" },
+    { hour: "03:00", incidents: 2, riskLevel: "LOW" },
+    { hour: "06:00", incidents: 5, riskLevel: "MEDIUM" },
+    { hour: "09:00", incidents: 16, riskLevel: "HIGH" },
+    { hour: "12:00", incidents: 11, riskLevel: "MEDIUM" },
+    { hour: "15:00", incidents: 14, riskLevel: "HIGH" },
+    { hour: "18:00", incidents: 22, riskLevel: "CRITICAL" },
+    { hour: "21:00", incidents: 9, riskLevel: "MEDIUM" }
+  ],
+  recommendedPrepositioning: [
+    {
+      id: "pre-1",
+      nodeId: "N3",
+      locationName: "Grand Ave Crossing (TS-01)",
+      coords: { lat: 40.722000, lng: -73.945000 },
+      probabilityScore: 88,
+      recommendedUnit: "AMB-101",
+      reason: "High STEMI incident rate predicted during 17:00 - 19:00 rush hour"
+    },
+    {
+      id: "pre-2",
+      nodeId: "N6",
+      locationName: "Midtown Expressway Gate (TS-03)",
+      coords: { lat: 40.738000, lng: -73.972000 },
+      probabilityScore: 76,
+      recommendedUnit: "AMB-102",
+      reason: "High traffic density & road accident risk on Midtown Expressway link"
+    }
+  ]
+};
+
+export const HOSPITAL_RESOURCE_MARKETPLACE = [
+  {
+    id: "res-1",
+    hospitalId: "hosp-1",
+    hospitalName: "Velammal Global Hospital",
+    resourceType: "Ventilator (High Flow)",
+    category: "Equipment",
+    availableUnits: 4,
+    status: "AVAILABLE",
+    contactPhone: "+1 (555) 019-2831",
+    urgencyLevel: "Standard"
+  },
+  {
+    id: "res-2",
+    hospitalId: "hosp-1",
+    hospitalName: "Velammal Global Hospital",
+    resourceType: "ECMO Life Support Unit",
+    category: "Specialized Equipment",
+    availableUnits: 1,
+    status: "AVAILABLE",
+    contactPhone: "+1 (555) 019-2831",
+    urgencyLevel: "Critical Care"
+  },
+  {
+    id: "res-3",
+    hospitalId: "hosp-2",
+    hospitalName: "Velammal Hospital",
+    resourceType: "ICU Emergency Bed",
+    category: "Beds",
+    availableUnits: 3,
+    status: "AVAILABLE",
+    contactPhone: "+1 (555) 014-9922",
+    urgencyLevel: "Standard"
+  },
+  {
+    id: "res-4",
+    hospitalId: "hosp-3",
+    hospitalName: "Mercy Heart & Vascular Institute",
+    resourceType: "Cath Lab Suite",
+    category: "Facility",
+    availableUnits: 1,
+    status: "AVAILABLE",
+    contactPhone: "+1 (555) 017-4488",
+    urgencyLevel: "Emergency"
+  },
+  {
+    id: "res-5",
+    hospitalId: "hosp-4",
+    hospitalName: "City Children's & Pediatric Hospital",
+    resourceType: "Pediatric ECMO Machine",
+    category: "Specialized Equipment",
+    availableUnits: 2,
+    status: "AVAILABLE",
+    contactPhone: "+1 (555) 012-3311",
+    urgencyLevel: "Standard"
+  }
+];
+

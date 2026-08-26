@@ -4,19 +4,19 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LandingPage } from './components/LandingPage';
 import { Navbar } from './components/Navbar';
 import { LoginPage } from './components/LoginPage';
-import { EmergencyIntelligenceDashboard } from './components/EmergencyIntelligenceDashboard';
 import { CommandCenter } from './components/CommandCenter';
 import { AmbulanceView } from './components/AmbulanceView';
 import { HospitalView } from './components/HospitalView';
-import { HospitalManagementModule } from './components/HospitalManagementModule';
 import { TrafficView } from './components/TrafficView';
-import { TripHistoryView } from './components/TripHistoryView';
+import { IncidentReplayView } from './components/IncidentReplayView';
+import { VoiceAssistantModal } from './components/VoiceAssistantModal';
 import { DemoControlsPanel } from './components/DemoControlsPanel';
 import { ToastNotifications } from './components/ToastNotifications';
+import { WifiOff } from 'lucide-react';
 
 const MainLayout = () => {
   const [viewMode, setViewMode] = useState('landing');
-  const { activeRole } = useApp();
+  const { activeRole, isOfflineMode } = useApp();
   const { user } = useAuth();
 
   if (viewMode === 'landing') {
@@ -60,21 +60,28 @@ const MainLayout = () => {
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar onOpenLanding={() => setViewMode('landing')} />
 
+        {/* Offline Mode Warning Banner */}
+        {isOfflineMode && (
+          <div className="bg-amber-950/90 border-b border-amber-700/80 px-4 py-1.5 text-center text-xs font-extrabold text-amber-300 flex items-center justify-center space-x-2">
+            <WifiOff className="h-4 w-4 text-amber-400 animate-pulse" />
+            <span>OFFLINE LOCAL CACHE SIMULATION ACTIVE — All maps and hospital data running from local IndexedDB cache</span>
+          </div>
+        )}
+
         <main className="flex-1 py-4">
-          {activeRole === 'intelligence' && <EmergencyIntelligenceDashboard />}
-          {activeRole === 'command' && <CommandCenter />}
+          {activeRole === 'intelligence' && <CommandCenter />}
           {activeRole === 'ambulance' && <AmbulanceView />}
           {activeRole === 'hospital' && <HospitalView />}
-          {activeRole === 'management' && <HospitalManagementModule />}
           {activeRole === 'traffic' && <TrafficView />}
-          {activeRole === 'history' && <TripHistoryView />}
+          {activeRole === 'replay' && <IncidentReplayView />}
         </main>
 
         <ToastNotifications />
         <DemoControlsPanel />
+        <VoiceAssistantModal />
 
         <footer className="border-t border-slate-900 bg-slate-950/90 backdrop-blur py-3 text-center text-xs text-slate-500 font-medium">
-          LifeRoute Emergency Response & Smart Traffic Platform
+          LifeRoute Unified Emergency Response & Smart Traffic Platform v3.5
         </footer>
       </div>
     </div>
@@ -90,3 +97,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+

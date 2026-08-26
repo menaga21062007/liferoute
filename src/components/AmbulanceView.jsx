@@ -12,11 +12,16 @@ import {
   Thermometer,
   Zap,
   Navigation,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Eye,
+  TrafficCone,
+  Compass,
+  ArrowUpRight
 } from 'lucide-react';
 
 export const AmbulanceView = () => {
-  const { ambulances, hospitals, startTrip, updatePatientTreatmentStatus } = useApp();
+  const { ambulances, hospitals, startTrip, updatePatientTreatmentStatus, isARHUDActive, setIsARHUDActive, t } = useApp();
 
   const [selectedAmbulanceCode, setSelectedAmbulanceCode] = useState('AMB-101');
   const activeAmbulance = ambulances.find((a) => a.code === selectedAmbulanceCode || a.id === selectedAmbulanceCode) || ambulances[0];
@@ -65,7 +70,6 @@ export const AmbulanceView = () => {
           </div>
           <div>
             <div className="flex items-center space-x-3">
-              {/* Ambulance Selector Dropdown */}
               <select
                 value={selectedAmbulanceCode}
                 onChange={(e) => setSelectedAmbulanceCode(e.target.value)}
@@ -88,27 +92,41 @@ export const AmbulanceView = () => {
           </div>
         </div>
 
-        {isEnRoute && (
-          <div className="flex items-center space-x-4 bg-slate-950/90 p-3 px-5 rounded-2xl border border-slate-800 shadow-xl">
-            <div className="text-center">
-              <div className="text-[10px] text-slate-400 font-extrabold uppercase">Arrival ETA</div>
-              <div className="text-xl font-black text-emerald-400 font-mono">~{activeAmbulance.etaMinutes} Mins</div>
+        {/* AR Navigation HUD Toggle Button */}
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setIsARHUDActive(!isARHUDActive)}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-2xl border text-xs font-extrabold shadow-lg transition-all ${
+              isARHUDActive
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 border-cyan-400 text-white shadow-cyan-500/30 ring-2 ring-cyan-400/40 animate-pulse'
+                : 'bg-slate-950 border-slate-700 text-cyan-400 hover:bg-slate-800'
+            }`}
+          >
+            <Eye className="h-4 w-4" />
+            <span>{isARHUDActive ? 'AR HUD OVERLAY ACTIVE' : 'ENABLE AR HUD NAV'}</span>
+          </button>
+
+          {isEnRoute && (
+            <div className="flex items-center space-x-4 bg-slate-950/90 p-3 px-5 rounded-2xl border border-slate-800 shadow-xl">
+              <div className="text-center">
+                <div className="text-[10px] text-slate-400 font-extrabold uppercase">Arrival ETA</div>
+                <div className="text-xl font-black text-emerald-400 font-mono">~{activeAmbulance.etaMinutes} Mins</div>
+              </div>
+              <div className="h-8 w-px bg-slate-800" />
+              <div className="text-center">
+                <div className="text-[10px] text-slate-400 font-extrabold uppercase">Target Hospital</div>
+                <div className="text-sm font-black text-white">{targetHospital.name}</div>
+              </div>
             </div>
-            <div className="h-8 w-px bg-slate-800" />
-            <div className="text-center">
-              <div className="text-[10px] text-slate-400 font-extrabold uppercase">Target Hospital</div>
-              <div className="text-sm font-black text-white">{targetHospital.name}</div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: ALWAYS VISIBLE Patient Registration Intake Form & Active Dispatch Info */}
+        {/* Left Column: Intake Form & Active Dispatch Info */}
         <div className="lg:col-span-5 space-y-6">
           
-          {/* 1. Patient Registration Intake Form (ALWAYS VISIBLE) */}
           <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2.5">
@@ -216,11 +234,9 @@ export const AmbulanceView = () => {
             </form>
           </div>
 
-          {/* 2. Active Patient Telemetry Card (Shown when Ambulance is EN_ROUTE) */}
+          {/* Active Telemetry Card */}
           {isEnRoute && (
             <div className="space-y-5">
-              
-              {/* Active Dispatch Details Card */}
               <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div className="text-xs font-extrabold text-slate-300 uppercase">Active Patient Dispatch ({activeAmbulance.code})</div>
@@ -236,66 +252,81 @@ export const AmbulanceView = () => {
                   <div className="text-[10px] text-slate-400 font-black uppercase">Chief Emergency Complaint</div>
                   <div className="text-sm font-black text-red-400 mt-0.5">{activeAmbulance.patient?.conditionCategory || conditionCategory}</div>
                 </div>
-
-                <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400 font-black uppercase">Target Hospital Destination</div>
-                  <div className="text-sm font-black text-white mt-0.5">🏥 {targetHospital.name}</div>
-                </div>
               </div>
-
-              {/* Live Telemetry Card */}
-              <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="font-extrabold text-white text-xs">LIVE TELEMETRY STREAM</span>
-                  </div>
-                  <span className="bg-red-500/25 text-red-300 border border-red-500/50 text-[10px] font-black px-2 py-0.5 rounded-full">CRITICAL</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                    <div className="text-[10px] text-red-400 font-extrabold flex items-center justify-between">
-                      <span>HEART RATE</span>
-                      <Heart className="h-3.5 w-3.5 fill-red-500 text-red-500 animate-ping" />
-                    </div>
-                    <div className="text-2xl font-black text-white mt-1">{vitals.hr || 117} <span className="text-xs text-slate-400">BPM</span></div>
-                  </div>
-
-                  <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                    <div className="text-[10px] text-blue-400 font-extrabold flex items-center justify-between">
-                      <span>BP PRESS.</span>
-                      <Activity className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="text-2xl font-black text-white mt-1">{vitals.bp || '148/94'}</div>
-                  </div>
-
-                  <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                    <div className="text-[10px] text-emerald-400 font-extrabold flex items-center justify-between">
-                      <span>SPO2 SAT.</span>
-                      <Wind className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="text-2xl font-black text-white mt-1">{vitals.spo2 || '94%'}</div>
-                  </div>
-
-                  <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                    <div className="text-[10px] text-amber-400 font-extrabold flex items-center justify-between">
-                      <span>TEMP</span>
-                      <Thermometer className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="text-2xl font-black text-white mt-1">{vitals.temp || '37.2°C'}</div>
-                  </div>
-                </div>
-              </div>
-
             </div>
           )}
 
         </div>
 
-        {/* Right Column: Universal Shared Map */}
-        <div className="lg:col-span-7 space-y-4">
-          <UniversalSharedMap height="h-[640px]" selectedAmbulanceId={activeAmbulance.id} />
+        {/* Right Column: Universal Shared Map + AR HUD Overlay */}
+        <div className="lg:col-span-7 space-y-4 relative">
+          
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
+            <UniversalSharedMap height="h-[640px]" selectedAmbulanceId={activeAmbulance.id} />
+
+            {/* AR Navigation Overlay Visualizer (Heads-Up Display for Drivers) */}
+            {isARHUDActive && (
+              <div className="absolute inset-0 z-[500] pointer-events-none p-6 flex flex-col justify-between bg-gradient-to-b from-cyan-950/40 via-transparent to-slate-950/70 border-4 border-cyan-500/40 rounded-3xl animate-in fade-in duration-300">
+                
+                {/* HUD Top Bar */}
+                <div className="flex items-center justify-between bg-slate-900/90 backdrop-blur border border-cyan-500/50 p-3.5 rounded-2xl shadow-2xl">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-8 w-8 rounded-xl bg-cyan-500/20 flex items-center justify-center border border-cyan-400/60">
+                      <Compass className="h-5 w-5 text-cyan-400 animate-spin" style={{ animationDuration: '8s' }} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest block">AR HUD DRIVER HUD ACTIVE</span>
+                      <span className="text-sm font-extrabold text-white flex items-center space-x-1.5">
+                        <ArrowUpRight className="h-4 w-4 text-emerald-400" />
+                        <span>TURN RIGHT ON GRAND AVE IN 300M</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-emerald-950 text-emerald-300 border border-emerald-500/60 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center space-x-1">
+                      <TrafficCone className="h-3 w-3 text-emerald-400 animate-bounce" />
+                      <span>TS-01 GREEN CORRIDOR ACTIVE</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* HUD Center Target Sight */}
+                <div className="self-center flex flex-col items-center justify-center space-y-2 opacity-80">
+                  <div className="h-24 w-24 rounded-full border-2 border-dashed border-cyan-400 flex items-center justify-center animate-spin" style={{ animationDuration: '15s' }}>
+                    <div className="h-12 w-12 rounded-full border border-cyan-300 flex items-center justify-center">
+                      <div className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-extrabold text-cyan-300 bg-slate-900/90 px-2 py-0.5 rounded border border-cyan-500/40">
+                    CLEAR PATH • RADAR SWEEP ACTIVE
+                  </span>
+                </div>
+
+                {/* HUD Bottom Telemetry Bar */}
+                <div className="flex items-center justify-between bg-slate-900/90 backdrop-blur border border-cyan-500/50 p-3.5 rounded-2xl shadow-2xl text-xs font-bold text-white">
+                  <div className="flex items-center space-x-4">
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase block">TRANSIT SPEED</span>
+                      <span className="text-lg font-black text-cyan-300">65 KM/H</span>
+                    </div>
+                    <div className="h-6 w-px bg-slate-700" />
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase block">TARGET DISTANCE</span>
+                      <span className="text-lg font-black text-emerald-400">1.8 KM</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-[9px] text-slate-400 uppercase block">HOSPITAL MATCH</span>
+                    <span className="text-sm font-extrabold text-white">{targetHospital.code}</span>
+                  </div>
+                </div>
+
+              </div>
+            )}
+          </div>
+
         </div>
 
       </div>
@@ -303,3 +334,4 @@ export const AmbulanceView = () => {
     </div>
   );
 };
+

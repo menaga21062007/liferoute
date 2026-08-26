@@ -2,16 +2,48 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { SharedMap } from './SharedMap';
 import { VitalsMonitor } from './VitalsMonitor';
-import { Ambulance, Building2, Zap, Radio, Activity, CheckCircle2 } from 'lucide-react';
+import { Ambulance, Building2, Zap, Radio, Activity, CheckCircle2, TrendingUp, Compass, ShieldAlert, Sparkles } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 export const CommandCenter = () => {
-  const { ambulances, hospitals, activityLogs } = useApp();
+  const { ambulances, hospitals, activityLogs, predictiveAnalytics, dispatchNextRequest } = useApp();
   const [focusedAmbulanceId, setFocusedAmbulanceId] = useState(null);
 
   const activeAmbulance = ambulances.find((a) => a.status === 'EN_ROUTE') || ambulances[0];
+  const peakData = predictiveAnalytics?.peakHours || [];
+  const prepositionList = predictiveAnalytics?.recommendedPrepositioning || [];
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
+      
+      {/* Top Banner: Predictive AI Dispatch Recommendation Alert */}
+      <div className="bg-gradient-to-r from-purple-950/80 via-slate-900 to-indigo-950/80 border border-purple-800/60 p-4 rounded-3xl backdrop-blur-md shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-3 rounded-2xl bg-purple-500/20 text-purple-300 border border-purple-500/40">
+            <Sparkles className="h-6 w-6 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <h2 className="font-extrabold text-base text-white">Predictive Emergency Intelligence & Fleet Optimization</h2>
+              <span className="bg-rose-950 text-rose-300 border border-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                Rush Hour Peak Surge Warning
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 font-medium mt-0.5">
+              Forecast predicts peak incident probability at 18:00 (22 incidents/hr). Pre-positioning AMB-101 recommended at TS-01.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={dispatchNextRequest}
+          className="bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-purple-600/30 flex items-center space-x-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
+        >
+          <Zap className="h-4 w-4 fill-white" />
+          <span>EXECUTE OPTIMAL PRE-POSITIONING</span>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
         {/* Left Sidebar: Active Fleet & Hospital Capacity */}
@@ -66,41 +98,58 @@ export const CommandCenter = () => {
             </div>
           </div>
 
-          {/* Hospital Capacity Card */}
+          {/* AI Pre-positioning Recommendation Cards */}
           <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-5 rounded-3xl shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/40">
-                  <Building2 className="h-5 w-5" />
-                </div>
-                <span className="font-black text-white text-base tracking-tight">Hospital Capacity</span>
-              </div>
+            <div className="flex items-center space-x-2.5 border-b border-slate-800 pb-3">
+              <Compass className="h-5 w-5 text-purple-400" />
+              <span className="font-black text-white text-sm">Standby Pre-positioning</span>
             </div>
 
-            <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
-              {hospitals.map((hosp) => (
-                <div key={hosp.id} className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-xs space-y-1.5 hover:border-slate-700 transition-colors">
-                  <div className="flex items-center justify-between font-black text-white text-xs">
-                    <span>🏥 {hosp.name}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
-                      hosp.status === 'AVAILABLE' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/25 text-amber-300 border border-amber-500/40'
-                    }`}>
-                      {hosp.status}
-                    </span>
+            <div className="space-y-3">
+              {prepositionList.map((item) => (
+                <div key={item.id} className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between font-bold text-white">
+                    <span>📍 {item.locationName}</span>
+                    <span className="text-purple-400 font-extrabold">{item.probabilityScore}% Risk</span>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-300 font-semibold pt-1">
-                    <span>Beds: <strong className="text-white font-extrabold">{hosp.availableBeds}/{hosp.totalBeds}</strong></span>
-                    <span>OTs: <strong className="text-white font-extrabold">{hosp.availableOTs}/{hosp.totalOTs}</strong></span>
-                  </div>
+                  <p className="text-[11px] text-slate-400">{item.reason}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Center: Universal Live Shared Map */}
+        {/* Center: Universal Live Shared Map + Predictive Area Chart */}
         <div className="lg:col-span-2 space-y-4">
-          <SharedMap focusedEntityId={focusedAmbulanceId} height="h-[600px]" />
+          <SharedMap focusedEntityId={focusedAmbulanceId} height="h-[430px]" />
+
+          {/* Recharts Peak Hours Forecast */}
+          <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-4 rounded-3xl shadow-2xl space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-xs font-extrabold text-white">
+                <TrendingUp className="h-4 w-4 text-purple-400" />
+                <span>24-Hour Emergency Incident Surge Prediction</span>
+              </div>
+              <span className="text-[10px] font-bold text-purple-300">LSTM FREQUENCY FORECAST</span>
+            </div>
+
+            <div className="h-32 w-full pt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={peakData}>
+                  <defs>
+                    <linearGradient id="surgeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="hour" stroke="#64748B" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#64748B" fontSize={10} tickLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', fontSize: '11px' }} />
+                  <Area type="monotone" dataKey="incidents" stroke="#A78BFA" strokeWidth={2} fillOpacity={1} fill="url(#surgeGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Right Sidebar: Telemetry & Activity Summary */}
@@ -138,3 +187,4 @@ export const CommandCenter = () => {
     </div>
   );
 };
+

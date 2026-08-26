@@ -9,7 +9,9 @@ import {
   EMERGENCY_CATEGORIES,
   PREDEFINED_ROUTES,
   INITIAL_ACTIVITY_LOGS,
-  INITIAL_TRIP_HISTORY
+  INITIAL_TRIP_HISTORY,
+  PREDICTIVE_ANALYTICS_DATA,
+  HOSPITAL_RESOURCE_MARKETPLACE
 } from './mockData.js';
 import { recommendHospitals, calculateDistanceKm } from './recommendationEngine.js';
 import { updateGreenCorridorSignals } from './trafficController.js';
@@ -26,12 +28,13 @@ let ambulances = JSON.parse(JSON.stringify(INITIAL_AMBULANCES));
 let trafficSignals = JSON.parse(JSON.stringify(INITIAL_TRAFFIC_SIGNALS));
 let activityLogs = JSON.parse(JSON.stringify(INITIAL_ACTIVITY_LOGS));
 let tripHistory = JSON.parse(JSON.stringify(INITIAL_TRIP_HISTORY));
+let marketplaceResources = JSON.parse(JSON.stringify(HOSPITAL_RESOURCE_MARKETPLACE));
 let alerts = [
   {
     id: "alt-1",
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     title: "STEMI Emergency Dispatched",
-    message: "AMB-101 assigned to Metropolitan Central Hospital. ETA: 4 mins.",
+    message: "AMB-101 assigned to Velammal Global Hospital. ETA: 4 mins.",
     type: "CRITICAL",
     ambulanceCode: "AMB-101"
   }
@@ -67,11 +70,49 @@ function addAlert(title, message, type = "INFO", ambulanceCode = null) {
 }
 
 app.get('/api/state', (req, res) => {
-  res.json({ hospitals, ambulances, trafficSignals, alerts, activityLogs, tripHistory, isSimulationRunning });
+  res.json({ hospitals, ambulances, trafficSignals, alerts, activityLogs, tripHistory, isSimulationRunning, marketplaceResources, predictiveAnalytics: PREDICTIVE_ANALYTICS_DATA });
 });
 
 app.get('/api/emergency-categories', (req, res) => {
   res.json(EMERGENCY_CATEGORIES);
+});
+
+app.get('/api/analytics/predictive', (req, res) => {
+  res.json(PREDICTIVE_ANALYTICS_DATA);
+});
+
+app.get('/api/marketplace/resources', (req, res) => {
+  res.json(marketplaceResources);
+});
+
+app.post('/api/marketplace/transfer', (req, res) => {
+  const { resourceId, requestingHospitalName, requestedUnits } = req.body;
+  const resItem = marketplaceResources.find(r => r.id === resourceId);
+  if (!resItem) return res.status(404).json({ error: "Resource not found" });
+
+  const units = parseInt(requestedUnits) || 1;
+  if (resItem.availableUnits >= units) {
+    resItem.availableUnits -= units;
+    if (resItem.availableUnits === 0) resItem.status = "SURGE_RESERVED";
+
+    addAlert(
+      "🏥 Hospital Resource Transfer Initiated",
+      `${requestingHospitalName} requested ${units}x ${resItem.resourceType} from ${resItem.hospitalName}`,
+      "SUCCESS"
+    );
+
+    addActivityLog(
+      "Resource Marketplace Exchange",
+      requestingHospitalName,
+      "HOSPITAL",
+      `Transferred ${units} unit(s) of ${resItem.resourceType} from ${resItem.hospitalName}`
+    );
+
+    broadcastFullState();
+    res.json({ success: true, resource: resItem });
+  } else {
+    res.status(400).json({ error: "Insufficient available units" });
+  }
 });
 
 app.post('/api/recommend-hospital', (req, res) => {
@@ -261,7 +302,7 @@ app.post('/api/simulation/reset', (req, res) => {
 });
 
 function broadcastFullState() {
-  io.emit("STATE_UPDATE", { hospitals, ambulances, trafficSignals, alerts, activityLogs, tripHistory, isSimulationRunning });
+  io.emit("STATE_UPDATE", { hospitals, ambulances, trafficSignals, alerts, activityLogs, tripHistory, isSimulationRunning, marketplaceResources, predictiveAnalytics: PREDICTIVE_ANALYTICS_DATA });
 }
 
 setInterval(() => {
@@ -329,7 +370,7 @@ setInterval(() => {
 }, 1000);
 
 io.on("connection", (socket) => {
-  socket.emit("STATE_UPDATE", { hospitals, ambulances, trafficSignals, alerts, activityLogs, tripHistory, isSimulationRunning });
+  socket.emit("STATE_UPDATE", { hospitals, ambulances, trafficSignals, alerts, activityLogs, tripHistory, isSimulationRunning, marketplaceResources, predictiveAnalytics: PREDICTIVE_ANALYTICS_DATA });
 });
 
 const PORT = process.env.PORT || 5000;

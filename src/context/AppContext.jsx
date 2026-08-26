@@ -8,13 +8,74 @@ import {
   INITIAL_TRIP_HISTORY,
   INITIAL_EMERGENCY_REQUESTS,
   FICTIONAL_ROAD_GRAPH,
-  PREDEFINED_ROUTES
+  PREDEFINED_ROUTES,
+  PREDICTIVE_ANALYTICS_DATA,
+  HOSPITAL_RESOURCE_MARKETPLACE
 } from '../../server/mockData';
 import { runDBSCANClustering } from '../utils/dbscan';
 import { findDijkstraShortestPath, findNearestGraphNode } from '../utils/dijkstra';
-import { sortPriorityQueue, findBestAmbulanceForRequest } from '../utils/priorityQueue';
+import { sortPriorityQueue } from '../utils/priorityQueue';
 
 const AppContext = createContext();
+
+const TRANSLATIONS = {
+  en: {
+    commandCenter: "Command Center & Intelligence",
+    ambulanceCrew: "Ambulance Crew & AR HUD",
+    hospitalBed: "Hospital & Bed Marketplace",
+    trafficControl: "Green Corridor Traffic Control",
+    tripHistory: "Incident Replay Mode",
+    activeUnits: "Active Units",
+    greenCorridors: "Green Corridors",
+    freeBeds: "Free ICU Beds",
+    offlineMode: "Offline Mode",
+    voiceCommands: "Voice Assistant",
+    requestTransfer: "Request Resource Transfer",
+    arHudActive: "AR HUD ACTIVE",
+  },
+  es: {
+    commandCenter: "Centro de Comando e Inteligencia",
+    ambulanceCrew: "Personal de Ambulancia y AR HUD",
+    hospitalBed: "Hospital y Mercado de Camas",
+    trafficControl: "Control de Tráfico Corredor Verde",
+    tripHistory: "Modo de Reproducción de Incidentes",
+    activeUnits: "Unidades Activas",
+    greenCorridors: "Corredores Verdes",
+    freeBeds: "Camas UCI Libres",
+    offlineMode: "Modo Fuera de Línea",
+    voiceCommands: "Asistente de Voz",
+    requestTransfer: "Solicitar Transferencia",
+    arHudActive: "AR HUD ACTIVO",
+  },
+  fr: {
+    commandCenter: "Centre de Commandement et Intelligence",
+    ambulanceCrew: "Équipage d'Ambulance et AR HUD",
+    hospitalBed: "Hôpital et Marché des Lits",
+    trafficControl: "Contrôle du Trafic Corridor Vert",
+    tripHistory: "Mode Relecture d'Incidents",
+    activeUnits: "Unités Actives",
+    greenCorridors: "Corridors Verts",
+    freeBeds: "Lits Soins Intensifs Libres",
+    offlineMode: "Mode Hors Ligne",
+    voiceCommands: "Assistant Vocal",
+    requestTransfer: "Demander le Transfert",
+    arHudActive: "AR HUD ACTIF",
+  },
+  hi: {
+    commandCenter: "कमांड सेंटर और इंटेलिजेंस",
+    ambulanceCrew: "एम्बुलेंस क्रू और AR HUD",
+    hospitalBed: "अस्पताल और बेड मार्केटप्लेस",
+    trafficControl: "ग्रीन कॉरिडोर ट्रैफिक कंट्रोल",
+    tripHistory: "इंसिडेंट रीप्ले मोड",
+    activeUnits: "सक्रिय इकाइयाँ",
+    greenCorridors: "ग्रीन कॉरिडोर",
+    freeBeds: "निःशुल्क आईसीयू बेड",
+    offlineMode: "ऑफलाइन मोड",
+    voiceCommands: "वॉयस असिस्टेंट",
+    requestTransfer: "संसाधन स्थानांतरण का अनुरोध",
+    arHudActive: "AR HUD सक्रिय",
+  }
+};
 
 export const AppProvider = ({ children }) => {
   const [activeRole, setActiveRole] = useState('intelligence'); // Active View
@@ -27,6 +88,16 @@ export const AppProvider = ({ children }) => {
   ]);
   const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
   const [tripHistory, setTripHistory] = useState(INITIAL_TRIP_HISTORY);
+  const [marketplaceResources, setMarketplaceResources] = useState(HOSPITAL_RESOURCE_MARKETPLACE);
+  const [predictiveAnalytics] = useState(PREDICTIVE_ANALYTICS_DATA);
+
+  // Next-Gen Feature States
+  const [language, setLanguage] = useState('en');
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [isARHUDActive, setIsARHUDActive] = useState(false);
+
+  const t = (key) => (TRANSLATIONS[language] && TRANSLATIONS[language][key]) || TRANSLATIONS.en[key] || key;
 
   const [emergencyRequests, setEmergencyRequests] = useState(INITIAL_EMERGENCY_REQUESTS);
   const [dbscanConfig, setDbscanConfig] = useState({ eps: 1.2, minSamples: 3 });
@@ -36,10 +107,10 @@ export const AppProvider = ({ children }) => {
 
   // Helper to compute Dijkstra 2-stage route
   const computeDijkstraRoute = (ambLoc, reqLoc, hospId, currentBlocked = []) => {
-    const startNode = findNearestGraphNode(roadGraph, ambLoc || { lat: 40.718, lng: -73.950 }) || roadGraph.nodes[1]; // N2
-    const emergencyNode = findNearestGraphNode(roadGraph, reqLoc || { lat: 40.722, lng: -73.945 }) || roadGraph.nodes[2]; // N3
+    const startNode = findNearestGraphNode(roadGraph, ambLoc || { lat: 40.718, lng: -73.950 }) || roadGraph.nodes[1];
+    const emergencyNode = findNearestGraphNode(roadGraph, reqLoc || { lat: 40.722, lng: -73.945 }) || roadGraph.nodes[2];
 
-    let hospitalNodeId = 'N5'; // Velammal Global Hospital Hub (VGH)
+    let hospitalNodeId = 'N5';
     if (hospId === 'hosp-2' || hospId === 'VH') hospitalNodeId = 'N8';
     if (hospId === 'hosp-3' || hospId === 'MHVI') hospitalNodeId = 'N9';
     if (hospId === 'hosp-4' || hospId === 'CCPH') hospitalNodeId = 'N10';
@@ -69,7 +140,6 @@ export const AppProvider = ({ children }) => {
     };
   };
 
-  // Initial Dijkstra Route state for baseline display
   const [activeDijkstraRoute, setActiveDijkstraRoute] = useState(() => 
     computeDijkstraRoute({ lat: 40.718, lng: -73.950 }, { lat: 40.722, lng: -73.945 }, 'hosp-1', [])
   );
@@ -84,7 +154,6 @@ export const AppProvider = ({ children }) => {
 
   const dispatchQueue = sortPriorityQueue(emergencyRequests, dbscanHotspots);
 
-  // Standalone Ambulance Movement Ticker (Moves ALL 3 EN_ROUTE Ambulances)
   useEffect(() => {
     if (!isSimulationRunning) return;
 
@@ -100,7 +169,6 @@ export const AppProvider = ({ children }) => {
 
           const newEta = Math.max(1, Math.round((route.length - nextIdx) * 0.8));
 
-          // Fluctuating live vitals telemetry
           const currentVitals = amb.patient?.vitals || { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' };
           const newHr = Math.min(160, Math.max(75, (currentVitals.hr || 117) + Math.floor(Math.random() * 5) - 2));
 
@@ -117,7 +185,6 @@ export const AppProvider = ({ children }) => {
         })
       );
 
-      // Decrement traffic signal countdowns
       setTrafficSignals((prevSigs) =>
         prevSigs.map((sig) => {
           if (sig.countdownSeconds > 0) {
@@ -137,12 +204,10 @@ export const AppProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [isSimulationRunning]);
 
-  // Main Emergency Trip Starter - Supports ALL 3 Ambulances (AMB-101, AMB-102, AMB-103)
   const startTrip = (tripData) => {
     const targetHospId = tripData.hospitalId || 'hosp-1';
     const targetHosp = hospitals.find((h) => h.id === targetHospId || h.code === targetHospId) || hospitals[0];
 
-    // Pick target ambulance or next available unit
     let ambToUseId = tripData.ambulanceId;
     if (!ambToUseId) {
       const availAmb = ambulances.find(a => a.status === 'AVAILABLE' || a.status === 'IDLE') || ambulances[0];
@@ -153,7 +218,6 @@ export const AppProvider = ({ children }) => {
     const reqLoc = tripData.location || { lat: 40.722, lng: -73.945 };
     const ambLoc = ambObj.currentLocation || { lat: 40.718, lng: -73.950 };
 
-    // Compute Dijkstra 2-Stage Route for this specific trip
     const dijkstraRoute = computeDijkstraRoute(ambLoc, reqLoc, targetHospId, blockedEdges);
     setActiveDijkstraRoute(dijkstraRoute);
 
@@ -169,7 +233,6 @@ export const AppProvider = ({ children }) => {
       vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C', ecgStatus: 'Live Telemetry Active' }
     };
 
-    // Update the chosen ambulance state to EN_ROUTE
     setAmbulances((prev) =>
       prev.map((amb) => {
         if (amb.id === ambObj.id || amb.code === ambObj.code) {
@@ -188,7 +251,6 @@ export const AppProvider = ({ children }) => {
       })
     );
 
-    // Update request state
     setEmergencyRequests((prev) =>
       prev.map((r) => {
         if (r.id === tripData.requestId || r.patientName === tripData.patientName) {
@@ -198,7 +260,6 @@ export const AppProvider = ({ children }) => {
       })
     );
 
-    // Reserve Bed at Target Hospital
     setHospitals((prev) =>
       prev.map((hosp) => {
         if (hosp.id === targetHosp.id || hosp.code === targetHosp.code) {
@@ -215,7 +276,6 @@ export const AppProvider = ({ children }) => {
       })
     );
 
-    // Trigger Green Corridor on Traffic Signals
     setTrafficSignals((prev) =>
       prev.map((sig) => {
         if (sig.code === 'TS-01' || sig.code === 'TS-02') {
@@ -232,6 +292,35 @@ export const AppProvider = ({ children }) => {
     );
   };
 
+  const requestResourceTransfer = (resourceId, requestingHospitalName, units = 1) => {
+    setMarketplaceResources(prev =>
+      prev.map(res => {
+        if (res.id === resourceId) {
+          const remaining = Math.max(0, res.availableUnits - units);
+          return {
+            ...res,
+            availableUnits: remaining,
+            status: remaining === 0 ? 'SURGE_RESERVED' : res.status
+          };
+        }
+        return res;
+      })
+    );
+
+    const resObj = marketplaceResources.find(r => r.id === resourceId);
+
+    setAlerts(prev => [
+      {
+        id: `alt-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        title: "🏥 Resource Transfer Approved",
+        message: `${requestingHospitalName} borrowed ${units}x ${resObj?.resourceType || 'Resource'} from ${resObj?.hospitalName || 'Network Hospital'}`,
+        severity: "SUCCESS"
+      },
+      ...prev
+    ]);
+  };
+
   const selectRequestAndComputeDijkstra = (reqId) => {
     const req = emergencyRequests.find((r) => r.id === reqId);
     if (!req) return;
@@ -246,10 +335,8 @@ export const AppProvider = ({ children }) => {
     const unassigned = sorted.find((r) => r.status === 'Waiting' || r.status === 'Queued');
     if (!unassigned) return;
 
-    // Pick next available ambulance from ALL 3 units
     const availAmb = ambulances.find(a => a.status === 'AVAILABLE' || a.status === 'IDLE') || ambulances[0];
 
-    // Pick target hospital based on category requirement
     let targetHospId = 'hosp-1';
     if (unassigned.emergencyType.includes('Trauma') || unassigned.emergencyType.includes('Accident')) targetHospId = 'hosp-2';
     if (unassigned.emergencyType.includes('Stroke') || unassigned.emergencyType.includes('Cardiac')) targetHospId = 'hosp-3';
@@ -322,6 +409,7 @@ export const AppProvider = ({ children }) => {
     setEmergencyRequests(INITIAL_EMERGENCY_REQUESTS);
     setActivityLogs(INITIAL_ACTIVITY_LOGS);
     setTripHistory(INITIAL_TRIP_HISTORY);
+    setMarketplaceResources(HOSPITAL_RESOURCE_MARKETPLACE);
     setBlockedEdges([]);
     setActiveDijkstraRoute(computeDijkstraRoute({ lat: 40.718, lng: -73.950 }, { lat: 40.722, lng: -73.945 }, 'hosp-1', []));
   };
@@ -339,6 +427,19 @@ export const AppProvider = ({ children }) => {
         alerts,
         activityLogs,
         tripHistory,
+        marketplaceResources,
+        predictiveAnalytics,
+        language,
+        setLanguage,
+        isOfflineMode,
+        setIsOfflineMode,
+        toggleOfflineMode: () => setIsOfflineMode(prev => !prev),
+        isVoiceModalOpen,
+        setIsVoiceModalOpen,
+        isARHUDActive,
+        setIsARHUDActive,
+        t,
+        requestResourceTransfer,
         emergencyRequests,
         dbscanHotspots,
         dbscanConfig,
@@ -408,3 +509,4 @@ export const AppProvider = ({ children }) => {
 };
 
 export const useApp = () => useContext(AppContext);
+
