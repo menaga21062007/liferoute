@@ -12,22 +12,23 @@
     "start": "node server/index.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
     "cors": "^2.8.5",
-    "socket.io": "^4.7.5",
-    "socket.io-client": "^4.7.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "express": "^4.19.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.395.0",
-    "recharts": "^2.12.7"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.7",
+    "serverless-http": "^4.0.0",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.3.1",
-    "tailwindcss": "^3.4.4",
-    "postcss": "^8.4.38",
     "autoprefixer": "^10.4.19",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "vite": "^5.3.1"
   }
 }
