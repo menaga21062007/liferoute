@@ -10,7 +10,8 @@ import {
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [activeRole, setActiveRole] = useState('sos'); // 'sos' | 'callcentre' | 'ambulance' | 'hospital' | 'corridor'
+  const [activeRole, setActiveRole] = useState('callcentre'); // Default view: Call Centre Operator Dashboard ('callcentre')
+
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
   const [hospitals, setHospitals] = useState(GOVERNMENT_HOSPITALS);
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
