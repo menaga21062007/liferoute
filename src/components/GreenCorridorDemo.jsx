@@ -1,32 +1,14 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { TrafficCone, Ambulance, MapPin, Building2, Radio } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { TrafficCone, Radio } from 'lucide-react';
 import L from 'leaflet';
-
-const pickupIcon = L.divIcon({
-  className: 'custom-pickup',
-  html: `<div style="background-color: #dc2626; color: white; width: 26px; height: 26px; borderRadius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white;">P</div>`,
-  iconSize: [26, 26],
-  iconAnchor: [13, 13]
-});
-
-const dropHospitalIcon = L.divIcon({
-  className: 'custom-drop-hosp',
-  html: `<div style="background-color: #059669; color: white; width: 30px; height: 30px; borderRadius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white;">H</div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15]
-});
-
-const movingAmbIcon = L.divIcon({
-  className: 'custom-moving-amb',
-  html: `<div style="background-color: #2563eb; color: white; width: 32px; height: 32px; borderRadius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 0 12px rgba(37, 99, 235, 1);">🚑</div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 16]
-});
 
 export const GreenCorridorDemo = () => {
   const { trafficSignals, ambulances, hospitals } = useApp();
+
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const layerGroupRef = useRef(null);
 
   const activeAmbulance = ambulances.find(
     (a) => a.status === 'EN_ROUTE_TO_PATIENT' || a.status === 'PATIENT_ON_BOARD' || a.status === 'ON_WAY_TO_HOSPITAL'
@@ -44,11 +26,100 @@ export const GreenCorridorDemo = () => {
     [40.730610, -73.935242]
   ];
 
+  useEffect(() => {
+    if (mapRef.current && !mapInstanceRef.current) {
+      const map = L.map(mapRef.current, {
+        center: [40.722, -73.945],
+        zoom: 13,
+        zoomControl: true
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const layerGroup = L.layerGroup().addTo(map);
+      layerGroupRef.current = layerGroup;
+      mapInstanceRef.current = map;
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        layerGroupRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const layerGroup = layerGroupRef.current;
+    if (!map || !layerGroup) return;
+
+    layerGroup.clearLayers();
+
+    // Polyline
+    const polyline = L.polyline(routePolyline, { color: '#2563eb', weight: 5, opacity: 0.8 });
+    layerGroup.addLayer(polyline);
+
+    // Pickup Marker
+    const pickupIcon = L.divIcon({
+      className: 'custom-pickup',
+      html: `<div style="background-color: #dc2626; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white;">P</div>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+    const pm = L.marker([pickupCoords.lat, pickupCoords.lng], { icon: pickupIcon });
+    pm.bindPopup('Patient Pickup Point');
+    layerGroup.addLayer(pm);
+
+    // Hospital Drop Marker
+    const dropHospitalIcon = L.divIcon({
+      className: 'custom-drop-hosp',
+      html: `<div style="background-color: #059669; color: white; width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white;">H</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+    const hm = L.marker([hospitalCoords.lat, hospitalCoords.lng], { icon: dropHospitalIcon });
+    hm.bindPopup('Government Hospital Drop');
+    layerGroup.addLayer(hm);
+
+    // Moving Ambulance Marker
+    if (activeAmbulance && activeAmbulance.currentLocation) {
+      const movingAmbIcon = L.divIcon({
+        className: 'custom-moving-amb',
+        html: `<div style="background-color: #2563eb; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 0 12px rgba(37, 99, 235, 1);">🚑</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+      const am = L.marker([activeAmbulance.currentLocation.lat, activeAmbulance.currentLocation.lng], { icon: movingAmbIcon });
+      am.bindPopup(`Ambulance ${activeAmbulance.code}`);
+      layerGroup.addLayer(am);
+    }
+
+    // Traffic Signal Markers
+    trafficSignals.forEach((sig) => {
+      if (!sig.location) return;
+      const isBlue = sig.blueLightActive;
+      const signalIcon = L.divIcon({
+        className: 'custom-sig-icon',
+        html: `<div style="background-color: ${isBlue ? '#2563eb' : '#475569'}; color: white; width: 26px; height: 26px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: ${isBlue ? '0 0 14px #2563eb' : 'none'};">${isBlue ? '🟦' : '🚦'}</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      const sm = L.marker([sig.location.lat, sig.location.lng], { icon: signalIcon });
+      sm.bindPopup(`<b>${sig.code} — ${sig.name}</b><br/>Blue Light: ${isBlue ? 'ACTIVE (<200m)' : 'OFF'}`);
+      layerGroup.addLayer(sm);
+    });
+  }, [activeAmbulance, trafficSignals, hospitalCoords, pickupCoords]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
       
       {/* Header Bar */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between text-white">
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between text-white shadow">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 bg-blue-600 rounded-lg shadow">
             <TrafficCone className="h-6 w-6 text-white" />
@@ -114,56 +185,7 @@ export const GreenCorridorDemo = () => {
 
         {/* Right Column: Live Route Map (7 cols) */}
         <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-2 h-[560px] relative overflow-hidden">
-          <MapContainer
-            center={[40.722, -73.945]}
-            zoom={13}
-            style={{ height: '100%', width: '100%', borderRadius: '8px' }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
-            />
-
-            {/* Polyline Route */}
-            <Polyline positions={routePolyline} color="#2563eb" weight={5} opacity={0.8} />
-
-            {/* Pickup Marker */}
-            <Marker position={[pickupCoords.lat, pickupCoords.lng]} icon={pickupIcon}>
-              <Popup>Patient Pickup Point</Popup>
-            </Marker>
-
-            {/* Hospital Drop Marker */}
-            <Marker position={[hospitalCoords.lat, hospitalCoords.lng]} icon={dropHospitalIcon}>
-              <Popup>Government Hospital Drop</Popup>
-            </Marker>
-
-            {/* Moving Ambulance Marker */}
-            <Marker position={[activeAmbulance.currentLocation.lat, activeAmbulance.currentLocation.lng]} icon={movingAmbIcon}>
-              <Popup>Ambulance {activeAmbulance.code}</Popup>
-            </Marker>
-
-            {/* Traffic Signal Markers */}
-            {trafficSignals.map((sig) => {
-              const isBlue = sig.blueLightActive;
-              const signalIcon = L.divIcon({
-                className: 'custom-sig-icon',
-                html: `<div style="background-color: ${isBlue ? '#2563eb' : '#475569'}; color: white; width: 26px; height: 26px; borderRadius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: ${isBlue ? '0 0 14px #2563eb' : 'none'};">${isBlue ? '🟦' : '🚦'}</div>`,
-                iconSize: [26, 26],
-                iconAnchor: [13, 13]
-              });
-
-              return (
-                <Marker key={sig.id} position={[sig.location.lat, sig.location.lng]} icon={signalIcon}>
-                  <Popup>
-                    <div className="text-xs font-bold text-slate-900">
-                      <p className="font-black">{sig.code} — {sig.name}</p>
-                      <p>Blue Light: {isBlue ? 'ACTIVE (<200m)' : 'OFF'}</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-          </MapContainer>
+          <div ref={mapRef} className="w-full h-full rounded-lg z-0" />
         </div>
 
       </div>

@@ -1,39 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { Building2, Ambulance, UserCheck, Activity, MapPin } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Building2, Ambulance } from 'lucide-react';
 import L from 'leaflet';
-
-const hospitalIcon = L.divIcon({
-  className: 'custom-hosp-icon',
-  html: `<div style="background-color: #059669; color: white; width: 32px; height: 32px; borderRadius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(5, 150, 105, 0.8);">HOSP</div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 16]
-});
-
-const incomingAmbIcon = L.divIcon({
-  className: 'custom-inc-amb-icon',
-  html: `<div style="background-color: #dc2626; color: white; width: 28px; height: 28px; borderRadius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);">AMB</div>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 14]
-});
 
 export const HospitalDeskDashboard = () => {
   const { hospitals, ambulances } = useApp();
   const [selectedHospitalId, setSelectedHospitalId] = useState(hospitals[0]?.id || 'hosp-1');
 
-  const currentHospital = hospitals.find((h) => h.id === selectedHospitalId) || hospitals[0];
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const layerGroupRef = useRef(null);
 
-  // Filter ONLY ambulances coming to THIS hospital
+  const currentHospital = hospitals.find((h) => h.id === selectedHospitalId) || hospitals[0];
   const incomingAmbulances = ambulances.filter(
     (a) => a.targetHospitalId === currentHospital.id && a.patient
   );
+
+  useEffect(() => {
+    if (mapRef.current && !mapInstanceRef.current) {
+      const map = L.map(mapRef.current, {
+        center: [currentHospital.location.lat, currentHospital.location.lng],
+        zoom: 13,
+        zoomControl: true
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const layerGroup = L.layerGroup().addTo(map);
+      layerGroupRef.current = layerGroup;
+      mapInstanceRef.current = map;
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        layerGroupRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const layerGroup = layerGroupRef.current;
+    if (!map || !layerGroup) return;
+
+    layerGroup.clearLayers();
+
+    // Target Hospital Marker
+    const hospitalIcon = L.divIcon({
+      className: 'custom-hosp-icon',
+      html: `<div style="background-color: #059669; color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(5, 150, 105, 0.8);">HOSP</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    const hm = L.marker([currentHospital.location.lat, currentHospital.location.lng], { icon: hospitalIcon });
+    hm.bindPopup(`<b>${currentHospital.name}</b><br/>${currentHospital.address}`);
+    layerGroup.addLayer(hm);
+
+    // Incoming Ambulances Markers ONLY
+    incomingAmbulances.forEach((amb) => {
+      if (!amb.currentLocation) return;
+      const incomingAmbIcon = L.divIcon({
+        className: 'custom-inc-amb-icon',
+        html: `<div style="background-color: #dc2626; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);">AMB</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const am = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: incomingAmbIcon });
+      am.bindPopup(`<b>${amb.code}</b><br/>Patient: ${amb.patient?.name}`);
+      layerGroup.addLayer(am);
+    });
+
+    map.panTo([currentHospital.location.lat, currentHospital.location.lng]);
+  }, [currentHospital, incomingAmbulances]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
       
       {/* Hospital Selector Bar */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 text-white">
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 text-white shadow">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 bg-emerald-700 rounded-lg">
             <Building2 className="h-6 w-6 text-white" />
@@ -110,38 +160,7 @@ export const HospitalDeskDashboard = () => {
 
         {/* Right Column: Live Map Tracking ONLY for incoming units (7 cols) */}
         <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-2 h-[560px] relative overflow-hidden">
-          <MapContainer
-            center={[currentHospital.location.lat, currentHospital.location.lng]}
-            zoom={13}
-            style={{ height: '100%', width: '100%', borderRadius: '8px' }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
-            />
-
-            {/* Target Hospital Marker */}
-            <Marker position={[currentHospital.location.lat, currentHospital.location.lng]} icon={hospitalIcon}>
-              <Popup>
-                <div className="text-xs font-bold text-slate-900">
-                  <p className="font-black text-emerald-700">{currentHospital.name}</p>
-                  <p>{currentHospital.address}</p>
-                </div>
-              </Popup>
-            </Marker>
-
-            {/* ONLY Incoming Ambulances Markers */}
-            {incomingAmbulances.map((amb) => (
-              <Marker key={amb.id} position={[amb.currentLocation.lat, amb.currentLocation.lng]} icon={incomingAmbIcon}>
-                <Popup>
-                  <div className="text-xs font-bold text-slate-900">
-                    <p className="font-black text-red-600">{amb.code}</p>
-                    <p>Patient: {amb.patient.name}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+          <div ref={mapRef} className="w-full h-full rounded-lg z-0" />
         </div>
 
       </div>

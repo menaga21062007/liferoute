@@ -1,6 +1,13 @@
-// Recommendation Engine for matching Patients to the Nearest Appropriate Hospital
+export const EMERGENCY_CATEGORIES = [
+  { id: "cardiac", name: "Cardiac Emergency", priority: "CRITICAL", requiredSpecialty: "Cardiac", requiresOT: true },
+  { id: "stroke", name: "Stroke", priority: "CRITICAL", requiredSpecialty: "Stroke", requiresOT: false },
+  { id: "trauma", name: "Trauma", priority: "CRITICAL", requiredSpecialty: "Trauma", requiresOT: true },
+  { id: "road_accident", name: "Road Accident", priority: "CRITICAL", requiredSpecialty: "Trauma", requiresOT: true },
+  { id: "respiratory", name: "Respiratory Distress", priority: "HIGH", requiredSpecialty: "ICU", requiresOT: false },
+  { id: "burns", name: "Fire/Burn Injury", priority: "HIGH", requiredSpecialty: "Burns", requiresOT: true },
+  { id: "other", name: "Other Emergency", priority: "MEDIUM", requiredSpecialty: "General", requiresOT: false }
+];
 
-import { EMERGENCY_CATEGORIES } from './mockData.js';
 
 /**
  * Calculates Haversine distance in kilometers between two lat/lng coordinates

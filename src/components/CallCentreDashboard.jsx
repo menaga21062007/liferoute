@@ -1,22 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { PhoneCall, MapPin, Ambulance, Building2, CheckCircle2, Clock } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { PhoneCall, MapPin, Ambulance, Building2, Clock } from 'lucide-react';
 import L from 'leaflet';
-
-const patientIcon = L.divIcon({
-  className: 'custom-patient-icon',
-  html: `<div style="background-color: #dc2626; color: white; width: 28px; height: 28px; borderRadius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);">SOS</div>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 14]
-});
-
-const ambulanceIcon = L.divIcon({
-  className: 'custom-amb-icon',
-  html: `<div style="background-color: #2563eb; color: white; width: 30px; height: 30px; borderRadius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(37, 99, 235, 0.8);">AMB</div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15]
-});
 
 export const CallCentreDashboard = () => {
   const { sosEmergencies, ambulances, hospitals, assignAmbulance } = useApp();
@@ -24,7 +9,74 @@ export const CallCentreDashboard = () => {
   const [selectedAmbulanceCode, setSelectedAmbulanceCode] = useState('AMB-101');
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
 
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const layerGroupRef = useRef(null);
+
   const selectedSos = sosEmergencies.find((s) => s.id === selectedSosId) || sosEmergencies[0];
+
+  useEffect(() => {
+    if (mapRef.current && !mapInstanceRef.current) {
+      const map = L.map(mapRef.current, {
+        center: [40.722, -73.950],
+        zoom: 13,
+        zoomControl: true
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const layerGroup = L.layerGroup().addTo(map);
+      layerGroupRef.current = layerGroup;
+      mapInstanceRef.current = map;
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        layerGroupRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const layerGroup = layerGroupRef.current;
+    if (!map || !layerGroup) return;
+
+    layerGroup.clearLayers();
+
+    // Patient Marker
+    if (selectedSos && selectedSos.pickupLocation) {
+      const patientIcon = L.divIcon({
+        className: 'custom-patient-icon',
+        html: `<div style="background-color: #dc2626; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);">SOS</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const m = L.marker([selectedSos.pickupLocation.lat, selectedSos.pickupLocation.lng], { icon: patientIcon });
+      m.bindPopup(`<b>${selectedSos.id}</b><br/>${selectedSos.patientName}`);
+      layerGroup.addLayer(m);
+    }
+
+    // Ambulance Markers
+    ambulances.forEach((amb) => {
+      if (!amb.currentLocation) return;
+      const ambIcon = L.divIcon({
+        className: 'custom-amb-icon',
+        html: `<div style="background-color: #2563eb; color: white; width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(37, 99, 235, 0.8);">AMB</div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+
+      const m = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: ambIcon });
+      m.bindPopup(`<b>${amb.code}</b><br/>Status: ${amb.status}`);
+      layerGroup.addLayer(m);
+    });
+  }, [selectedSos, ambulances]);
 
   const handleDispatch = (e) => {
     e.preventDefault();
@@ -36,7 +88,7 @@ export const CallCentreDashboard = () => {
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
       
       {/* Top Banner */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between text-white">
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between text-white shadow">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 bg-blue-700 rounded-lg">
             <PhoneCall className="h-6 w-6 text-white" />
@@ -52,7 +104,7 @@ export const CallCentreDashboard = () => {
             Active Emergencies: <span className="text-red-400 font-black">{sosEmergencies.length}</span>
           </div>
           <div className="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-            Available Ambulances: <span className="text-emerald-400 font-black">{ambulances.filter(a => a.status === 'AVAILABLE').length}</span>
+            Available Units: <span className="text-emerald-400 font-black">{ambulances.filter(a => a.status === 'AVAILABLE').length}</span>
           </div>
         </div>
       </div>
@@ -63,7 +115,7 @@ export const CallCentreDashboard = () => {
         <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
           <h2 className="text-sm font-black text-slate-200 border-b border-slate-800 pb-2 uppercase tracking-wider flex items-center justify-between">
             <span>Incoming Active Emergency Requests</span>
-            <span className="text-xs text-blue-400 font-normal">Real-time List</span>
+            <span className="text-xs text-blue-400 font-normal">Real-time Queue</span>
           </h2>
 
           <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
@@ -163,44 +215,9 @@ export const CallCentreDashboard = () => {
             </form>
           )}
 
-          {/* Interactive Map View */}
+          {/* Direct DOM Leaflet Map Container */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-2 h-[420px] relative overflow-hidden">
-            <MapContainer
-              center={[40.722, -73.950]}
-              zoom={13}
-              style={{ height: '100%', width: '100%', borderRadius: '8px' }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; OpenStreetMap contributors"
-              />
-
-              {/* Patient Location Marker */}
-              {selectedSos && selectedSos.pickupLocation && (
-                <Marker position={[selectedSos.pickupLocation.lat, selectedSos.pickupLocation.lng]} icon={patientIcon}>
-                  <Popup>
-                    <div className="text-xs font-bold text-slate-900">
-                      <p className="font-black text-red-600">{selectedSos.id}</p>
-                      <p>{selectedSos.patientName}</p>
-                      <p>{selectedSos.pickupLocation.address}</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
-
-              {/* Ambulance Markers */}
-              {ambulances.map((amb) => (
-                <Marker key={amb.id} position={[amb.currentLocation.lat, amb.currentLocation.lng]} icon={ambulanceIcon}>
-                  <Popup>
-                    <div className="text-xs font-bold text-slate-900">
-                      <p className="font-black text-blue-600">{amb.code}</p>
-                      <p>{amb.unitName}</p>
-                      <p>Status: {amb.status}</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
+            <div ref={mapRef} className="w-full h-full rounded-lg z-0" />
           </div>
 
         </div>
