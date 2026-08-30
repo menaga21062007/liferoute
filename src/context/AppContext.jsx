@@ -11,20 +11,50 @@ import {
 const AppContext = createContext();
 const BACKEND_URL = 'http://localhost:5000';
 
-const INITIAL_BEDS = [
-  { id: 'BED-101', number: '101', type: 'ICU Bed', status: 'AVAILABLE' },
-  { id: 'BED-102', number: '102', type: 'ICU Bed', status: 'AVAILABLE' },
-  { id: 'BED-103', number: '103', type: 'ICU Bed', status: 'RESERVED' },
-  { id: 'BED-104', number: '104', type: 'ICU Bed', status: 'CLEANING' },
-  { id: 'BED-105', number: '105', type: 'ICU Bed', status: 'OCCUPIED' },
-  { id: 'BED-106', number: '106', type: 'Emergency Bed', status: 'AVAILABLE' },
-  { id: 'BED-107', number: '107', type: 'Emergency Bed', status: 'AVAILABLE' },
-  { id: 'BED-108', number: '108', type: 'Emergency Bed', status: 'RESERVED' },
-  { id: 'BED-109', number: '109', type: 'Emergency Bed', status: 'CLEANING' },
-  { id: 'BED-110', number: '110', type: 'Emergency Bed', status: 'AVAILABLE' },
-  { id: 'BED-111', number: '111', type: 'Trauma Bay', status: 'AVAILABLE' },
-  { id: 'BED-112', number: '112', type: 'Trauma Bay', status: 'OCCUPIED' }
-];
+const INITIAL_BEDS_BY_HOSPITAL = {
+  'hosp-1': [
+    { id: 'h1-101', hospitalId: 'hosp-1', number: '101', type: 'ICU Bed', status: 'AVAILABLE' },
+    { id: 'h1-102', hospitalId: 'hosp-1', number: '102', type: 'ICU Bed', status: 'AVAILABLE' },
+    { id: 'h1-103', hospitalId: 'hosp-1', number: '103', type: 'ICU Bed', status: 'RESERVED' },
+    { id: 'h1-104', hospitalId: 'hosp-1', number: '104', type: 'ICU Bed', status: 'CLEANING' },
+    { id: 'h1-105', hospitalId: 'hosp-1', number: '105', type: 'ICU Bed', status: 'OCCUPIED' },
+    { id: 'h1-106', hospitalId: 'hosp-1', number: '106', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h1-107', hospitalId: 'hosp-1', number: '107', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h1-108', hospitalId: 'hosp-1', number: '108', type: 'Emergency Bed', status: 'RESERVED' },
+    { id: 'h1-109', hospitalId: 'hosp-1', number: '109', type: 'Emergency Bed', status: 'CLEANING' },
+    { id: 'h1-110', hospitalId: 'hosp-1', number: '110', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h1-111', hospitalId: 'hosp-1', number: '111', type: 'Trauma Bay', status: 'AVAILABLE' },
+    { id: 'h1-112', hospitalId: 'hosp-1', number: '112', type: 'Trauma Bay', status: 'OCCUPIED' }
+  ],
+  'hosp-2': [
+    { id: 'h2-201', hospitalId: 'hosp-2', number: '201', type: 'ICU Bed', status: 'AVAILABLE' },
+    { id: 'h2-202', hospitalId: 'hosp-2', number: '202', type: 'ICU Bed', status: 'AVAILABLE' },
+    { id: 'h2-203', hospitalId: 'hosp-2', number: '203', type: 'ICU Bed', status: 'AVAILABLE' },
+    { id: 'h2-204', hospitalId: 'hosp-2', number: '204', type: 'ICU Bed', status: 'RESERVED' },
+    { id: 'h2-205', hospitalId: 'hosp-2', number: '205', type: 'ICU Bed', status: 'CLEANING' },
+    { id: 'h2-206', hospitalId: 'hosp-2', number: '206', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h2-207', hospitalId: 'hosp-2', number: '207', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h2-208', hospitalId: 'hosp-2', number: '208', type: 'Emergency Bed', status: 'OCCUPIED' },
+    { id: 'h2-209', hospitalId: 'hosp-2', number: '209', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h2-210', hospitalId: 'hosp-2', number: '210', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h2-211', hospitalId: 'hosp-2', number: '211', type: 'Trauma Bay', status: 'CLEANING' },
+    { id: 'h2-212', hospitalId: 'hosp-2', number: '212', type: 'Trauma Bay', status: 'RESERVED' }
+  ],
+  'hosp-3': [
+    { id: 'h3-301', hospitalId: 'hosp-3', number: '301', type: 'ICU Bed', status: 'AVAILABLE' },
+    { id: 'h3-302', hospitalId: 'hosp-3', number: '302', type: 'ICU Bed', status: 'AVAILABLE' },
+    { id: 'h3-303', hospitalId: 'hosp-3', number: '303', type: 'ICU Bed', status: 'CLEANING' },
+    { id: 'h3-304', hospitalId: 'hosp-3', number: '304', type: 'ICU Bed', status: 'OCCUPIED' },
+    { id: 'h3-305', hospitalId: 'hosp-3', number: '305', type: 'ICU Bed', status: 'OCCUPIED' },
+    { id: 'h3-306', hospitalId: 'hosp-3', number: '306', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h3-307', hospitalId: 'hosp-3', number: '307', type: 'Emergency Bed', status: 'RESERVED' },
+    { id: 'h3-308', hospitalId: 'hosp-3', number: '308', type: 'Emergency Bed', status: 'RESERVED' },
+    { id: 'h3-309', hospitalId: 'hosp-3', number: '309', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h3-310', hospitalId: 'hosp-3', number: '310', type: 'Emergency Bed', status: 'AVAILABLE' },
+    { id: 'h3-311', hospitalId: 'hosp-3', number: '311', type: 'Trauma Bay', status: 'AVAILABLE' },
+    { id: 'h3-312', hospitalId: 'hosp-3', number: '312', type: 'Trauma Bay', status: 'CLEANING' }
+  ]
+};
 
 export const AppProvider = ({ children }) => {
   const [activeRole, setActiveRole] = useState('sos'); // Default primary view: Citizen SOS ('sos')
@@ -34,8 +64,9 @@ export const AppProvider = ({ children }) => {
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [sosEmergencies, setSosEmergencies] = useState(INITIAL_SOS_EMERGENCIES);
-  const [beds, setBeds] = useState(INITIAL_BEDS);
+  const [hospitalBedsMap, setHospitalBedsMap] = useState(INITIAL_BEDS_BY_HOSPITAL);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
+
 
 
   // Real-Time Socket.io Backend Connection
@@ -321,11 +352,25 @@ export const AppProvider = ({ children }) => {
     );
   };
 
-  // Update Bed Status (AVAILABLE, RESERVED, CLEANING, OCCUPIED)
-  const updateBedStatus = (bedId, newStatus) => {
-    setBeds((prevBeds) =>
-      prevBeds.map((b) => (b.id === bedId ? { ...b, status: newStatus } : b))
-    );
+  // Update Bed Status (AVAILABLE, RESERVED, CLEANING, OCCUPIED) per hospital
+  const updateBedStatus = (hospitalId, bedId, newStatus) => {
+    setHospitalBedsMap((prevMap) => {
+      const hospitalBeds = prevMap[hospitalId] || [];
+      const updatedBeds = hospitalBeds.map((b) =>
+        b.id === bedId ? { ...b, status: newStatus } : b
+      );
+      const newMap = { ...prevMap, [hospitalId]: updatedBeds };
+
+      // Update hospital availableBeds counter in state
+      const newAvailableCount = updatedBeds.filter((b) => b.status === 'AVAILABLE').length;
+      setHospitals((prevHospitals) =>
+        prevHospitals.map((h) =>
+          h.id === hospitalId ? { ...h, availableBeds: newAvailableCount } : h
+        )
+      );
+
+      return newMap;
+    });
   };
 
   return (
@@ -339,7 +384,7 @@ export const AppProvider = ({ children }) => {
         ambulances,
         trafficSignals,
         sosEmergencies,
-        beds,
+        hospitalBedsMap,
         isBackendConnected,
         createSosEmergency,
         assignAmbulance,
@@ -354,6 +399,7 @@ export const AppProvider = ({ children }) => {
 };
 
 export const useApp = () => useContext(AppContext);
+
 
 
 

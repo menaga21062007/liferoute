@@ -4,7 +4,7 @@ import { Building2, Ambulance, Bed, Activity, CheckCircle2, RefreshCw } from 'lu
 import L from 'leaflet';
 
 export const HospitalDeskDashboard = () => {
-  const { hospitals, ambulances, beds, updateBedStatus } = useApp();
+  const { hospitals, ambulances, hospitalBedsMap, updateBedStatus } = useApp();
   const [selectedHospitalId, setSelectedHospitalId] = useState(hospitals[0]?.id || 'hosp-1');
 
   const mapRef = useRef(null);
@@ -12,17 +12,19 @@ export const HospitalDeskDashboard = () => {
   const layerGroupRef = useRef(null);
 
   const currentHospital = hospitals.find((h) => h.id === selectedHospitalId) || hospitals[0];
+  const currentBeds = hospitalBedsMap[selectedHospitalId] || [];
+
   const incomingAmbulances = ambulances.filter(
     (a) => a.targetHospitalId === currentHospital.id && a.patient
   );
 
-  // Compute live bed statistics from beds array
-  const availableBedsCount = beds.filter((b) => b.status === 'AVAILABLE').length;
-  const reservedBedsCount = beds.filter((b) => b.status === 'RESERVED').length;
-  const cleaningBedsCount = beds.filter((b) => b.status === 'CLEANING').length;
-  const occupiedBedsCount = beds.filter((b) => b.status === 'OCCUPIED').length;
+  // Compute live bed statistics for THIS selected hospital
+  const availableBedsCount = currentBeds.filter((b) => b.status === 'AVAILABLE').length;
+  const reservedBedsCount = currentBeds.filter((b) => b.status === 'RESERVED').length;
+  const cleaningBedsCount = currentBeds.filter((b) => b.status === 'CLEANING').length;
+  const occupiedBedsCount = currentBeds.filter((b) => b.status === 'OCCUPIED').length;
 
-  // Initialize & Fix Leaflet Map Engine
+  // Initialize Leaflet Map Engine (Matching GreenCorridor Demo map logic)
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       const map = L.map(mapRef.current, {
@@ -38,13 +40,6 @@ export const HospitalDeskDashboard = () => {
       const layerGroup = L.layerGroup().addTo(map);
       layerGroupRef.current = layerGroup;
       mapInstanceRef.current = map;
-
-      // Invalidate map size so map tiles render properly in flex container
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 300);
     }
 
     return () => {
@@ -56,7 +51,7 @@ export const HospitalDeskDashboard = () => {
     };
   }, []);
 
-  // Update map markers when hospital or incoming units change
+  // Update map markers with LARGER ICONS & Route Line
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layerGroup = layerGroupRef.current;
@@ -64,40 +59,50 @@ export const HospitalDeskDashboard = () => {
 
     layerGroup.clearLayers();
 
-    // Target Hospital Marker
+    // Larger Hospital Marker Icon [44, 44]
     const hospitalIcon = L.divIcon({
-      className: 'custom-hosp-icon',
-      html: `<div style="background-color: #064e3b; color: white; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 12px rgba(6, 78, 59, 0.8);">HOSP</div>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 17]
+      className: 'custom-hosp-icon-lg',
+      html: `<div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; border: 3px solid white; box-shadow: 0 0 14px rgba(6, 78, 59, 1);">🏥</div>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
     });
 
     const hm = L.marker([currentHospital.location.lat, currentHospital.location.lng], { icon: hospitalIcon });
     hm.bindPopup(`<b>${currentHospital.name}</b><br/>${currentHospital.address}`);
     layerGroup.addLayer(hm);
 
-    // Incoming Ambulances Markers ONLY
+    // Larger Incoming Ambulances Markers [40, 40] + Route Polylines
     incomingAmbulances.forEach((amb) => {
       if (!amb.currentLocation) return;
+      
+      // Draw Green Route Line to Hospital
+      const routeCoords = [
+        [amb.currentLocation.lat, amb.currentLocation.lng],
+        [currentHospital.location.lat, currentHospital.location.lng]
+      ];
+      const routeLine = L.polyline(routeCoords, { color: '#059669', weight: 5, opacity: 0.8, dashArray: '6, 6' });
+      layerGroup.addLayer(routeLine);
+
       const incomingAmbIcon = L.divIcon({
-        className: 'custom-inc-amb-icon',
-        html: `<div style="background-color: #dc2626; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);">AMB</div>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
+        className: 'custom-inc-amb-icon-lg',
+        html: `<div style="background-color: #dc2626; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border: 3px solid white; box-shadow: 0 0 14px rgba(220, 38, 38, 1);">🚑</div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
       });
 
       const am = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: incomingAmbIcon });
-      am.bindPopup(`<b>${amb.code}</b><br/>Patient: ${amb.patient?.name}`);
+      am.bindPopup(`<b>${amb.code}</b><br/>Patient: ${amb.patient?.name}<br/>ETA ~4 Mins`);
       layerGroup.addLayer(am);
     });
 
     map.panTo([currentHospital.location.lat, currentHospital.location.lng]);
 
+    // Force map tile recalculation so map never freezes
     setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
-    }, 200);
+    }, 250);
   }, [currentHospital, incomingAmbulances]);
 
   return (
@@ -116,7 +121,7 @@ export const HospitalDeskDashboard = () => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <label className="text-xs font-bold text-emerald-100">Select Government Hospital:</label>
+          <label className="text-xs font-bold text-emerald-100">Select Hospital Terminal:</label>
           <select
             value={selectedHospitalId}
             onChange={(e) => setSelectedHospitalId(e.target.value)}
@@ -129,7 +134,7 @@ export const HospitalDeskDashboard = () => {
         </div>
       </div>
 
-      {/* Real-Time Bed Availability Live Counters */}
+      {/* Real-Time Bed Availability Live Counters for Selected Hospital */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         
         <div className="bg-white p-3.5 rounded-2xl border border-emerald-200 shadow-sm flex items-center space-x-3">
@@ -138,7 +143,7 @@ export const HospitalDeskDashboard = () => {
           </div>
           <div>
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">AVAILABLE BEDS</p>
-            <p className="text-lg font-extrabold text-emerald-800">{availableBedsCount} <span className="text-xs font-bold text-slate-400">/ {beds.length}</span></p>
+            <p className="text-lg font-extrabold text-emerald-800">{availableBedsCount} <span className="text-xs font-bold text-slate-400">/ {currentBeds.length}</span></p>
           </div>
         </div>
 
@@ -174,18 +179,18 @@ export const HospitalDeskDashboard = () => {
 
       </div>
 
-      {/* Interactive Hospital Bed Management Board (Grid of Beds with Status Switches) */}
+      {/* Interactive Hospital Bed Board Management per Hospital */}
       <div className="bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center space-x-2">
             <Bed className="h-4 w-4 text-emerald-700" />
-            <span>Interactive Hospital Bed Board Management</span>
+            <span>Interactive Bed Board — {currentHospital.name}</span>
           </h2>
           <span className="text-xs text-emerald-800 font-bold">1-Click Status Manager</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {beds.map((bed) => {
+          {currentBeds.map((bed) => {
             let statusBg = 'bg-emerald-50 border-emerald-300 text-emerald-900';
             let badgeBg = 'bg-emerald-600 text-white';
             if (bed.status === 'RESERVED') {
@@ -213,8 +218,8 @@ export const HospitalDeskDashboard = () => {
                 {/* Status Switcher Dropdown */}
                 <select
                   value={bed.status}
-                  onChange={(e) => updateBedStatus(bed.id, e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-1.5 py-1 text-[10px] font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
+                  onChange={(e) => updateBedStatus(selectedHospitalId, bed.id, e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-1.5 py-1 text-[10px] font-bold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer"
                 >
                   <option value="AVAILABLE">AVAILABLE</option>
                   <option value="RESERVED">RESERVED</option>
@@ -280,7 +285,7 @@ export const HospitalDeskDashboard = () => {
         {/* Right Column: Live Map Tracking ONLY for incoming units (7 cols) */}
         <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-2 h-[420px] relative overflow-hidden shadow-sm flex flex-col">
           <div className="text-[11px] font-bold text-emerald-900 px-3 py-1.5 bg-emerald-50 border-b border-emerald-200 rounded-t-2xl flex items-center justify-between">
-            <span>Hospital Intake Map View</span>
+            <span>Hospital Intake Map View (Larger Icons)</span>
             <span className="text-[10px] text-emerald-700">Displaying units assigned to {currentHospital.name}</span>
           </div>
           <div ref={mapRef} className="w-full flex-1 rounded-b-2xl z-0" />

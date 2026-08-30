@@ -107,15 +107,16 @@ export const PatientSosView = () => {
             />
           </div>
 
-          {/* HUGE BIGGER SOS BUTTON */}
+          {/* ULTRA-HUGE BIGGER SOS BUTTON */}
           <button
             onClick={handleTriggerSos}
             type="button"
-            className="w-full py-8 bg-red-600 hover:bg-red-700 text-white rounded-3xl font-black text-xl sm:text-2xl uppercase tracking-wider shadow-2xl flex items-center justify-center space-x-3 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer ring-8 ring-red-100"
+            className="w-full py-12 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-3xl font-black text-2xl sm:text-3xl uppercase tracking-wider shadow-2xl flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer ring-8 ring-red-200"
           >
-            <AlertCircle className="h-10 w-10 animate-bounce" />
+            <AlertCircle className="h-12 w-12 text-white animate-bounce shrink-0" />
             <span>SOS – TRIGGER EMERGENCY</span>
           </button>
+
 
           <p className="text-xs text-slate-500 font-medium pt-2">
             Emergency Toll-Free Direct Hotline: <strong className="text-emerald-900 font-black">108 / (123) 456-7890</strong>
