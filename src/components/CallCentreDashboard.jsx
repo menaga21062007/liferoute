@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { PhoneCall, MapPin, Ambulance, Building2, Clock } from 'lucide-react';
+import { PhoneCall, MapPin, Ambulance, Building2, Clock, CheckCircle2 } from 'lucide-react';
 import L from 'leaflet';
 
 export const CallCentreDashboard = () => {
-  const { sosEmergencies, ambulances, hospitals, assignAmbulance } = useApp();
+  const { sosEmergencies, ambulances, assignAmbulance } = useApp();
   const [selectedSosId, setSelectedSosId] = useState(sosEmergencies[0]?.id || null);
   const [selectedAmbulanceCode, setSelectedAmbulanceCode] = useState('AMB-101');
-  const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -81,7 +80,7 @@ export const CallCentreDashboard = () => {
   const handleDispatch = (e) => {
     e.preventDefault();
     if (!selectedSos) return;
-    assignAmbulance(selectedSos.id, selectedAmbulanceCode, selectedHospitalId);
+    assignAmbulance(selectedSos.id, selectedAmbulanceCode);
   };
 
   return (
@@ -95,7 +94,7 @@ export const CallCentreDashboard = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold font-serif text-white">AMBULANCE CALL CENTRE OPERATOR DESK</h1>
-            <p className="text-xs text-emerald-200 font-medium">City Emergency Control Room • Live Emergency Intake & Dispatch System</p>
+            <p className="text-xs text-emerald-200 font-medium">City Emergency Control Room • Rapid Ambulance Dispatch Unit</p>
           </div>
         </div>
 
@@ -166,7 +165,7 @@ export const CallCentreDashboard = () => {
         {/* Right Column: Dispatch Panel & Map (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
           
-          {/* Dispatch Control Form */}
+          {/* Dispatch Control Form (Hospital Selection Removed) */}
           {selectedSos && (
             <form onSubmit={handleDispatch} className="bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
               <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-wider border-b border-slate-100 pb-1">
@@ -179,7 +178,7 @@ export const CallCentreDashboard = () => {
                   <select
                     value={selectedAmbulanceCode}
                     onChange={(e) => setSelectedAmbulanceCode(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer"
                   >
                     {ambulances.map((amb) => (
                       <option key={amb.id} value={amb.code}>
@@ -189,25 +188,18 @@ export const CallCentreDashboard = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-xs text-slate-700 font-bold block mb-1">Select Target Hospital Drop</label>
-                  <select
-                    value={selectedHospitalId}
-                    onChange={(e) => setSelectedHospitalId(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
-                  >
-                    {hospitals.map((hosp) => (
-                      <option key={hosp.id} value={hosp.id}>
-                        {hosp.name} ({hosp.code})
-                      </option>
-                    ))}
-                  </select>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex flex-col justify-center">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase block">Hospital Allocation Method</span>
+                  <p className="text-xs font-extrabold text-emerald-900 flex items-center space-x-1 mt-0.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>Auto-Assigned by Bed Availability</span>
+                  </p>
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#064e3b] hover:bg-emerald-900 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all"
+                className="w-full py-3 bg-[#064e3b] hover:bg-emerald-900 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer"
               >
                 <Ambulance className="h-4 w-4" />
                 <span>DISPATCH AMBULANCE {selectedAmbulanceCode} TO {selectedSos.patientName}</span>

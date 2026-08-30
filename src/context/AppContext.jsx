@@ -222,37 +222,56 @@ export const AppProvider = ({ children }) => {
     return newSos;
   };
 
+  // Automatically find nearest hospital with available beds
+  const findBestAvailableHospital = (pickupLocation = { lat: 40.715000, lng: -73.955000 }) => {
+    const openHospitals = hospitals.filter((h) => h.availableBeds > 0);
+    const candidates = openHospitals.length > 0 ? openHospitals : hospitals;
+
+    const ranked = candidates.map((h) => {
+      const dist = calculateDistanceKm(
+        pickupLocation.lat || 40.715000,
+        pickupLocation.lng || -73.955000,
+        h.location.lat,
+        h.location.lng
+      );
+      return { ...h, dist };
+    });
+
+    ranked.sort((a, b) => a.dist - b.dist);
+    return ranked[0] || hospitals[0];
+  };
+
   // Call Centre operator assigns ambulance (connected to backend)
-  const assignAmbulance = async (sosId, ambulanceCode, targetHospitalId = 'hosp-1') => {
-    const targetHosp = hospitals.find((h) => h.id === targetHospitalId) || hospitals[0];
+  const assignAmbulance = async (sosId, ambulanceCode) => {
+    const sos = sosEmergencies.find((s) => s.id === sosId);
+    const targetHosp = findBestAvailableHospital(sos?.pickupLocation);
 
     try {
       await fetch(`${BACKEND_URL}/api/dispatch/assign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sosId, ambulanceCode, targetHospitalId })
+        body: JSON.stringify({ sosId, ambulanceCode, targetHospitalId: targetHosp.id })
       });
     } catch (e) {
       console.log('Dispatching ambulance locally:', e);
     }
 
     setSosEmergencies((prev) =>
-      prev.map((sos) =>
-        sos.id === sosId
+      prev.map((s) =>
+        s.id === sosId
           ? {
-              ...sos,
+              ...s,
               status: 'ASSIGNED',
               assignedAmbulanceCode: ambulanceCode,
               targetHospitalId: targetHosp.id
             }
-          : sos
+          : s
       )
     );
 
     setAmbulances((prev) =>
       prev.map((amb) => {
         if (amb.code === ambulanceCode || amb.id === ambulanceCode) {
-          const sos = sosEmergencies.find((s) => s.id === sosId);
           return {
             ...amb,
             status: 'EN_ROUTE_TO_PATIENT',
@@ -272,6 +291,7 @@ export const AppProvider = ({ children }) => {
       })
     );
   };
+
 
   // Ambulance crew scene vitals entry (connected to backend)
   const updatePatientSceneDetails = async (ambulanceCode, sceneData) => {
@@ -388,6 +408,7 @@ export const AppProvider = ({ children }) => {
         isBackendConnected,
         createSosEmergency,
         assignAmbulance,
+        findBestAvailableHospital,
         updatePatientSceneDetails,
         updateAmbulanceStatus,
         updateBedStatus
@@ -397,6 +418,7 @@ export const AppProvider = ({ children }) => {
     </AppContext.Provider>
   );
 };
+
 
 export const useApp = () => useContext(AppContext);
 

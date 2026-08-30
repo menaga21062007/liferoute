@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Ambulance, Navigation, ShieldCheck, HeartPulse, User, Phone } from 'lucide-react';
+import { Ambulance, Navigation, ShieldCheck, HeartPulse, Building2, CheckCircle2, RefreshCw } from 'lucide-react';
 
 export const AmbulanceCrewDashboard = () => {
-  const { ambulances, hospitals, updatePatientSceneDetails, updateAmbulanceStatus } = useApp();
+  const { ambulances, hospitals, updatePatientSceneDetails, updateAmbulanceStatus, findBestAvailableHospital } = useApp();
   const [activeAmbulanceCode, setActiveAmbulanceCode] = useState('AMB-101');
 
   // Scene Vitals Form State
@@ -17,6 +17,8 @@ export const AmbulanceCrewDashboard = () => {
   const [pulse, setPulse] = useState('78 bpm');
 
   const activeAmb = ambulances.find((a) => a.code === activeAmbulanceCode || a.id === activeAmbulanceCode) || ambulances[0];
+  
+  // Find target hospital matched automatically by bed availability
   const targetHospital = hospitals.find((h) => h.id === activeAmb?.targetHospitalId) || hospitals[0];
 
   const handleNativeNavigation = () => {
@@ -49,6 +51,13 @@ export const AmbulanceCrewDashboard = () => {
     updateAmbulanceStatus(activeAmb.code, 'ARRIVED_AT_HOSPITAL');
   };
 
+  const handleReMatchHospital = () => {
+    const best = findBestAvailableHospital(activeAmb?.patient?.pickupLocation);
+    if (best) {
+      alert(`⚡ System matched best hospital with available beds: ${best.name} (${best.availableBeds} beds available)`);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto px-4 py-4 space-y-4 text-slate-800">
       
@@ -62,7 +71,7 @@ export const AmbulanceCrewDashboard = () => {
               <button
                 key={a.id}
                 onClick={() => setActiveAmbulanceCode(a.code)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-[#064e3b] text-white shadow ring-2 ring-emerald-400'
                     : 'bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100'
@@ -97,7 +106,7 @@ export const AmbulanceCrewDashboard = () => {
         </div>
       </div>
 
-      {/* Assigned Emergency Text Card (STRICTLY NO MAP DISPLAYED) */}
+      {/* Assigned Emergency Text Card */}
       {activeAmb.patient ? (
         <div className="bg-white border-2 border-emerald-600 rounded-3xl p-4 shadow-md space-y-3">
           <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
@@ -105,7 +114,7 @@ export const AmbulanceCrewDashboard = () => {
             <span className="text-xs font-bold text-amber-600">{activeAmb.status}</span>
           </div>
 
-          <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 space-y-2 text-xs">
+          <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 space-y-2.5 text-xs">
             <div>
               <span className="text-slate-500 block text-[10px] uppercase font-bold">Patient Name & Info</span>
               <p className="text-sm font-bold text-slate-900 font-serif">{activeAmb.patient.name} ({activeAmb.patient.age} y/o {activeAmb.patient.gender})</p>
@@ -116,16 +125,37 @@ export const AmbulanceCrewDashboard = () => {
               <p className="text-xs font-bold text-red-700">{activeAmb.patient.pickupLocation?.address || 'District 1 Pickup Point'}</p>
             </div>
 
-            <div>
-              <span className="text-slate-500 block text-[10px] uppercase font-bold">Target Government Hospital</span>
-              <p className="text-xs font-bold text-emerald-800">{targetHospital.name}</p>
+            {/* AUTOMATED HOSPITAL ALLOCATION CARD BY BED AVAILABILITY */}
+            <div className="bg-white p-3 rounded-xl border border-emerald-300 space-y-1.5 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-extrabold text-emerald-900 uppercase tracking-wider flex items-center space-x-1">
+                  <Building2 className="h-3.5 w-3.5 text-emerald-700" />
+                  <span>Auto-Allocated Hospital (Bed Available)</span>
+                </span>
+                <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
+                  {targetHospital.availableBeds} Beds Free
+                </span>
+              </div>
+
+              <p className="text-xs font-extrabold text-emerald-950 font-serif">{targetHospital.name}</p>
+              <p className="text-[10px] text-slate-500 font-medium">{targetHospital.address}</p>
+
+              <button
+                type="button"
+                onClick={handleReMatchHospital}
+                className="w-full mt-1 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-[10px] font-bold rounded-lg border border-emerald-300 flex items-center justify-center space-x-1 cursor-pointer"
+              >
+                <RefreshCw className="h-3 w-3 text-emerald-700" />
+                <span>Re-Analyze Bed Availability & Match Best Hospital</span>
+              </button>
             </div>
+
           </div>
 
           {/* Native Phone Map Launcher Button */}
           <button
             onClick={handleNativeNavigation}
-            className="w-full py-3.5 bg-[#064e3b] hover:bg-emerald-900 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all"
+            className="w-full py-3.5 bg-[#064e3b] hover:bg-emerald-900 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer"
           >
             <Navigation className="h-4 w-4 text-emerald-300" />
             <span>NAVIGATE TO PATIENT (OPEN PHONE MAPS)</span>
@@ -135,13 +165,13 @@ export const AmbulanceCrewDashboard = () => {
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={handleMarkPatientOnBoard}
-              className="py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl uppercase shadow-sm"
+              className="py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl uppercase shadow-sm cursor-pointer"
             >
               PATIENT ON BOARD
             </button>
             <button
               onClick={handleMarkArrivedAtHospital}
-              className="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl uppercase shadow-sm"
+              className="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl uppercase shadow-sm cursor-pointer"
             >
               ARRIVED AT HOSPITAL
             </button>
@@ -228,7 +258,7 @@ export const AmbulanceCrewDashboard = () => {
 
           <button
             type="submit"
-            className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-800 border border-emerald-300 rounded-xl"
+            className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-800 border border-emerald-300 rounded-xl cursor-pointer"
           >
             UPDATE PATIENT SCENE VITALS
           </button>
