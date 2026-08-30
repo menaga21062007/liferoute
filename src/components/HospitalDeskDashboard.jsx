@@ -24,11 +24,16 @@ export const HospitalDeskDashboard = () => {
   const cleaningBedsCount = currentBeds.filter((b) => b.status === 'CLEANING').length;
   const occupiedBedsCount = currentBeds.filter((b) => b.status === 'OCCUPIED').length;
 
-  // Initialize Leaflet Map Engine (Matching GreenCorridor Demo map logic)
+  // Initialize Leaflet Map Engine (Identical to GreenCorridorDemo.jsx)
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
+      // Clear any leftover Leaflet ID on DOM element
+      if (mapRef.current._leaflet_id) {
+        mapRef.current._leaflet_id = null;
+      }
+
       const map = L.map(mapRef.current, {
-        center: [currentHospital.location.lat, currentHospital.location.lng],
+        center: [40.722, -73.945],
         zoom: 13,
         zoomControl: true
       });
@@ -51,7 +56,7 @@ export const HospitalDeskDashboard = () => {
     };
   }, []);
 
-  // Update map markers with LARGER ICONS & Route Line
+  // Update map markers, route polylines, and icons (Matching GreenCorridorDemo.jsx)
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layerGroup = layerGroupRef.current;
@@ -59,51 +64,69 @@ export const HospitalDeskDashboard = () => {
 
     layerGroup.clearLayers();
 
-    // Larger Hospital Marker Icon [44, 44]
-    const hospitalIcon = L.divIcon({
-      className: 'custom-hosp-icon-lg',
-      html: `<div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; border: 3px solid white; box-shadow: 0 0 14px rgba(6, 78, 59, 1);">🏥</div>`,
-      iconSize: [44, 44],
-      iconAnchor: [22, 22]
+    // 1. Draw All Hospitals on Map with Larger Icons
+    hospitals.forEach((hosp) => {
+      if (!hosp.location) return;
+      const isSelected = hosp.id === currentHospital.id;
+      const hospitalIcon = L.divIcon({
+        className: 'custom-hosp-icon-lg',
+        html: `<div style="background-color: ${isSelected ? '#064e3b' : '#047857'}; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid white; box-shadow: ${isSelected ? '0 0 16px rgba(6, 78, 59, 1)' : '0 0 8px rgba(0,0,0,0.3)'};">🏥</div>`,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+      });
+
+      const hm = L.marker([hosp.location.lat, hosp.location.lng], { icon: hospitalIcon });
+      hm.bindPopup(`<b>${hosp.name}</b><br/>Beds: ${hosp.availableBeds}/${hosp.totalBeds}`);
+      layerGroup.addLayer(hm);
     });
 
-    const hm = L.marker([currentHospital.location.lat, currentHospital.location.lng], { icon: hospitalIcon });
-    hm.bindPopup(`<b>${currentHospital.name}</b><br/>${currentHospital.address}`);
-    layerGroup.addLayer(hm);
-
-    // Larger Incoming Ambulances Markers [40, 40] + Route Polylines
-    incomingAmbulances.forEach((amb) => {
+    // 2. Draw Active Ambulances + Route Lines
+    ambulances.forEach((amb) => {
       if (!amb.currentLocation) return;
-      
-      // Draw Green Route Line to Hospital
-      const routeCoords = [
-        [amb.currentLocation.lat, amb.currentLocation.lng],
-        [currentHospital.location.lat, currentHospital.location.lng]
-      ];
-      const routeLine = L.polyline(routeCoords, { color: '#059669', weight: 5, opacity: 0.8, dashArray: '6, 6' });
-      layerGroup.addLayer(routeLine);
+      const isIncomingToCurrent = amb.targetHospitalId === currentHospital.id && amb.patient;
 
-      const incomingAmbIcon = L.divIcon({
-        className: 'custom-inc-amb-icon-lg',
-        html: `<div style="background-color: #dc2626; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border: 3px solid white; box-shadow: 0 0 14px rgba(220, 38, 38, 1);">🚑</div>`,
+      // Draw Green Route Line if assigned
+      if (amb.patient && amb.targetHospitalId) {
+        const targetH = hospitals.find((h) => h.id === amb.targetHospitalId);
+        if (targetH && targetH.location) {
+          const routeCoords = [
+            [amb.currentLocation.lat, amb.currentLocation.lng],
+            [targetH.location.lat, targetH.location.lng]
+          ];
+          const routeLine = L.polyline(routeCoords, {
+            color: isIncomingToCurrent ? '#059669' : '#3b82f6',
+            weight: isIncomingToCurrent ? 6 : 4,
+            opacity: 0.85,
+            dashArray: '8, 8'
+          });
+          layerGroup.addLayer(routeLine);
+        }
+      }
+
+      const ambIcon = L.divIcon({
+        className: 'custom-amb-icon-lg',
+        html: `<div style="background-color: ${isIncomingToCurrent ? '#dc2626' : '#2563eb'}; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border: 3px solid white; box-shadow: 0 0 14px ${isIncomingToCurrent ? 'rgba(220, 38, 38, 1)' : 'rgba(37, 99, 235, 0.8)'};">🚑</div>`,
         iconSize: [40, 40],
         iconAnchor: [20, 20]
       });
 
-      const am = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: incomingAmbIcon });
-      am.bindPopup(`<b>${amb.code}</b><br/>Patient: ${amb.patient?.name}<br/>ETA ~4 Mins`);
+      const am = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: ambIcon });
+      am.bindPopup(`<b>Ambulance ${amb.code}</b><br/>Status: ${amb.status}<br/>${amb.patient ? `Patient: ${amb.patient.name}` : 'No patient'}`);
       layerGroup.addLayer(am);
     });
 
-    map.panTo([currentHospital.location.lat, currentHospital.location.lng]);
+    // Pan map to selected hospital
+    if (currentHospital && currentHospital.location) {
+      map.panTo([currentHospital.location.lat, currentHospital.location.lng]);
+    }
 
-    // Force map tile recalculation so map never freezes
+    // Recalculate map container dimensions
     setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
-    }, 250);
-  }, [currentHospital, incomingAmbulances]);
+    }, 200);
+  }, [currentHospital, ambulances, hospitals]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4 text-slate-800">
@@ -125,7 +148,7 @@ export const HospitalDeskDashboard = () => {
           <select
             value={selectedHospitalId}
             onChange={(e) => setSelectedHospitalId(e.target.value)}
-            className="bg-emerald-900 border border-emerald-600 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-400"
+            className="bg-emerald-900 border border-emerald-600 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-400 cursor-pointer"
           >
             {hospitals.map((h) => (
               <option key={h.id} value={h.id}>{h.name} ({h.code})</option>
@@ -282,11 +305,11 @@ export const HospitalDeskDashboard = () => {
           </div>
         </div>
 
-        {/* Right Column: Live Map Tracking ONLY for incoming units (7 cols) */}
+        {/* Right Column: Live Map Engine (Identical to GreenCorridorDemo.jsx) */}
         <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-2 h-[420px] relative overflow-hidden shadow-sm flex flex-col">
           <div className="text-[11px] font-bold text-emerald-900 px-3 py-1.5 bg-emerald-50 border-b border-emerald-200 rounded-t-2xl flex items-center justify-between">
-            <span>Hospital Intake Map View (Larger Icons)</span>
-            <span className="text-[10px] text-emerald-700">Displaying units assigned to {currentHospital.name}</span>
+            <span>Hospital Emergency Map Engine (Larger Markers)</span>
+            <span className="text-[10px] text-emerald-700">Displaying Hospitals & Active Ambulances</span>
           </div>
           <div ref={mapRef} className="w-full flex-1 rounded-b-2xl z-0" />
         </div>

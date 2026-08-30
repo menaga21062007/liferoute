@@ -5,7 +5,6 @@ import { Ambulance, Navigation, ShieldCheck, HeartPulse, User, Phone } from 'luc
 export const AmbulanceCrewDashboard = () => {
   const { ambulances, hospitals, updatePatientSceneDetails, updateAmbulanceStatus } = useApp();
   const [activeAmbulanceCode, setActiveAmbulanceCode] = useState('AMB-101');
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   // Scene Vitals Form State
   const [sceneName, setSceneName] = useState('');
@@ -39,7 +38,7 @@ export const AmbulanceCrewDashboard = () => {
       spo2,
       pulse
     });
-    alert("Patient Scene Vitals & Details Saved!");
+    alert(`Patient Scene Vitals & Details Saved for ${activeAmb.code}!`);
   };
 
   const handleMarkPatientOnBoard = () => {
@@ -50,43 +49,32 @@ export const AmbulanceCrewDashboard = () => {
     updateAmbulanceStatus(activeAmb.code, 'ARRIVED_AT_HOSPITAL');
   };
 
-  if (!isLoggedIn) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-8">
-        <div className="bg-white border border-emerald-200 rounded-3xl p-6 shadow-md space-y-4">
-          <div className="text-center pb-3 border-b border-emerald-100">
-            <Ambulance className="h-10 w-10 text-emerald-700 mx-auto mb-2" />
-            <h2 className="text-xl font-bold font-serif text-slate-900">AMBULANCE CREW LOGIN</h2>
-            <p className="text-xs text-slate-500 font-medium">WellCare Emergency Network Service</p>
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Select Unit ID</label>
-            <select
-              value={activeAmbulanceCode}
-              onChange={(e) => setActiveAmbulanceCode(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
-            >
-              {ambulances.map((a) => (
-                <option key={a.id} value={a.code}>{a.code} — {a.unitName}</option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={() => setIsLoggedIn(true)}
-            className="w-full py-3 bg-[#064e3b] hover:bg-emerald-900 text-white font-bold text-sm uppercase rounded-xl shadow-md"
-          >
-            LOGIN TO UNIT
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-md mx-auto px-4 py-4 space-y-4 text-slate-800">
       
+      {/* Active Ambulance Selector Bar */}
+      <div className="bg-white border border-emerald-200 rounded-3xl p-3 shadow-sm flex items-center justify-between">
+        <span className="text-xs font-bold text-[#064e3b] font-serif uppercase tracking-wider">Select Active Ambulance Unit:</span>
+        <div className="flex space-x-1">
+          {ambulances.map((a) => {
+            const isSelected = activeAmb.code === a.code;
+            return (
+              <button
+                key={a.id}
+                onClick={() => setActiveAmbulanceCode(a.code)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                  isSelected
+                    ? 'bg-[#064e3b] text-white shadow ring-2 ring-emerald-400'
+                    : 'bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100'
+                }`}
+              >
+                {a.code}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Unit Header Bar */}
       <div className="bg-[#064e3b] text-white rounded-3xl p-4 flex items-center justify-between shadow-md border border-emerald-700">
         <div className="flex items-center space-x-3">
@@ -163,7 +151,7 @@ export const AmbulanceCrewDashboard = () => {
       ) : (
         <div className="bg-white border border-emerald-200 rounded-3xl p-6 text-center space-y-2 shadow-sm">
           <ShieldCheck className="h-10 w-10 text-emerald-600 mx-auto" />
-          <h3 className="text-base font-bold font-serif text-slate-900">UNIT STANDBY</h3>
+          <h3 className="text-base font-bold font-serif text-slate-900">UNIT {activeAmb.code} STANDBY</h3>
           <p className="text-xs text-slate-500 font-medium">Waiting for Call Centre dispatch assignment...</p>
         </div>
       )}
@@ -172,7 +160,7 @@ export const AmbulanceCrewDashboard = () => {
       {activeAmb.patient && (
         <form onSubmit={handleSaveSceneVitals} className="bg-white border border-emerald-200 rounded-3xl p-4 shadow-sm space-y-3">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-1">
-            Paramedic Patient Intake at Scene
+            Paramedic Patient Intake at Scene ({activeAmb.code})
           </h3>
 
           <div className="grid grid-cols-2 gap-2">
