@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { Building2, Ambulance, Bed, Activity, CheckCircle2 } from 'lucide-react';
+import { Building2, Ambulance, Bed, Activity, CheckCircle2, RefreshCw } from 'lucide-react';
 import L from 'leaflet';
 
 export const HospitalDeskDashboard = () => {
-  const { hospitals, ambulances } = useApp();
+  const { hospitals, ambulances, beds, updateBedStatus } = useApp();
   const [selectedHospitalId, setSelectedHospitalId] = useState(hospitals[0]?.id || 'hosp-1');
 
   const mapRef = useRef(null);
@@ -15,6 +15,12 @@ export const HospitalDeskDashboard = () => {
   const incomingAmbulances = ambulances.filter(
     (a) => a.targetHospitalId === currentHospital.id && a.patient
   );
+
+  // Compute live bed statistics from beds array
+  const availableBedsCount = beds.filter((b) => b.status === 'AVAILABLE').length;
+  const reservedBedsCount = beds.filter((b) => b.status === 'RESERVED').length;
+  const cleaningBedsCount = beds.filter((b) => b.status === 'CLEANING').length;
+  const occupiedBedsCount = beds.filter((b) => b.status === 'OCCUPIED').length;
 
   // Initialize & Fix Leaflet Map Engine
   useEffect(() => {
@@ -105,7 +111,7 @@ export const HospitalDeskDashboard = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold font-serif text-white">{currentHospital.name}</h1>
-            <p className="text-xs text-emerald-200 font-medium">Emergency Desk & Bed Management Terminal • {currentHospital.address}</p>
+            <p className="text-xs text-emerald-200 font-medium">Emergency Desk & Real-Time Bed Availability Board • {currentHospital.address}</p>
           </div>
         </div>
 
@@ -123,45 +129,102 @@ export const HospitalDeskDashboard = () => {
         </div>
       </div>
 
-      {/* Real-Time Bed Availability Banner */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Real-Time Bed Availability Live Counters */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center space-x-3">
-          <div className="p-3 bg-emerald-100 rounded-xl text-emerald-800">
-            <Bed className="h-6 w-6" />
+        <div className="bg-white p-3.5 rounded-2xl border border-emerald-200 shadow-sm flex items-center space-x-3">
+          <div className="p-2.5 bg-emerald-100 rounded-xl text-emerald-800">
+            <Bed className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">ICU / Emergency Beds</p>
-            <p className="text-xl font-extrabold text-emerald-900">
-              {currentHospital.availableBeds} / {currentHospital.totalBeds} <span className="text-xs text-emerald-600 font-bold">Beds Available</span>
-            </p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">AVAILABLE BEDS</p>
+            <p className="text-lg font-extrabold text-emerald-800">{availableBedsCount} <span className="text-xs font-bold text-slate-400">/ {beds.length}</span></p>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center space-x-3">
-          <div className="p-3 bg-emerald-100 rounded-xl text-emerald-800">
-            <Activity className="h-6 w-6" />
+        <div className="bg-white p-3.5 rounded-2xl border border-amber-200 shadow-sm flex items-center space-x-3">
+          <div className="p-2.5 bg-amber-100 rounded-xl text-amber-800">
+            <Bed className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Operating Theaters (OT)</p>
-            <p className="text-xl font-extrabold text-emerald-900">
-              {currentHospital.availableOTs} / {currentHospital.totalOTs} <span className="text-xs text-emerald-600 font-bold">OTs Ready</span>
-            </p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">RESERVED BEDS</p>
+            <p className="text-lg font-extrabold text-amber-700">{reservedBedsCount}</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center space-x-3">
-          <div className="p-3 bg-emerald-100 rounded-xl text-emerald-800">
-            <CheckCircle2 className="h-6 w-6" />
+        <div className="bg-white p-3.5 rounded-2xl border border-blue-200 shadow-sm flex items-center space-x-3">
+          <div className="p-2.5 bg-blue-100 rounded-xl text-blue-800">
+            <RefreshCw className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Capacity Status</p>
-            <p className="text-sm font-extrabold text-emerald-800 uppercase">
-              {currentHospital.status === 'CRITICAL' ? '⚠️ High Load' : '🟢 Beds Open & Accepting Patients'}
-            </p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">CLEANING / SANITIZING</p>
+            <p className="text-lg font-extrabold text-blue-700">{cleaningBedsCount}</p>
           </div>
         </div>
 
+        <div className="bg-white p-3.5 rounded-2xl border border-red-200 shadow-sm flex items-center space-x-3">
+          <div className="p-2.5 bg-red-100 rounded-xl text-red-800">
+            <Activity className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">OCCUPIED BEDS</p>
+            <p className="text-lg font-extrabold text-red-700">{occupiedBedsCount}</p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Interactive Hospital Bed Management Board (Grid of Beds with Status Switches) */}
+      <div className="bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center space-x-2">
+            <Bed className="h-4 w-4 text-emerald-700" />
+            <span>Interactive Hospital Bed Board Management</span>
+          </h2>
+          <span className="text-xs text-emerald-800 font-bold">1-Click Status Manager</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {beds.map((bed) => {
+            let statusBg = 'bg-emerald-50 border-emerald-300 text-emerald-900';
+            let badgeBg = 'bg-emerald-600 text-white';
+            if (bed.status === 'RESERVED') {
+              statusBg = 'bg-amber-50 border-amber-300 text-amber-900';
+              badgeBg = 'bg-amber-600 text-white';
+            } else if (bed.status === 'CLEANING') {
+              statusBg = 'bg-blue-50 border-blue-300 text-blue-900';
+              badgeBg = 'bg-blue-600 text-white';
+            } else if (bed.status === 'OCCUPIED') {
+              statusBg = 'bg-red-50 border-red-300 text-red-900';
+              badgeBg = 'bg-red-600 text-white';
+            }
+
+            return (
+              <div key={bed.id} className={`p-3 rounded-2xl border ${statusBg} space-y-2 flex flex-col justify-between shadow-xs transition-all`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs font-serif">Bed {bed.number}</span>
+                  <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${badgeBg}`}>
+                    {bed.status}
+                  </span>
+                </div>
+
+                <p className="text-[10px] text-slate-600 font-medium">{bed.type}</p>
+
+                {/* Status Switcher Dropdown */}
+                <select
+                  value={bed.status}
+                  onChange={(e) => updateBedStatus(bed.id, e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-1.5 py-1 text-[10px] font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
+                >
+                  <option value="AVAILABLE">AVAILABLE</option>
+                  <option value="RESERVED">RESERVED</option>
+                  <option value="CLEANING">CLEANING</option>
+                  <option value="OCCUPIED">OCCUPIED</option>
+                </select>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -173,7 +236,7 @@ export const HospitalDeskDashboard = () => {
             <span className="text-xs text-emerald-700 font-bold">{incomingAmbulances.length} Units En Route</span>
           </h2>
 
-          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
             {incomingAmbulances.length > 0 ? (
               incomingAmbulances.map((amb) => (
                 <div key={amb.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
@@ -215,7 +278,7 @@ export const HospitalDeskDashboard = () => {
         </div>
 
         {/* Right Column: Live Map Tracking ONLY for incoming units (7 cols) */}
-        <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-2 h-[500px] relative overflow-hidden shadow-sm flex flex-col">
+        <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-2 h-[420px] relative overflow-hidden shadow-sm flex flex-col">
           <div className="text-[11px] font-bold text-emerald-900 px-3 py-1.5 bg-emerald-50 border-b border-emerald-200 rounded-t-2xl flex items-center justify-between">
             <span>Hospital Intake Map View</span>
             <span className="text-[10px] text-emerald-700">Displaying units assigned to {currentHospital.name}</span>

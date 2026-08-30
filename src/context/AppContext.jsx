@@ -11,15 +11,32 @@ import {
 const AppContext = createContext();
 const BACKEND_URL = 'http://localhost:5000';
 
+const INITIAL_BEDS = [
+  { id: 'BED-101', number: '101', type: 'ICU Bed', status: 'AVAILABLE' },
+  { id: 'BED-102', number: '102', type: 'ICU Bed', status: 'AVAILABLE' },
+  { id: 'BED-103', number: '103', type: 'ICU Bed', status: 'RESERVED' },
+  { id: 'BED-104', number: '104', type: 'ICU Bed', status: 'CLEANING' },
+  { id: 'BED-105', number: '105', type: 'ICU Bed', status: 'OCCUPIED' },
+  { id: 'BED-106', number: '106', type: 'Emergency Bed', status: 'AVAILABLE' },
+  { id: 'BED-107', number: '107', type: 'Emergency Bed', status: 'AVAILABLE' },
+  { id: 'BED-108', number: '108', type: 'Emergency Bed', status: 'RESERVED' },
+  { id: 'BED-109', number: '109', type: 'Emergency Bed', status: 'CLEANING' },
+  { id: 'BED-110', number: '110', type: 'Emergency Bed', status: 'AVAILABLE' },
+  { id: 'BED-111', number: '111', type: 'Trauma Bay', status: 'AVAILABLE' },
+  { id: 'BED-112', number: '112', type: 'Trauma Bay', status: 'OCCUPIED' }
+];
+
 export const AppProvider = ({ children }) => {
-  const [activeRole, setActiveRole] = useState('callcentre'); // Default view: Call Centre Operator Dashboard ('callcentre')
+  const [activeRole, setActiveRole] = useState('sos'); // Default primary view: Citizen SOS ('sos')
 
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
   const [hospitals, setHospitals] = useState(GOVERNMENT_HOSPITALS);
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [sosEmergencies, setSosEmergencies] = useState(INITIAL_SOS_EMERGENCIES);
+  const [beds, setBeds] = useState(INITIAL_BEDS);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
+
 
   // Real-Time Socket.io Backend Connection
   useEffect(() => {
@@ -304,6 +321,13 @@ export const AppProvider = ({ children }) => {
     );
   };
 
+  // Update Bed Status (AVAILABLE, RESERVED, CLEANING, OCCUPIED)
+  const updateBedStatus = (bedId, newStatus) => {
+    setBeds((prevBeds) =>
+      prevBeds.map((b) => (b.id === bedId ? { ...b, status: newStatus } : b))
+    );
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -315,11 +339,13 @@ export const AppProvider = ({ children }) => {
         ambulances,
         trafficSignals,
         sosEmergencies,
+        beds,
         isBackendConnected,
         createSosEmergency,
         assignAmbulance,
         updatePatientSceneDetails,
-        updateAmbulanceStatus
+        updateAmbulanceStatus,
+        updateBedStatus
       }}
     >
       {children}
@@ -328,6 +354,7 @@ export const AppProvider = ({ children }) => {
 };
 
 export const useApp = () => useContext(AppContext);
+
 
 
 

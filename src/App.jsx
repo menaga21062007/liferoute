@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
-import { LandingPage } from './components/LandingPage';
 import { Navbar } from './components/Navbar';
 import { PatientSosView } from './components/PatientSosView';
 import { CallCentreDashboard } from './components/CallCentreDashboard';
@@ -10,28 +9,11 @@ import { HospitalDeskDashboard } from './components/HospitalDeskDashboard';
 import { GreenCorridorDemo } from './components/GreenCorridorDemo';
 
 const MainLayout = () => {
-  const [viewMode, setViewMode] = useState('landing');
   const { activeRole } = useApp();
-
-  if (viewMode === 'landing') {
-    return (
-      <div>
-        <Navbar
-          onOpenLanding={() => setViewMode('landing')}
-          onSelectRole={() => setViewMode('dashboard')}
-        />
-        <LandingPage onLaunchDemo={() => setViewMode('dashboard')} />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 selection:bg-emerald-600 selection:text-white pb-8">
-      <Navbar
-        onOpenLanding={() => setViewMode('landing')}
-        onSelectRole={() => setViewMode('dashboard')}
-      />
-
+      <Navbar />
 
       <main className="flex-1 py-4">
         {activeRole === 'sos' && <PatientSosView />}
@@ -57,6 +39,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
-
-
