@@ -482,7 +482,11 @@ export const AppProvider = ({ children }) => {
         isSimulationRunning,
         createSosEmergency,
         assignAmbulance,
+        dispatchNextRequest: () => {
+          createSosEmergency({ patientName: 'Surge Patient', emergencyType: 'Accident' });
+        },
         updatePatientSceneDetails,
+
         updateAmbulanceStatus,
         startEmergencyTrip: startTrip,
         startTrip,

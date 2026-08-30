@@ -10,8 +10,9 @@ export const CommandCenter = () => {
   const [focusedAmbulanceId, setFocusedAmbulanceId] = useState(null);
 
   const activeAmbulance = ambulances.find((a) => a.status === 'EN_ROUTE') || ambulances[0];
-  const peakData = predictiveAnalytics?.peakHours || [];
+  const peakData = predictiveAnalytics?.hourlySurge || predictiveAnalytics?.peakHours || [];
   const prepositionList = predictiveAnalytics?.recommendedPrepositioning || [];
+
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6 animate-fade-in text-slate-100 font-sans">
