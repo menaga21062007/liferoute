@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
+import { LandingPage } from './components/LandingPage';
 import { Navbar } from './components/Navbar';
 import { PatientSosView } from './components/PatientSosView';
 import { CallCentreDashboard } from './components/CallCentreDashboard';
@@ -9,11 +10,21 @@ import { HospitalDeskDashboard } from './components/HospitalDeskDashboard';
 import { GreenCorridorDemo } from './components/GreenCorridorDemo';
 
 const MainLayout = () => {
+  const [viewMode, setViewMode] = useState('landing');
   const { activeRole } = useApp();
 
+  if (viewMode === 'landing') {
+    return (
+      <div>
+        <Navbar onOpenLanding={() => setViewMode('landing')} />
+        <LandingPage onLaunchDemo={() => setViewMode('dashboard')} />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#071225] text-slate-100 selection:bg-blue-600 selection:text-white pb-8">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 selection:bg-emerald-600 selection:text-white pb-8">
+      <Navbar onOpenLanding={() => setViewMode('landing')} />
 
       <main className="flex-1 py-4">
         {activeRole === 'sos' && <PatientSosView />}
@@ -23,8 +34,8 @@ const MainLayout = () => {
         {activeRole === 'corridor' && <GreenCorridorDemo />}
       </main>
 
-      <footer className="border-t border-slate-900 bg-slate-950 py-3 text-center text-xs text-slate-400 font-medium">
-        Government City Emergency Response & Smart Traffic Network • Emergency Toll-Free 108
+      <footer className="border-t border-emerald-800/80 bg-[#064e3b] py-3 text-center text-xs text-emerald-200 font-medium">
+        WellCare Medical Center & LifeRoute Emergency Response Network • Toll-Free 108 / (123) 456-7890
       </footer>
     </div>
   );
@@ -39,5 +50,6 @@ export default function App() {
     </AuthProvider>
   );
 }
+
 
 

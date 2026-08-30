@@ -1,556 +1,617 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { SharedMap } from './SharedMap';
 import {
-  HeartPulse,
-  Ambulance,
-  Building2,
-  TrafficCone,
-  Bed,
-  Activity,
-  ArrowRight,
-  CheckCircle2,
-  ShieldAlert,
-  Zap,
-  Play,
-  Navigation,
-  Clock,
-  UserCheck,
   Stethoscope,
-  ChevronRight,
-  Radio,
-  Sliders,
-  Sparkles,
-  MapPin
+  ShieldCheck,
+  Clock,
+  Heart,
+  UserCheck,
+  HeartPulse,
+  Activity,
+  Bone,
+  Baby,
+  Brain,
+  Smile,
+  Phone,
+  Mail,
+  MapPin,
+  Send,
+  Calendar,
+  CheckCircle2,
+  ArrowRight,
+  Shield,
+  Users,
+  Lock,
+  Sparkles
 } from 'lucide-react';
 
-export const LandingPage = ({ onLaunchDemo, onLogin }) => {
-  const { setActiveRole } = useApp();
+export const LandingPage = ({ onLaunchDemo }) => {
+  const { setActiveRole, createSosEmergency } = useApp();
+  
+  // Contact & SOS Form State
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [emailAddress, setEmailAddress] = useState('');
+  const [subject, setSubject] = useState('Accident');
+  const [message, setMessage] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleLaunch = () => {
-    if (onLaunchDemo) onLaunchDemo();
-    else setActiveRole('command');
+  const handleSubmitSosMessage = (e) => {
+    e.preventDefault();
+    createSosEmergency({
+      patientName: fullName || 'Citizen Patient',
+      phone: phoneNumber || '123-456-7890',
+      age: 42,
+      emergencyType: subject,
+      pickupLocation: {
+        lat: 40.715000,
+        lng: -73.955000,
+        address: message || '123 Wellness Blvd, Health City'
+      }
+    });
+    setIsSubmitted(true);
   };
 
-  const handleHowItWorks = () => {
-    const el = document.getElementById('how-it-works');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  const handleOpenApp = (roleId = 'callcentre') => {
+    setActiveRole(roleId);
+    if (onLaunchDemo) onLaunchDemo();
   };
 
   return (
-    <div className="min-h-screen bg-[#071225] text-slate-100 font-sans selection:bg-brand-blue selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans selection:bg-emerald-600 selection:text-white">
       
-      {/* HEADER / NAVIGATION */}
-      <header className="sticky top-0 z-50 bg-[#071225]/85 backdrop-blur-xl border-b border-slate-800/80 px-6 py-3.5 transition-all">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* TOP FEATURE RIBBON BAR */}
+      <div className="bg-[#f0fdf4] py-4 px-4 border-b border-emerald-100">
+        <div className="max-w-7xl mx-auto bg-[#064e3b] text-white rounded-2xl p-4 shadow-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          {/* Logo */}
-          <div className="flex items-center space-x-3 cursor-pointer group" onClick={handleLaunch}>
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-blue via-blue-600 to-brand-red flex items-center justify-center shadow-lg shadow-brand-red/20 ring-2 ring-white/10 group-hover:scale-105 transition-transform">
-              <HeartPulse className="h-6 w-6 text-white animate-pulse" />
+          <div className="flex items-center space-x-3 bg-emerald-900/60 p-3 rounded-xl border border-emerald-700/50">
+            <div className="p-2.5 bg-emerald-600 rounded-lg">
+              <Stethoscope className="h-5 w-5 text-white" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-xl tracking-tight text-white">LifeRoute</span>
-                <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center space-x-1">
-                  <Sparkles className="h-3 w-3 animate-spin text-emerald-400" />
-                  <span>DEMO v3.0</span>
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-medium">Smart Response Simulation</p>
+              <h4 className="text-xs font-extrabold text-white">Expert Doctors</h4>
+              <p className="text-[11px] text-emerald-200">Highly qualified & experienced healthcare professionals.</p>
             </div>
           </div>
 
-          {/* Nav Links */}
-          <nav className="hidden md:flex items-center space-x-8 text-xs font-semibold text-slate-300">
-            <a href="#home" className="hover:text-white transition-colors">Home</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-            <a href="#modules" className="hover:text-white transition-colors">Modules</a>
-            <a href="#preview" className="hover:text-white transition-colors">Live Map</a>
-            <a href="#demo-flow" className="hover:text-white transition-colors">Demo Timeline</a>
-          </nav>
+          <div className="flex items-center space-x-3 bg-emerald-900/60 p-3 rounded-xl border border-emerald-700/50">
+            <div className="p-2.5 bg-emerald-600 rounded-lg">
+              <ShieldCheck className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-white">Advanced Care</h4>
+              <p className="text-[11px] text-emerald-200">Modern technology for accurate diagnosis and treatment.</p>
+            </div>
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 bg-emerald-900/60 p-3 rounded-xl border border-emerald-700/50">
+            <div className="p-2.5 bg-emerald-600 rounded-lg">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-white">Quick Appointments</h4>
+              <p className="text-[11px] text-emerald-200">Easy scheduling with minimal waiting time.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 bg-emerald-900/60 p-3 rounded-xl border border-emerald-700/50">
+            <div className="p-2.5 bg-emerald-600 rounded-lg">
+              <Heart className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-white">Personalized Care</h4>
+              <p className="text-[11px] text-emerald-200">Treatment plans tailored to your unique health needs.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* SECTION 1: OUR SERVICES GRID */}
+      <section className="py-16 px-6 max-w-7xl mx-auto space-y-10">
+        
+        {/* Header Tag & Title */}
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          <span className="inline-flex items-center space-x-1.5 bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold px-3.5 py-1 rounded-full">
+            <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Our Services</span>
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-serif tracking-tight">
+            Comprehensive Care, <span className="text-emerald-700">Tailored for You</span>
+          </h2>
+          <p className="text-slate-600 text-sm font-medium">
+            We offer a wide range of healthcare services designed to meet your needs with compassion and excellence.
+          </p>
+        </div>
+
+        {/* Services Grid (1 Featured Dark Card + 7 Clean Service Cards) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          {/* Featured Card */}
+          <div className="bg-[#064e3b] text-white p-6 rounded-3xl shadow-xl space-y-4 flex flex-col justify-between border border-emerald-700 relative overflow-hidden group">
+            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-600/20 rounded-full blur-xl group-hover:scale-150 transition-transform" />
+            <div className="space-y-3 relative z-10">
+              <div className="h-10 w-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
+                <HeartPulse className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold font-serif leading-snug">
+                Expert Care. Tailored Every Step of the Way.
+              </h3>
+              <p className="text-xs text-emerald-100 leading-relaxed">
+                Our team is dedicated to providing high-quality, personalized healthcare for you and your family.
+              </p>
+            </div>
+
             <button
-              onClick={onLogin || handleLaunch}
-              className="text-xs font-bold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl transition-colors"
+              onClick={() => handleOpenApp('callcentre')}
+              className="mt-4 inline-flex items-center space-x-2 bg-white hover:bg-emerald-50 text-[#064e3b] font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow self-start"
             >
-              Login
-            </button>
-            <button
-              onClick={handleLaunch}
-              className="bg-gradient-to-r from-brand-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-blue/30 flex items-center space-x-1.5 transition-all transform hover:-translate-y-0.5 active:scale-95"
-            >
-              <span>Launch Demo</span>
+              <span>View All Services</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
 
-        </div>
-      </header>
-
-      {/* HERO SECTION WITH FULL-SCREEN BACKGROUND IMAGE & DARK NAVY OVERLAY */}
-      <section
-        id="home"
-        className="relative min-h-[90vh] flex items-center py-20 px-6 overflow-hidden"
-        style={{
-          backgroundImage: "url('/images/hospital-emergency.jpg')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        {/* Dark Navy 90-degree Gradient Overlay */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: 'linear-gradient(90deg, rgba(7, 18, 37, 0.95) 0%, rgba(7, 18, 37, 0.85) 50%, rgba(7, 18, 37, 0.45) 100%)'
-          }}
-        />
-        <div className="absolute inset-0 z-0 bg-gradient-to-t from-[#071225] via-transparent to-[#071225]/70" />
-
-        <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* Left Column: Darker background side for crisp text readability */}
-          <div className="lg:col-span-7 space-y-6">
-            
-            <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-1.5 rounded-full text-xs font-black text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>SIMULATED EMERGENCY NETWORK • DEMO MODE</span>
+          {/* Service Card 1: General Consultation */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md border border-slate-200 space-y-3 flex flex-col justify-between transition-all group">
+            <div className="space-y-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                <Stethoscope className="h-5 w-5" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900 font-serif">General Consultation</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Comprehensive checkups and personalized healthcare for your overall well-being.
+              </p>
             </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-none">
-              Every Second Matters.<br />
-              <span className="bg-gradient-to-r from-brand-red via-red-400 to-emerald-400 bg-clip-text text-transparent">
-                Every Route Saves a Life.
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl">
-              LifeRoute is a unified ambulance tracking, hospital resource, bed-management, and virtual green-corridor simulation platform built for emergency-response demonstrations.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <button
-                onClick={handleLaunch}
-                className="bg-gradient-to-r from-brand-red to-red-600 hover:from-red-600 hover:to-red-700 text-white font-black text-sm px-7 py-3.5 rounded-xl shadow-xl shadow-red-600/30 flex items-center space-x-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
-              >
-                <Play className="h-4 w-4 fill-white" />
-                <span>Launch Demo Dashboard</span>
-              </button>
-
-              <button
-                onClick={handleHowItWorks}
-                className="bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 font-extrabold text-sm px-7 py-3.5 rounded-xl transition-all"
-              >
-                <span>Explore How It Works</span>
-              </button>
-            </div>
-
-            {/* Trust / Feature Chips */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-800/80 max-w-2xl">
-              <div className="flex items-center space-x-2 text-xs font-semibold text-slate-300">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Simulated GPS</span>
-              </div>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-slate-300">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Virtual Signal Radar</span>
-              </div>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-slate-300">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Live Bed Management</span>
-              </div>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-slate-300">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Real-Time Demo Sync</span>
-              </div>
-            </div>
-
+            <button onClick={() => handleOpenApp('sos')} className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Right Column: Floating Glass Dashboard Card */}
-          <div className="lg:col-span-5">
-            <div className="bg-slate-900/85 backdrop-blur-xl border border-slate-700/80 p-6 rounded-3xl shadow-2xl space-y-5 relative group animate-float">
-              
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Live System Status</div>
-                  <h3 className="text-lg font-black text-white">Emergency Network Monitor</h3>
-                </div>
-                <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-black px-2.5 py-1 rounded-full uppercase flex items-center space-x-1">
-                  <Radio className="h-3 w-3 animate-pulse" />
-                  <span>SIMULATION ACTIVE</span>
-                </span>
+          {/* Service Card 2: Cardiology Care */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md border border-slate-200 space-y-3 flex flex-col justify-between transition-all group">
+            <div className="space-y-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                <Heart className="h-5 w-5" />
               </div>
-
-              {/* Fictional Metrics Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 hover:border-brand-red/60 transition-all">
-                  <div className="flex items-center space-x-2 text-brand-red text-xs font-bold mb-1">
-                    <Ambulance className="h-4 w-4 animate-bounce" />
-                    <span>Active Units</span>
-                  </div>
-                  <div className="text-2xl font-black text-white">02 <span className="text-xs text-slate-400 font-normal">En-Route</span></div>
-                </div>
-
-                <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 hover:border-emerald-500/60 transition-all">
-                  <div className="flex items-center space-x-2 text-emerald-400 text-xs font-bold mb-1">
-                    <Bed className="h-4 w-4" />
-                    <span>Free ER Beds</span>
-                  </div>
-                  <div className="text-2xl font-black text-white">14 <span className="text-xs text-slate-400 font-normal">Available</span></div>
-                </div>
-
-                <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 hover:border-blue-400/60 transition-all">
-                  <div className="flex items-center space-x-2 text-blue-400 text-xs font-bold mb-1">
-                    <Activity className="h-4 w-4" />
-                    <span>Free ICU Beds</span>
-                  </div>
-                  <div className="text-2xl font-black text-white">03 <span className="text-xs text-slate-400 font-normal">Ready</span></div>
-                </div>
-
-                <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 hover:border-amber-400/60 transition-all">
-                  <div className="flex items-center space-x-2 text-amber-400 text-xs font-bold mb-1">
-                    <TrafficCone className="h-4 w-4" />
-                    <span>Green Corridor</span>
-                  </div>
-                  <div className="text-2xl font-black text-white">01 <span className="text-xs text-slate-400 font-normal">Active</span></div>
-                </div>
-              </div>
-
-              {/* Route Progress Preview */}
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <Navigation className="h-4 w-4 text-emerald-400 animate-pulse" />
-                  <span className="font-bold text-white">AMB-101 → Metropolitan Hospital</span>
-                </div>
-                <span className="font-mono text-emerald-400 font-extrabold text-xs">ETA ~4m</span>
-              </div>
-
-              <button
-                onClick={handleLaunch}
-                className="w-full bg-brand-blue hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-all transform hover:scale-[1.01]"
-              >
-                <span>OPEN INTERACTIVE DEMO SYSTEM</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-
+              <h4 className="text-base font-bold text-slate-900 font-serif">Cardiology Care</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Advanced heart care and treatment to keep your heart healthy and strong.
+              </p>
             </div>
+            <button onClick={() => handleOpenApp('sos')} className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
-        </div>
-      </section>
-
-      {/* HOW IT WORKS SECTION */}
-      <section id="how-it-works" className="py-20 px-6 bg-slate-900/60 border-t border-b border-slate-800/80 relative">
-        <div className="max-w-7xl mx-auto space-y-12 relative z-10">
-          
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
-              End-to-End Coordination
-            </span>
-            <h2 className="text-3xl font-black text-white">How LifeRoute Operates</h2>
-            <p className="text-slate-400 text-sm font-medium">
-              Synchronized 4-step workflow connecting the ambulance crew, AI hospital selection, bed allocation, and virtual traffic corridors.
-            </p>
+          {/* Service Card 3: Diagnostic Services */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md border border-slate-200 space-y-3 flex flex-col justify-between transition-all group">
+            <div className="space-y-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                <Activity className="h-5 w-5" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900 font-serif">Diagnostic Services</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Accurate testing and imaging services for precise diagnosis and effective treatment.
+              </p>
+            </div>
+            <button onClick={() => handleOpenApp('callcentre')} className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4 hover:border-brand-red transition-all transform hover:-translate-y-1">
-              <div className="h-12 w-12 rounded-2xl bg-brand-red/20 text-brand-red border border-brand-red/40 flex items-center justify-center font-black text-lg">
-                1
+          {/* Service Card 4: Orthopedic Care */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md border border-slate-200 space-y-3 flex flex-col justify-between transition-all group">
+            <div className="space-y-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                <Bone className="h-5 w-5" />
               </div>
-              <h3 className="font-black text-white text-base">Ambulance Crew Intake</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                Paramedic crew inputs patient demographics, emergency severity category, and live vitals telemetry.
+              <h4 className="text-base font-bold text-slate-900 font-serif">Orthopedic Care</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Expert care for bones, joints, and muscles to help you move better and live pain-free.
               </p>
             </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4 hover:border-blue-500 transition-all transform hover:-translate-y-1">
-              <div className="h-12 w-12 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center font-black text-lg">
-                2
-              </div>
-              <h3 className="font-black text-white text-base">AI Hospital Match</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                System evaluates distance, free ICU beds/OTs, and specialty capability (e.g. Cardiac, Trauma) to recommend top hospital.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4 hover:border-emerald-500 transition-all transform hover:-translate-y-1">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-black text-lg">
-                3
-              </div>
-              <h3 className="font-black text-white text-base">Resource Reservation</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                Hospital ER dashboard automatically reserves an ICU Bed and Operating Theater (OT) before ambulance arrival.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4 hover:border-amber-500 transition-all transform hover:-translate-y-1">
-              <div className="h-12 w-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-lg">
-                4
-              </div>
-              <h3 className="font-black text-white text-base">Virtual Green Corridor</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                Proximity radar detects ambulance within 300m and automatically triggers virtual traffic signals to GREEN.
-              </p>
-            </div>
-
+            <button onClick={() => handleOpenApp('hospital')} className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
-        </div>
-      </section>
-
-      {/* CORE MODULES SECTION WITH BACKGROUND IMAGES */}
-      <section id="modules" className="py-20 px-6 max-w-7xl mx-auto space-y-12">
-        
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
-            Platform Capabilities
-          </span>
-          <h2 className="text-3xl font-black text-white">Four Integrated Modules</h2>
-          <p className="text-slate-400 text-sm font-medium">
-            Designed for seamless role-based presentation switching during demonstrations.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Module 1 */}
-          <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group hover:border-brand-red transition-all">
-            <img
-              src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=800&q=80"
-              alt="Ambulance Night Dispatch"
-              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
-            />
-            <div className="relative z-10 p-7 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/60 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-2xl bg-brand-red/30 text-white border border-brand-red/50">
-                  <Ambulance className="h-6 w-6" />
-                </div>
-                <span className="text-[10px] font-black text-brand-red bg-brand-red/20 border border-brand-red/40 px-2.5 py-0.5 rounded-full uppercase">
-                  Module 01
-                </span>
+          {/* Service Card 5: Pediatric Care */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md border border-slate-200 space-y-3 flex flex-col justify-between transition-all group">
+            <div className="space-y-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                <Baby className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-black text-white">Ambulance Application</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                Mobile-first intake app featuring patient registration forms, severity scoring, live vitals telemetry (HR, BP, SpO2, ECG pattern), and simulated GPS route tracking.
+              <h4 className="text-base font-bold text-slate-900 font-serif">Pediatric Care</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Specialized healthcare for infants, children, and adolescents with gentle attention.
               </p>
-              <div className="pt-2 flex items-center space-x-2 text-xs text-emerald-400 font-bold">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Simulated GPS & Live Telemetry Stream</span>
-              </div>
             </div>
+            <button onClick={() => handleOpenApp('hospital')} className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Module 2 */}
-          <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group hover:border-brand-blue transition-all">
-            <img
-              src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80"
-              alt="Hospital ER Trauma Bay"
-              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
-            />
-            <div className="relative z-10 p-7 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/60 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-2xl bg-brand-blue/30 text-white border border-brand-blue/50">
-                  <Building2 className="h-6 w-6" />
-                </div>
-                <span className="text-[10px] font-black text-blue-400 bg-blue-500/20 border border-blue-500/40 px-2.5 py-0.5 rounded-full uppercase">
-                  Module 02
-                </span>
+          {/* Service Card 6: Neurology Care */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md border border-slate-200 space-y-3 flex flex-col justify-between transition-all group">
+            <div className="space-y-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                <Brain className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-black text-white">Hospital ER Coordination</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                Real-time incoming ambulance queue, patient lifecycle status progression, countdown ETAs, and 1-click staff actions (*Team Ready, Patient Received*).
+              <h4 className="text-base font-bold text-slate-900 font-serif">Neurology Care</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Diagnosis and treatment for nerve, brain, and spine conditions.
               </p>
-              <div className="pt-2 flex items-center space-x-2 text-xs text-emerald-400 font-bold">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Incoming Queue & ER Status Updates</span>
-              </div>
             </div>
+            <button onClick={() => handleOpenApp('hospital')} className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Module 3 */}
-          <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group hover:border-emerald-500 transition-all">
-            <img
-              src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=800&q=80"
-              alt="Hospital Bed Ward"
-              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
-            />
-            <div className="relative z-10 p-7 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/60 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-2xl bg-emerald-500/30 text-white border border-emerald-500/50">
-                  <Bed className="h-6 w-6" />
-                </div>
-                <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 rounded-full uppercase">
-                  Module 03
-                </span>
+          {/* Service Card 7: Mental Wellness */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md border border-slate-200 space-y-3 flex flex-col justify-between transition-all group">
+            <div className="space-y-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                <Smile className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-black text-white">Bed & Resource Management</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                Visual bed board (Emergency, ICU, Ward), Operating Theater (OT) scheduling, doctor roster load balancing, and real-time audit activity log timeline.
+              <h4 className="text-base font-bold text-slate-900 font-serif">Mental Wellness</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Compassionate support for mental health and emotional well-being.
               </p>
-              <div className="pt-2 flex items-center space-x-2 text-xs text-emerald-400 font-bold">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Visual Bed Board & OT Scheduling</span>
-              </div>
             </div>
-          </div>
-
-          {/* Module 4 */}
-          <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group hover:border-amber-500 transition-all">
-            <img
-              src="https://images.unsplash.com/photo-1508873696983-2df515122519?auto=format&fit=crop&w=800&q=80"
-              alt="City Night Traffic Signals"
-              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
-            />
-            <div className="relative z-10 p-7 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/60 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-2xl bg-amber-500/30 text-white border border-amber-500/50">
-                  <TrafficCone className="h-6 w-6" />
-                </div>
-                <span className="text-[10px] font-black text-amber-400 bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 rounded-full uppercase">
-                  Demo Only
-                </span>
-              </div>
-              <h3 className="text-xl font-black text-white">Virtual Traffic Simulation</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                Proximity radar automation detecting ambulances within 300m to trigger virtual green corridors with countdown timers (30s) and manual force green/red overrides.
-              </p>
-              <div className="pt-2 flex items-center space-x-2 text-xs text-amber-400 font-bold">
-                <CheckCircle2 className="h-4 w-4 text-amber-400" />
-                <span>Virtual Corridor Timers & Manual Overrides</span>
-              </div>
-            </div>
+            <button onClick={() => handleOpenApp('callcentre')} className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
         </div>
 
       </section>
 
-      {/* LIVE SHARED MAP PREVIEW SECTION */}
-      <section id="preview" className="py-16 px-6 max-w-7xl mx-auto space-y-8">
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="bg-brand-blue/20 text-brand-lightBlue border border-brand-blue/40 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
-            Universal Map Engine
-          </span>
-          <h2 className="text-3xl font-black text-white">Interactive Live Shared Map</h2>
-          <p className="text-slate-400 text-sm font-medium">
-            Shared coordinate system rendering moving ambulances, hospitals with bed status rings, and virtual traffic corridors in real-time.
-          </p>
-        </div>
-
-        <SharedMap height="h-[480px]" />
-      </section>
-
-      {/* DEMO FLOW TIMELINE SECTION */}
-      <section id="demo-flow" className="py-20 px-6 bg-slate-900/60 border-t border-b border-slate-800">
+      {/* SECTION 2: CONTACT US & EMERGENCY SOS INTAKE */}
+      <section className="py-16 px-6 bg-[#f0fdf4] border-t border-b border-emerald-100">
         <div className="max-w-7xl mx-auto space-y-10">
           
           <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
-              Presentation Workflow
+            <span className="inline-flex items-center space-x-1.5 bg-emerald-200/80 border border-emerald-400 text-emerald-900 text-xs font-bold px-3.5 py-1 rounded-full">
+              <Sparkles className="h-3.5 w-3.5 text-emerald-700" />
+              <span>Get in Touch</span>
             </span>
-            <h2 className="text-3xl font-black text-white">Sample Demonstration Lifecycle</h2>
-            <p className="text-slate-400 text-sm font-medium">
-              Step through the full operational scenario during live presentation demonstrations.
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-serif">
+              Contact <span className="text-emerald-700">Us</span>
+            </h2>
+            <p className="text-slate-600 text-sm font-medium">
+              We're here to help! Reach out to us for appointments, emergency SOS intake, or any assistance you need.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-extrabold">
-            {['Patient Registered', 'Hospital Selected', 'Bed Reserved', 'Ambulance En Route', 'Virtual Signal Green', 'Patient Arrives', 'Treatment Begins', 'Resources Released'].map((step, idx) => (
-              <React.Fragment key={step}>
-                <div className="bg-slate-950 border border-slate-800 text-slate-200 px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow transform hover:scale-105 transition-transform">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{step}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            {/* Column 1: Get in Touch Info Card (3 cols) */}
+            <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-slate-900 font-serif border-b border-slate-100 pb-2">
+                Get in Touch
+              </h3>
+              <p className="text-xs text-slate-600">Choose the best way to reach out to us.</p>
+
+              <div className="space-y-4 text-xs">
+                <div className="flex items-start space-x-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                    <Phone className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900">Call Us</h5>
+                    <p className="text-slate-600">123-456-7890</p>
+                    <p className="text-[10px] text-slate-400">Mon - Sat: 8:00 AM - 8:00 PM</p>
+                  </div>
                 </div>
-                {idx < 7 && <ChevronRight className="h-4 w-4 text-slate-600 hidden sm:inline" />}
-              </React.Fragment>
-            ))}
+
+                <div className="flex items-start space-x-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900">Email Us</h5>
+                    <p className="text-slate-600">info@wellcare.com</p>
+                    <p className="text-[10px] text-slate-400">We'll reply within 24 hours</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                    <MapPin className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900">Visit Us</h5>
+                    <p className="text-slate-600">123 Wellness Blvd, Health City, HC 12345, USA</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900">Working Hours</h5>
+                    <p className="text-slate-600">Mon - Sat: 8:00 AM - 8:00 PM</p>
+                    <p className="text-slate-600">Sunday: 9:00 AM - 2:00 PM</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Send Us a Message / Emergency SOS Form (5 cols) */}
+            <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <h3 className="text-lg font-bold text-slate-900 font-serif border-b border-slate-100 pb-2">
+                Send Us a Message / Emergency SOS Intake
+              </h3>
+
+              {isSubmitted ? (
+                <div className="p-6 bg-emerald-50 border border-emerald-300 rounded-2xl text-center space-y-3">
+                  <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto animate-pulse" />
+                  <h4 className="font-bold text-emerald-900 text-sm">Message & Emergency SOS Submitted!</h4>
+                  <p className="text-xs text-emerald-800">
+                    Our medical call centre operator has received your request and dispatched an ambulance unit.
+                  </p>
+                  <button
+                    onClick={() => handleOpenApp('callcentre')}
+                    className="py-2 px-4 bg-[#064e3b] text-white rounded-xl text-xs font-bold shadow"
+                  >
+                    View Call Centre Dashboard
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmitSosMessage} className="space-y-3 text-xs">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Phone Number</label>
+                      <input
+                        type="text"
+                        placeholder="Enter your phone number"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Subject / Emergency Type</label>
+                    <select
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
+                    >
+                      <option value="Accident">Accident Trauma Emergency</option>
+                      <option value="Heart issue">Heart Issue / Cardiac Emergency</option>
+                      <option value="Breathing issue">Breathing Issue / Respiratory Distress</option>
+                      <option value="General Inquiry">General Healthcare Inquiry</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Message / Pickup Address</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Type your message or pickup address here..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-[#064e3b] hover:bg-emerald-900 text-white font-bold rounded-xl shadow-md flex items-center justify-center space-x-2 transition-all"
+                  >
+                    <Send className="h-4 w-4" />
+                    <span>Send Message / Trigger SOS</span>
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Column 3: Visit Our Clinic (3 cols) */}
+            <div className="lg:col-span-3 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-slate-900 font-serif border-b border-slate-100 pb-2">
+                  Visit Our Clinic
+                </h3>
+                <div className="rounded-2xl overflow-hidden border border-slate-200 h-36 relative">
+                  <img
+                    src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=600&q=80"
+                    alt="WellCare Medical Center"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 left-2 bg-[#064e3b] text-white text-[9px] font-bold px-2 py-0.5 rounded-md uppercase">
+                    WellCare Medical Center
+                  </div>
+                </div>
+                <p className="text-xs text-slate-600">
+                  We're conveniently located and always happy to welcome you.
+                </p>
+              </div>
+
+              <button
+                onClick={() => handleOpenApp('corridor')}
+                className="w-full py-2.5 border border-emerald-600 text-emerald-800 hover:bg-emerald-50 font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition-colors"
+              >
+                <MapPin className="h-4 w-4 text-emerald-600" />
+                <span>Get Directions (Green Corridor)</span>
+              </button>
+            </div>
+
+          </div>
+
+          {/* Bottom 4 Feature Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-emerald-200/80">
+            <div className="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white p-3 rounded-xl border border-emerald-200 shadow-sm">
+              <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
+              <div>
+                <p className="font-extrabold text-slate-900">24/7 Support</p>
+                <p className="text-[10px] text-slate-500">We're here anytime</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white p-3 rounded-xl border border-emerald-200 shadow-sm">
+              <Users className="h-4 w-4 text-emerald-600 shrink-0" />
+              <div>
+                <p className="font-extrabold text-slate-900">Friendly Team</p>
+                <p className="text-[10px] text-slate-500">Ready to assist you</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white p-3 rounded-xl border border-emerald-200 shadow-sm">
+              <Lock className="h-4 w-4 text-emerald-600 shrink-0" />
+              <div>
+                <p className="font-extrabold text-slate-900">Data Protection</p>
+                <p className="text-[10px] text-slate-500">Your privacy is priority</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white p-3 rounded-xl border border-emerald-200 shadow-sm">
+              <Heart className="h-4 w-4 text-emerald-600 shrink-0" />
+              <div>
+                <p className="font-extrabold text-slate-900">Compassionate Care</p>
+                <p className="text-[10px] text-slate-500">Respect & kindness</p>
+              </div>
+            </div>
           </div>
 
         </div>
       </section>
 
-      {/* CTA SECTION */}
+      {/* SECTION 3: BANNER CTA WITH DOCTOR PHOTO */}
       <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="relative rounded-3xl overflow-hidden border border-blue-500/40 shadow-2xl">
-          <img
-            src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=1920&q=80"
-            alt="Emergency Vehicle Night Lights"
-            className="absolute inset-0 w-full h-full object-cover object-center animate-pulse-glow"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/95 via-slate-950/90 to-slate-950/95" />
+        <div className="bg-[#f0fdf4] border border-emerald-200 rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          
+          <div className="lg:col-span-7 space-y-6 relative z-10">
+            <span className="inline-flex items-center space-x-1.5 bg-emerald-200/80 border border-emerald-400 text-emerald-900 text-xs font-bold px-3.5 py-1 rounded-full">
+              <Sparkles className="h-3.5 w-3.5 text-emerald-700" />
+              <span>Your Health, Our Priority</span>
+            </span>
 
-          <div className="relative z-10 p-10 md:p-14 text-center space-y-6">
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-              Ready to Experience the LifeRoute Demo?
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 font-serif leading-tight">
+              Ready to Take the Next Step Toward <span className="text-emerald-700">Better Health?</span>
             </h2>
-            <p className="text-slate-300 text-sm sm:text-base font-medium max-w-2xl mx-auto leading-relaxed">
-              Explore the complete simulated emergency response flow from ambulance dispatch to hospital treatment.
+
+            <p className="text-slate-600 text-sm font-medium leading-relaxed max-w-xl">
+              Our caring team is here to support you at every stage of your health journey. Book an emergency appointment today and experience the WellCare difference.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
-                onClick={handleLaunch}
-                className="bg-brand-red hover:bg-red-600 text-white font-black text-sm px-8 py-3.5 rounded-xl shadow-xl shadow-red-600/30 flex items-center space-x-2 transition-all transform hover:scale-105 active:scale-95"
+                onClick={() => handleOpenApp('callcentre')}
+                className="bg-[#064e3b] hover:bg-emerald-900 text-white font-bold text-xs px-6 py-3.5 rounded-xl shadow-md flex items-center space-x-2 transition-all"
               >
-                <span>Start Interactive Demo</span>
-                <ArrowRight className="h-4 w-4" />
+                <Calendar className="h-4 w-4" />
+                <span>Book an Appointment</span>
               </button>
 
-              <button
-                onClick={onLogin || handleLaunch}
-                className="bg-slate-950/90 hover:bg-slate-900 text-white border border-slate-700 font-extrabold text-sm px-8 py-3.5 rounded-xl transition-all"
+              <a
+                href="tel:1234567890"
+                className="bg-white border border-emerald-600 hover:bg-emerald-50 text-emerald-900 font-bold text-xs px-6 py-3.5 rounded-xl shadow-sm flex items-center space-x-2 transition-all"
               >
-                <span>Sign In with Quick Roles</span>
-              </button>
+                <Phone className="h-4 w-4 text-emerald-700" />
+                <span>Call Us Now: (123) 456-7890</span>
+              </a>
             </div>
           </div>
+
+          {/* Right Column: Doctor & Patient Photo */}
+          <div className="lg:col-span-5 relative">
+            <div className="rounded-3xl overflow-hidden border-4 border-white shadow-xl max-h-[380px] relative">
+              <img
+                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80"
+                alt="Caring Doctor and Patient"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-4 right-4 bg-[#064e3b] text-white px-4 py-2 rounded-2xl shadow-lg flex items-center space-x-2 border border-emerald-500">
+                <UserCheck className="h-5 w-5 text-emerald-300" />
+                <div>
+                  <p className="text-xs font-extrabold">15,000+</p>
+                  <p className="text-[10px] text-emerald-200">Happy Patients</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-12 px-6 text-slate-400 text-xs font-medium">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="bg-[#064e3b] text-emerald-100 py-12 px-6 border-t border-emerald-800">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
           
-          <div className="space-y-3 md:col-span-2">
+          {/* Brand */}
+          <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <div className="h-7 w-7 rounded-lg bg-brand-blue flex items-center justify-center text-white">
-                <HeartPulse className="h-4 w-4" />
+              <div className="h-8 w-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold">
+                <HeartPulse className="h-5 w-5" />
               </div>
-              <span className="font-extrabold text-base text-white">LifeRoute</span>
+              <span className="font-extrabold text-lg text-white font-serif tracking-tight">WellCare</span>
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              Academic & demonstration simulation platform for ambulance tracking, AI hospital routing, and virtual green-corridor traffic control.
+            <p className="text-emerald-200 leading-relaxed">
+              Medical Center & LifeRoute Emergency Response Network. Providing compassionate, high-quality healthcare services.
             </p>
           </div>
 
+          {/* Quick Links */}
           <div className="space-y-2">
-            <div className="font-extrabold text-white uppercase text-[10px] tracking-wider">Quick Navigation</div>
-            <ul className="space-y-1 text-slate-400">
-              <li><a href="#home" className="hover:text-white">Home Overview</a></li>
-              <li><a href="#how-it-works" className="hover:text-white">How It Works</a></li>
-              <li><a href="#modules" className="hover:text-white">System Modules</a></li>
-              <li><a href="#demo-flow" className="hover:text-white">Demo Timeline</a></li>
+            <h5 className="font-bold text-white uppercase tracking-wider text-[11px]">Quick Links</h5>
+            <ul className="space-y-1 text-emerald-200 font-medium">
+              <li><button onClick={() => handleOpenApp('sos')} className="hover:text-white">Patient SOS</button></li>
+              <li><button onClick={() => handleOpenApp('callcentre')} className="hover:text-white">Call Centre Operator</button></li>
+              <li><button onClick={() => handleOpenApp('ambulance')} className="hover:text-white">Ambulance Crew</button></li>
+              <li><button onClick={() => handleOpenApp('hospital')} className="hover:text-white">Hospital Desk</button></li>
             </ul>
           </div>
 
+          {/* Our Services */}
           <div className="space-y-2">
-            <div className="font-extrabold text-white uppercase text-[10px] tracking-wider">Legal & Disclaimer</div>
-            <p className="text-slate-500 text-[11px] leading-relaxed">
-              LifeRoute is an academic demonstration platform. It does not control real emergency vehicles, hospital equipment, traffic signals, or public infrastructure.
-            </p>
+            <h5 className="font-bold text-white uppercase tracking-wider text-[11px]">Our Services</h5>
+            <ul className="space-y-1 text-emerald-200 font-medium">
+              <li>Cardiology Care</li>
+              <li>Emergency Trauma Intakes</li>
+              <li>Diagnostic & Imaging</li>
+              <li>Green Corridor Traffic Dispatch</li>
+            </ul>
+          </div>
+
+          {/* Contact Us */}
+          <div className="space-y-2">
+            <h5 className="font-bold text-white uppercase tracking-wider text-[11px]">Contact Us</h5>
+            <p className="text-emerald-200">123 Wellness Blvd, Health City, USA</p>
+            <p className="text-emerald-200">Emergency Phone: 123-456-7890 / 108</p>
+            <p className="text-emerald-200">Email: info@wellcare.com</p>
           </div>
 
         </div>
 
-        <div className="max-w-7xl mx-auto border-t border-slate-900 mt-8 pt-6 text-center text-slate-600">
-          © 2026 LifeRoute Demo Platform • Educational Simulation Model
+        <div className="max-w-7xl mx-auto border-t border-emerald-800/80 mt-8 pt-6 text-center text-emerald-300 text-[11px]">
+          © 2026 WellCare Medical Center & LifeRoute Emergency Platform. All rights reserved.
         </div>
       </footer>
 
