@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { AlertCircle, MapPin, CheckCircle2, Phone, HeartPulse, Send } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Phone, MapPin, Send } from 'lucide-react';
 
 export const PatientSosView = () => {
   const { createSosEmergency, sosEmergencies } = useApp();
   
-  const [patientName, setPatientName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [age, setAge] = useState('42');
-  const [emergencyType, setEmergencyType] = useState('Accident');
+  const [patientName, setPatientName] = useState('Citizen Patient');
+  const [phone, setPhone] = useState('123-456-7890');
+  const [emergencyType, setEmergencyType] = useState('Accident Trauma');
   const [address, setAddress] = useState('123 Wellness Blvd, Health City');
   const [submittedSos, setSubmittedSos] = useState(null);
 
   const handleTriggerSos = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const sos = createSosEmergency({
       patientName: patientName || 'Citizen Patient',
       phone: phone || '123-456-7890',
-      age: parseInt(age) || 40,
+      age: 42,
       emergencyType,
       pickupLocation: {
         lat: 40.715000,
         lng: -73.955000,
-        address: address || 'Suburban Pickup Point'
+        address: address || '123 Wellness Blvd, Health City'
       }
     });
     setSubmittedSos(sos);
@@ -59,101 +58,80 @@ export const PatientSosView = () => {
               <span className="font-extrabold text-emerald-800">{activeUserSos.status}</span>
             </div>
             <div className="flex justify-between border-b border-emerald-200 pb-1">
-              <span className="font-bold text-slate-600">Patient:</span>
+              <span className="font-bold text-slate-600">Patient Name:</span>
               <span className="font-bold text-slate-900">{activeUserSos.patientName}</span>
             </div>
             <div>
-              <span className="font-bold text-slate-600 block mb-0.5">Location:</span>
+              <span className="font-bold text-slate-600 block mb-0.5">Pickup Location:</span>
               <span className="text-slate-900 font-medium">{activeUserSos.pickupLocation?.address}</span>
             </div>
           </div>
 
           <p className="text-xs text-slate-600">
-            Call centre operator has received your request. Stay calm and keep phone line open.
+            Call centre operator has received your request. Stay calm and an ambulance unit is being assigned.
           </p>
 
           <button
             onClick={() => setSubmittedSos(null)}
             className="w-full py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs rounded-xl"
           >
-            Submit Another SOS Request
+            Trigger Another SOS Request
           </button>
         </div>
       ) : (
-        <form onSubmit={handleTriggerSos} className="bg-white border border-emerald-200 rounded-3xl p-6 shadow-md space-y-4">
-          <h2 className="text-base font-bold font-serif text-slate-900 border-b border-slate-100 pb-2">
-            Trigger Immediate Ambulance Dispatch
-          </h2>
-
+        <div className="bg-white border border-emerald-200 rounded-3xl p-6 shadow-md space-y-5 text-center">
+          
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Patient Name</label>
-            <input
-              type="text"
-              placeholder="Enter patient full name"
-              value={patientName}
-              onChange={(e) => setPatientName(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
-              required
-            />
+            <h2 className="text-xl font-bold font-serif text-slate-900 mb-1">
+              1-Tap Emergency SOS Trigger
+            </h2>
+            <p className="text-xs text-slate-500">
+              Press the big red button below to send your location immediately to the Call Centre Operator.
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
+          {/* Optional Details Collapsible / Card */}
+          <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-3 text-left space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-emerald-900 uppercase text-[10px] tracking-wider">Pickup Address & Details</span>
+              <span className="text-[10px] text-emerald-700 font-medium">GPS Auto-Detected</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="123-456-7890"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
-                required
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Pickup Address"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
               />
+              <select
+                value={emergencyType}
+                onChange={(e) => setEmergencyType(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
+              >
+                <option value="Accident Trauma">Accident Trauma</option>
+                <option value="Heart Issue">Heart Issue / Cardiac</option>
+                <option value="Breathing Issue">Breathing Distress</option>
+                <option value="Stroke Emergency">Stroke Emergency</option>
+              </select>
             </div>
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Patient Age</label>
-              <input
-                type="number"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
-              />
-            </div>
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Emergency Type</label>
-            <select
-              value={emergencyType}
-              onChange={(e) => setEmergencyType(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
-            >
-              <option value="Accident">Accident Trauma</option>
-              <option value="Heart issue">Heart Issue / Cardiac</option>
-              <option value="Breathing issue">Breathing Distress</option>
-              <option value="Stroke">Stroke Emergency</option>
-              <option value="Other">Other Medical Emergency</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Pickup Location Address</label>
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
-              required
-            />
-          </div>
-
+          {/* GIANT 1-TAP SOS BUTTON */}
           <button
-            type="submit"
-            className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold text-sm uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2 transition-all transform hover:scale-[1.01]"
+            onClick={handleTriggerSos}
+            type="button"
+            className="w-full py-6 bg-red-600 hover:bg-red-700 text-white rounded-3xl font-extrabold text-lg uppercase tracking-wider shadow-xl flex items-center justify-center space-x-3 transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer ring-4 ring-red-100"
           >
-            <AlertCircle className="h-5 w-5 animate-pulse" />
+            <AlertCircle className="h-8 w-8 animate-bounce" />
             <span>SOS – TRIGGER EMERGENCY DISPATCH</span>
           </button>
-        </form>
+
+          <p className="text-[11px] text-slate-400 font-medium">
+            Emergency Toll-Free Direct Hotline: <strong className="text-emerald-800">108 / (123) 456-7890</strong>
+          </p>
+
+        </div>
       )}
 
     </div>
