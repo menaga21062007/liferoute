@@ -1,75 +1,70 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import {
-  INITIAL_HOSPITALS,
+  GOVERNMENT_HOSPITALS,
   INITIAL_AMBULANCES,
   INITIAL_TRAFFIC_SIGNALS,
-  INITIAL_ACTIVITY_LOGS,
-  INITIAL_TRIP_HISTORY,
-  INITIAL_EMERGENCY_REQUESTS,
-  FICTIONAL_ROAD_GRAPH,
-  PREDEFINED_ROUTES,
-  PREDICTIVE_ANALYTICS_DATA,
-  HOSPITAL_RESOURCE_MARKETPLACE,
   INITIAL_SOS_EMERGENCIES,
   SAMPLE_ROUTE_WAYPOINTS
 } from '../../server/mockData';
-import { runDBSCANClustering } from '../utils/dbscan';
-import { findDijkstraShortestPath, findNearestGraphNode } from '../utils/dijkstra';
-import { sortPriorityQueue } from '../utils/priorityQueue';
 
 const AppContext = createContext();
-
-const TRANSLATIONS = {
-  en: {
-    commandCenter: "Command Center & Intelligence",
-    ambulanceCrew: "Ambulance Crew & AR HUD",
-    hospitalBed: "Hospital & Bed Marketplace",
-    trafficControl: "Green Corridor Traffic Control",
-    tripHistory: "Incident Replay Mode",
-    callCentre: "Government Call Centre",
-    patientSos: "Patient SOS",
-    activeUnits: "Active Units",
-    greenCorridors: "Green Corridors",
-    freeBeds: "Free ICU Beds",
-    offlineMode: "Offline Mode",
-    voiceCommands: "Voice Assistant",
-    requestTransfer: "Request Resource Transfer",
-    arHudActive: "AR HUD ACTIVE",
-  }
-};
+const BACKEND_URL = 'http://localhost:5000';
 
 export const AppProvider = ({ children }) => {
-  const [activeRole, setActiveRole] = useState('intelligence'); // Default: Command Center Intelligence
+  const [activeRole, setActiveRole] = useState('callcentre'); // Default view: Call Centre Operator Dashboard ('callcentre')
+
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
-  const [hospitals, setHospitals] = useState(INITIAL_HOSPITALS);
+  const [hospitals, setHospitals] = useState(GOVERNMENT_HOSPITALS);
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [sosEmergencies, setSosEmergencies] = useState(INITIAL_SOS_EMERGENCIES);
-  const [alerts, setAlerts] = useState([
-    { id: "alt-1", timestamp: "10:15:00 AM", title: "Emergency Intelligence Active", message: "All 3 ambulance units ready for dispatch.", severity: "NORMAL" }
-  ]);
-  const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
-  const [tripHistory, setTripHistory] = useState(INITIAL_TRIP_HISTORY);
-  const [marketplaceResources, setMarketplaceResources] = useState(HOSPITAL_RESOURCE_MARKETPLACE);
-  const [predictiveAnalytics] = useState(PREDICTIVE_ANALYTICS_DATA);
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
 
-  // Next-Gen Feature States
-  const [language, setLanguage] = useState('en');
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
-  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
-  const [isARHUDActive, setIsARHUDActive] = useState(false);
+  // Real-Time Socket.io Backend Connection
+  useEffect(() => {
+    const socket = io(BACKEND_URL, {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      timeout: 3000
+    });
 
-  const t = (key) => (TRANSLATIONS[language] && TRANSLATIONS[language][key]) || TRANSLATIONS.en[key] || key;
+    socket.on('connect', () => {
+      console.log('⚡ Connected to LifeRoute Backend Server via Socket.io');
+      setIsBackendConnected(true);
+    });
 
-  const [emergencyRequests, setEmergencyRequests] = useState(INITIAL_EMERGENCY_REQUESTS);
-  const [dbscanConfig, setDbscanConfig] = useState({ eps: 1.2, minSamples: 3 });
-  const [dbscanHotspots, setDbscanHotspots] = useState([]);
-  const [roadGraph, setRoadGraph] = useState(FICTIONAL_ROAD_GRAPH);
-  const [blockedEdges, setBlockedEdges] = useState([]);
+    socket.on('disconnect', () => {
+      console.log('🔌 Disconnected from Backend Server, using local state fallback');
+      setIsBackendConnected(false);
+    });
+
+    socket.on('STATE_UPDATE', (data) => {
+      if (data.hospitals) setHospitals(data.hospitals);
+      if (data.ambulances) setAmbulances(data.ambulances);
+      if (data.trafficSignals) setTrafficSignals(data.trafficSignals);
+      if (data.sosEmergencies) setSosEmergencies(data.sosEmergencies);
+    });
+
+    // Initial fetch from backend REST endpoint
+    fetch(`${BACKEND_URL}/api/state`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.hospitals) setHospitals(data.hospitals);
+        if (data.ambulances) setAmbulances(data.ambulances);
+        if (data.trafficSignals) setTrafficSignals(data.trafficSignals);
+        if (data.sosEmergencies) setSosEmergencies(data.sosEmergencies);
+      })
+      .catch((err) => console.log('Backend server starting or local mode fallback:', err));
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   // Calculate distance between two lat/lng pairs in kilometers
   const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
+    const R = 6371; // Earth radius in km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
@@ -80,196 +75,71 @@ export const AppProvider = ({ children }) => {
     return R * c;
   };
 
-  // Helper to compute Dijkstra 2-stage route
-  const computeDijkstraRoute = (ambLoc, reqLoc, hospId, currentBlocked = []) => {
-    const startNode = findNearestGraphNode(roadGraph, ambLoc || { lat: 40.718, lng: -73.950 }) || roadGraph.nodes[1];
-    const emergencyNode = findNearestGraphNode(roadGraph, reqLoc || { lat: 40.722, lng: -73.945 }) || roadGraph.nodes[2];
-
-    let hospitalNodeId = 'N5';
-    if (hospId === 'hosp-2' || hospId === 'VH') hospitalNodeId = 'N8';
-    if (hospId === 'hosp-3' || hospId === 'MHVI') hospitalNodeId = 'N9';
-    if (hospId === 'hosp-4' || hospId === 'CCPH') hospitalNodeId = 'N10';
-
-    const stage1 = findDijkstraShortestPath(roadGraph, startNode.id, emergencyNode.id, currentBlocked);
-    const stage2 = findDijkstraShortestPath(roadGraph, emergencyNode.id, hospitalNodeId, currentBlocked);
-
-    const stage1Coords = (stage1 && stage1.polylineCoords) ? stage1.polylineCoords : [];
-    const stage2Coords = (stage2 && stage2.polylineCoords) ? stage2.polylineCoords : [];
-
-    const combinedCoords = [...stage1Coords, ...stage2Coords.slice(1)];
-    const combinedDist = parseFloat(((stage1?.totalDistanceKm || 1.2) + (stage2?.totalDistanceKm || 1.4)).toFixed(2));
-    const combinedEstMins = Math.max(2, Math.round(combinedDist * 1.8));
-
-    const targetHosp = hospitals.find(h => h.id === hospId || h.code === hospId) || hospitals[0];
-
-    return {
-      startNodeName: startNode.name,
-      emergencyNodeName: emergencyNode.name,
-      targetHospitalName: targetHosp.name,
-      targetHospitalId: targetHosp.id,
-      pathNodes: combinedCoords,
-      polylineCoords: combinedCoords,
-      totalDistanceKm: combinedDist,
-      estMins: combinedEstMins,
-      isRecalculated: currentBlocked.length > 0
-    };
-  };
-
-  const [activeDijkstraRoute, setActiveDijkstraRoute] = useState(() => 
-    computeDijkstraRoute({ lat: 40.718, lng: -73.950 }, { lat: 40.722, lng: -73.945 }, 'hosp-1', [])
-  );
-
-  const [isSimulationRunning, setIsSimulationRunning] = useState(true);
-  const dispatchQueue = sortPriorityQueue(emergencyRequests, dbscanHotspots);
-
+  // Continuous movement and 200m signal blue light logic
   useEffect(() => {
-    const res = runDBSCANClustering(emergencyRequests, dbscanConfig.eps, dbscanConfig.minSamples);
-    setDbscanHotspots(res.clusters);
-  }, [emergencyRequests, dbscanConfig]);
-
-  // Simulation Ticker
-  useEffect(() => {
-    if (!isSimulationRunning) return;
-
     const interval = setInterval(() => {
+      // Advance active ambulances along route
       setAmbulances((prevAmbs) =>
         prevAmbs.map((amb) => {
-          if (amb.status !== 'EN_ROUTE' && amb.status !== 'EN_ROUTE_TO_PATIENT' && amb.status !== 'PATIENT_ON_BOARD' && amb.status !== 'ON_WAY_TO_HOSPITAL') return amb;
-
-          const route = (amb.route && amb.route.length > 0) ? amb.route : SAMPLE_ROUTE_WAYPOINTS;
-          const currIdx = amb.currentWaypointIndex || 0;
-          const nextIdx = (currIdx + 1) % route.length;
-          const nextLoc = route[nextIdx];
-          const newEta = Math.max(1, Math.round((route.length - nextIdx) * 0.8));
-
-          const currentVitals = amb.patient?.vitals || { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C' };
-          const newHr = Math.min(160, Math.max(75, (currentVitals.hr || 117) + Math.floor(Math.random() * 5) - 2));
-
-          return {
-            ...amb,
-            currentWaypointIndex: nextIdx,
-            currentLocation: nextLoc,
-            etaMinutes: newEta,
-            patient: amb.patient ? {
-              ...amb.patient,
-              vitals: { ...currentVitals, hr: newHr }
-            } : null
-          };
-        })
-      );
-
-      // Signal Blue Light & Countdown Calculation
-      setTrafficSignals((prevSignals) =>
-        prevSignals.map((sig) => {
-          const activeAmb = ambulances.find(
-            (a) => a.status === 'EN_ROUTE' || a.status === 'EN_ROUTE_TO_PATIENT' || a.status === 'PATIENT_ON_BOARD' || a.status === 'ON_WAY_TO_HOSPITAL'
-          );
-
-          if (activeAmb && activeAmb.currentLocation && sig.location) {
-            const distKm = calculateDistanceKm(
-              activeAmb.currentLocation.lat,
-              activeAmb.currentLocation.lng,
-              sig.location.lat,
-              sig.location.lng
-            );
+          if (
+            amb.status === 'EN_ROUTE_TO_PATIENT' ||
+            amb.status === 'PATIENT_ON_BOARD' ||
+            amb.status === 'ON_WAY_TO_HOSPITAL'
+          ) {
+            const currentIdx = amb.currentWaypointIndex || 0;
+            const nextIdx = (currentIdx + 1) % SAMPLE_ROUTE_WAYPOINTS.length;
             return {
-              ...sig,
-              distanceToAmbulanceKm: parseFloat(distKm.toFixed(2)),
-              blueLightActive: distKm <= 0.2
+              ...amb,
+              currentWaypointIndex: nextIdx,
+              currentLocation: {
+                lat: SAMPLE_ROUTE_WAYPOINTS[nextIdx].lat,
+                lng: SAMPLE_ROUTE_WAYPOINTS[nextIdx].lng
+              }
             };
           }
-
-          if (sig.countdownSeconds > 0) {
-            const nextCount = sig.countdownSeconds - 1;
-            return {
-              ...sig,
-              countdownSeconds: nextCount,
-              status: nextCount === 0 ? 'RED' : sig.status,
-              mode: nextCount === 0 ? 'AUTO_NORMAL' : sig.mode
-            };
-          }
-          return sig;
+          return amb;
         })
       );
-    }, 2000);
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [isSimulationRunning, ambulances]);
+  }, []);
 
-  const startTrip = (tripData) => {
-    const targetHospId = tripData.hospitalId || 'hosp-1';
-    const targetHosp = hospitals.find((h) => h.id === targetHospId || h.code === targetHospId) || hospitals[0];
-
-    let ambToUseId = tripData.ambulanceId;
-    if (!ambToUseId) {
-      const availAmb = ambulances.find(a => a.status === 'AVAILABLE' || a.status === 'IDLE') || ambulances[0];
-      ambToUseId = availAmb.id;
-    }
-
-    const ambObj = ambulances.find(a => a.id === ambToUseId || a.code === ambToUseId) || ambulances[0];
-    const reqLoc = tripData.location || { lat: 40.722, lng: -73.945 };
-    const ambLoc = ambObj.currentLocation || { lat: 40.718, lng: -73.950 };
-
-    const dijkstraRoute = computeDijkstraRoute(ambLoc, reqLoc, targetHospId, blockedEdges);
-    setActiveDijkstraRoute(dijkstraRoute);
-
-    const patientObj = {
-      id: 'pat-' + Date.now() + '-' + Math.floor(Math.random()*100),
-      name: tripData.patientName || 'Emergency Patient',
-      age: tripData.age || 54,
-      gender: tripData.gender || 'Male',
-      bloodGroup: tripData.bloodGroup || 'O+',
-      conditionCategory: tripData.conditionCategory || 'Cardiac Emergency',
-      treatmentStatus: 'En route',
-      destinationHospitalId: targetHosp.id,
-      vitals: { hr: 117, bp: '148/94', spo2: '94%', temp: '37.2°C', ecgStatus: 'Live Telemetry Active' }
-    };
-
-    setAmbulances((prev) =>
-      prev.map((amb) => {
-        if (amb.id === ambObj.id || amb.code === ambObj.code) {
-          return {
-            ...amb,
-            status: 'EN_ROUTE',
-            destinationHospitalId: targetHosp.id,
-            route: dijkstraRoute.polylineCoords,
-            currentWaypointIndex: 0,
-            currentLocation: dijkstraRoute.polylineCoords[0] || ambLoc,
-            etaMinutes: dijkstraRoute.estMins,
-            patient: patientObj
-          };
-        }
-        return amb;
-      })
+  // Update distance & blue light state for signals based on active ambulance distance (<200m = 0.2km)
+  useEffect(() => {
+    const activeAmbulance = ambulances.find(
+      (a) =>
+        a.status === 'EN_ROUTE_TO_PATIENT' ||
+        a.status === 'PATIENT_ON_BOARD' ||
+        a.status === 'ON_WAY_TO_HOSPITAL'
     );
 
-    setEmergencyRequests((prev) =>
-      prev.map((r) => {
-        if (r.id === tripData.requestId || r.patientName === tripData.patientName) {
-          return { ...r, status: 'Ambulance En Route', assignedAmbulanceId: ambObj.code };
-        }
-        return r;
-      })
-    );
-
-    setHospitals((prev) =>
-      prev.map((hosp) => {
-        if (hosp.id === targetHosp.id || hosp.code === targetHosp.code) {
-          const updatedBeds = (hosp.beds || []).map((b, idx) =>
-            idx === 0 ? { ...b, status: 'RESERVED', patientName: patientObj.name } : b
+    setTrafficSignals((prevSignals) =>
+      prevSignals.map((sig) => {
+        if (activeAmbulance && activeAmbulance.currentLocation) {
+          const distKm = calculateDistanceKm(
+            activeAmbulance.currentLocation.lat,
+            activeAmbulance.currentLocation.lng,
+            sig.location.lat,
+            sig.location.lng
           );
           return {
-            ...hosp,
-            availableBeds: Math.max(0, hosp.availableBeds - 1),
-            beds: updatedBeds
+            ...sig,
+            distanceToAmbulanceKm: parseFloat(distKm.toFixed(2)),
+            blueLightActive: distKm <= 0.2
           };
         }
-        return hosp;
+        return {
+          ...sig,
+          distanceToAmbulanceKm: null,
+          blueLightActive: false
+        };
       })
     );
-  };
+  }, [ambulances]);
 
-  const createSosEmergency = (sosData) => {
+  // Citizen trigger SOS (connected to backend)
+  const createSosEmergency = async (sosData) => {
     const newSos = {
       id: `SOS-${Date.now().toString().slice(-4)}`,
       patientName: sosData.patientName || 'Emergency Patient',
@@ -280,7 +150,7 @@ export const AppProvider = ({ children }) => {
       pickupLocation: sosData.pickupLocation || {
         lat: 40.715000,
         lng: -73.955000,
-        address: 'Suburban Pickup Point'
+        address: 'Suburban Pickup Point (Grand Ave)'
       },
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status: 'PENDING_DISPATCH',
@@ -289,12 +159,34 @@ export const AppProvider = ({ children }) => {
       vitals: null
     };
 
+    // Dispatch to Backend REST API
+    try {
+      await fetch(`${BACKEND_URL}/api/sos/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sosData)
+      });
+    } catch (e) {
+      console.log('Sending SOS locally:', e);
+    }
+
     setSosEmergencies((prev) => [newSos, ...prev]);
     return newSos;
   };
 
-  const assignAmbulance = (sosId, ambulanceCode, targetHospitalId = 'hosp-1') => {
+  // Call Centre operator assigns ambulance (connected to backend)
+  const assignAmbulance = async (sosId, ambulanceCode, targetHospitalId = 'hosp-1') => {
     const targetHosp = hospitals.find((h) => h.id === targetHospitalId) || hospitals[0];
+
+    try {
+      await fetch(`${BACKEND_URL}/api/dispatch/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sosId, ambulanceCode, targetHospitalId })
+      });
+    } catch (e) {
+      console.log('Dispatching ambulance locally:', e);
+    }
 
     setSosEmergencies((prev) =>
       prev.map((sos) =>
@@ -333,7 +225,18 @@ export const AppProvider = ({ children }) => {
     );
   };
 
-  const updatePatientSceneDetails = (ambulanceCode, sceneData) => {
+  // Ambulance crew scene vitals entry (connected to backend)
+  const updatePatientSceneDetails = async (ambulanceCode, sceneData) => {
+    try {
+      await fetch(`${BACKEND_URL}/api/patient/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ambulanceCode, ...sceneData })
+      });
+    } catch (e) {
+      console.log('Updating scene vitals locally:', e);
+    }
+
     setAmbulances((prev) =>
       prev.map((amb) => {
         if (amb.code === ambulanceCode || amb.id === ambulanceCode) {
@@ -360,7 +263,18 @@ export const AppProvider = ({ children }) => {
     );
   };
 
-  const updateAmbulanceStatus = (ambulanceCode, newStatus) => {
+  // Ambulance status progression (connected to backend)
+  const updateAmbulanceStatus = async (ambulanceCode, newStatus) => {
+    try {
+      await fetch(`${BACKEND_URL}/api/status/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ambulanceCode, newStatus })
+      });
+    } catch (e) {
+      console.log('Updating ambulance status locally:', e);
+    }
+
     setAmbulances((prev) =>
       prev.map((amb) => {
         if (amb.code === ambulanceCode || amb.id === ambulanceCode) {
@@ -375,70 +289,19 @@ export const AppProvider = ({ children }) => {
         return amb;
       })
     );
-  };
 
-  const requestResourceTransfer = (resourceId, requestingHospitalName, units = 1) => {
-    setMarketplaceResources(prev =>
-      prev.map(res => {
-        if (res.id === resourceId) {
-          const remaining = Math.max(0, res.availableUnits - units);
+    setSosEmergencies((prev) =>
+      prev.map((sos) => {
+        const amb = ambulances.find((a) => a.code === ambulanceCode || a.id === ambulanceCode);
+        if (sos.id === amb?.assignedEmergencyId) {
           return {
-            ...res,
-            availableUnits: remaining,
-            status: remaining === 0 ? 'SURGE_RESERVED' : res.status
+            ...sos,
+            status: newStatus === 'ARRIVED_AT_HOSPITAL' ? 'COMPLETED' : newStatus
           };
         }
-        return res;
+        return sos;
       })
     );
-  };
-
-  const updateBedStatus = (hospitalId, bedId, newStatus) => {
-    setHospitals((prev) =>
-      prev.map((hosp) => {
-        if (hosp.id === hospitalId || hosp.code === hospitalId) {
-          const updatedBeds = (hosp.beds || []).map((b) => (b.id === bedId ? { ...b, status: newStatus } : b));
-          const availableBedsCount = updatedBeds.filter((b) => b.status === 'AVAILABLE').length;
-          const occupiedBedsCount = updatedBeds.filter((b) => b.status === 'OCCUPIED' || b.status === 'RESERVED').length;
-          return {
-            ...hosp,
-            beds: updatedBeds,
-            availableBeds: availableBedsCount,
-            occupiedBeds: occupiedBedsCount
-          };
-        }
-        return hosp;
-      })
-    );
-  };
-
-  const updatePatientStatus = (patientId, treatmentStatus) => {
-    setAmbulances((prev) =>
-      prev.map((amb) => {
-        if (amb.patient && (amb.patient.id === patientId || amb.id === patientId)) {
-          let nextAmbStatus = amb.status;
-          if (treatmentStatus === 'ARRIVED') nextAmbStatus = 'ARRIVED';
-          if (treatmentStatus === 'DISCHARGED') nextAmbStatus = 'AVAILABLE';
-
-          return {
-            ...amb,
-            status: nextAmbStatus,
-            patient: treatmentStatus === 'DISCHARGED' ? null : { ...amb.patient, treatmentStatus }
-          };
-        }
-        return amb;
-      })
-    );
-  };
-
-  const resetDemoData = () => {
-    setHospitals(INITIAL_HOSPITALS);
-    setAmbulances(INITIAL_AMBULANCES);
-    setTrafficSignals(INITIAL_TRAFFIC_SIGNALS);
-    setEmergencyRequests(INITIAL_EMERGENCY_REQUESTS);
-    setActivityLogs(INITIAL_ACTIVITY_LOGS);
-    setTripHistory(INITIAL_TRIP_HISTORY);
-    setMarketplaceResources(HOSPITAL_RESOURCE_MARKETPLACE);
   };
 
   return (
@@ -449,53 +312,14 @@ export const AppProvider = ({ children }) => {
         selectedHospitalId,
         setSelectedHospitalId,
         hospitals,
-        setHospitals,
         ambulances,
-        setAmbulances,
         trafficSignals,
-        setTrafficSignals,
         sosEmergencies,
-        setSosEmergencies,
-        alerts,
-        activityLogs,
-        tripHistory,
-        marketplaceResources,
-        predictiveAnalytics,
-        language,
-        setLanguage,
-        isOfflineMode,
-        setIsOfflineMode,
-        toggleOfflineMode: () => setIsOfflineMode(prev => !prev),
-        isVoiceModalOpen,
-        setIsVoiceModalOpen,
-        isARHUDActive,
-        setIsARHUDActive,
-        t,
-        requestResourceTransfer,
-        emergencyRequests,
-        dbscanHotspots,
-        dbscanConfig,
-        dispatchQueue,
-        roadGraph,
-        activeDijkstraRoute,
-        blockedEdges,
-        isSimulationRunning,
+        isBackendConnected,
         createSosEmergency,
         assignAmbulance,
-        dispatchNextRequest: () => {
-          createSosEmergency({ patientName: 'Surge Patient', emergencyType: 'Accident' });
-        },
         updatePatientSceneDetails,
-
-        updateAmbulanceStatus,
-        startEmergencyTrip: startTrip,
-        startTrip,
-        updatePatientStatus,
-        updatePatientTreatmentStatus: updatePatientStatus,
-        updateBedStatus,
-        toggleSimulation: () => setIsSimulationRunning(prev => !prev),
-        resetSimulation: resetDemoData,
-        resetDemoData
+        updateAmbulanceStatus
       }}
     >
       {children}
