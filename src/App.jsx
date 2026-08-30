@@ -16,7 +16,10 @@ const MainLayout = () => {
   if (viewMode === 'landing') {
     return (
       <div>
-        <Navbar onOpenLanding={() => setViewMode('landing')} />
+        <Navbar
+          onOpenLanding={() => setViewMode('landing')}
+          onSelectRole={() => setViewMode('dashboard')}
+        />
         <LandingPage onLaunchDemo={() => setViewMode('dashboard')} />
       </div>
     );
@@ -24,7 +27,11 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 selection:bg-emerald-600 selection:text-white pb-8">
-      <Navbar onOpenLanding={() => setViewMode('landing')} />
+      <Navbar
+        onOpenLanding={() => setViewMode('landing')}
+        onSelectRole={() => setViewMode('dashboard')}
+      />
+
 
       <main className="flex-1 py-4">
         {activeRole === 'sos' && <PatientSosView />}

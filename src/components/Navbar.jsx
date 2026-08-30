@@ -12,8 +12,13 @@ import {
   Home
 } from 'lucide-react';
 
-export const Navbar = ({ onOpenLanding }) => {
+export const Navbar = ({ onOpenLanding, onSelectRole }) => {
   const { activeRole, setActiveRole } = useApp();
+
+  const handleRoleClick = (roleId) => {
+    setActiveRole(roleId);
+    if (onSelectRole) onSelectRole(roleId);
+  };
 
   const roles = [
     { id: 'sos', label: '1. Patient SOS', icon: AlertCircle },
@@ -68,7 +73,7 @@ export const Navbar = ({ onOpenLanding }) => {
             return (
               <button
                 key={role.id}
-                onClick={() => setActiveRole(role.id)}
+                onClick={() => handleRoleClick(role.id)}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   isActive
                     ? 'bg-emerald-600 text-white shadow ring-2 ring-emerald-300'
@@ -81,6 +86,7 @@ export const Navbar = ({ onOpenLanding }) => {
             );
           })}
         </div>
+
 
         {/* Quick Phone Action */}
         <div className="hidden lg:flex items-center space-x-2 bg-emerald-800/80 border border-emerald-600/80 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow">
