@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { AlertCircle, CheckCircle2, MapPin, Mic, MicOff, Volume2, Sparkles, Accessibility } from 'lucide-react';
+import { AlertCircle, CheckCircle2, MapPin, Mic, Volume2, Accessibility } from 'lucide-react';
 
 export const PatientSosView = () => {
   const { createSosEmergency, sosEmergencies } = useApp();
@@ -12,7 +12,7 @@ export const PatientSosView = () => {
 
   // Voice Assistant State for Speech-Impaired / Handicapped Patients
   const [isListening, setIsListening] = useState(false);
-  const [voiceStatus, setVoiceStatus] = useState('Click to activate Voice/Speech Assistant');
+  const [voiceStatus, setVoiceStatus] = useState('Click big green button above to activate Voice Assistant');
   const [detectedText, setDetectedText] = useState('');
 
   const handleTriggerSos = (customAddress = null) => {
@@ -35,7 +35,7 @@ export const PatientSosView = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setVoiceStatus('Speech recognition not supported in browser. Using sound triggers.');
+      setVoiceStatus('Speech recognition not supported in browser. Use sound presets below.');
       return;
     }
 
@@ -122,7 +122,7 @@ export const PatientSosView = () => {
 
           <button
             onClick={() => setSubmittedSos(null)}
-            className="w-full py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs rounded-xl transition-all"
+            className="w-full py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs rounded-xl transition-all cursor-pointer"
           >
             Trigger Another SOS Request
           </button>
@@ -132,60 +132,68 @@ export const PatientSosView = () => {
           
           <div>
             <h2 className="text-xl font-bold font-serif text-slate-900 mb-1">
-              1-Tap Immediate SOS Trigger
+              1-Tap Immediate SOS & Voice Trigger
             </h2>
             <p className="text-xs text-slate-500 font-medium">
-              Press the big red button or use the voice assistant below to broadcast your GPS location to Call Centre.
+              Press either big button below to broadcast your GPS location to Call Centre.
             </p>
           </div>
 
-          {/* ACCESSIBILITY VOICE ASSISTANT CARD (FOR SPEECH-IMPAIRED / HANDICAPPED PERSONS) */}
+          {/* 1. ULTRA-HUGE BIGGER SOS BUTTON */}
+          <button
+            onClick={() => handleTriggerSos()}
+            type="button"
+            className="w-full py-12 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-3xl font-black text-2xl sm:text-3xl uppercase tracking-wider shadow-2xl flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer ring-8 ring-red-200"
+          >
+            <AlertCircle className="h-12 w-12 text-white animate-bounce shrink-0" />
+            <span>SOS – TRIGGER EMERGENCY</span>
+          </button>
+
+          {/* 2. ULTRA-HUGE BIGGER VOICE ASSISTANT BUTTON (EQUAL SIZE TO SOS BUTTON) */}
+          <button
+            onClick={startSpeechRecognition}
+            type="button"
+            className={`w-full py-12 bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white rounded-3xl font-black text-2xl sm:text-3xl uppercase tracking-wider shadow-2xl flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer ring-8 ring-emerald-200 ${
+              isListening ? 'animate-pulse ring-8 ring-red-400' : ''
+            }`}
+          >
+            <Mic className="h-12 w-12 text-white animate-pulse shrink-0" />
+            <span>🎙️ VOICE / SPEECH ASSISTANT</span>
+          </button>
+
+          {/* 3. VOICE ASSISTANT DESCRIPTION & PRESETS (GIVEN AFTER THE BUTTONS) */}
           <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-4 text-left space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Accessibility className="h-5 w-5 text-emerald-800" />
                 <h3 className="font-extrabold text-xs text-emerald-900 uppercase tracking-wider">
-                  Accessibility Voice Assistant (Speech & Sound Triggers)
+                  Voice Assistant Description & Accessibility Presets
                 </h3>
               </div>
               <span className="bg-emerald-200 text-emerald-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                Handicapped Mode
+                Handicapped / Dumb Mode
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-600 font-medium">
-              Designed for non-verbal, speech-impaired, and handicapped individuals to request help instantly.
+            <p className="text-xs text-slate-700 font-medium">
+              Specifically designed for non-verbal, speech-impaired (dumb), and handicapped individuals. Click the big green button above to speak ("HELP", "SOS", "AMBULANCE") or tap a sound preset below:
             </p>
 
-            {/* Mic Activation Button & Status */}
-            <div className="flex items-center space-x-3 bg-white p-3 rounded-2xl border border-emerald-300">
-              <button
-                type="button"
-                onClick={startSpeechRecognition}
-                className={`p-3 rounded-2xl flex items-center justify-center transition-all ${
-                  isListening
-                    ? 'bg-red-600 text-white animate-pulse ring-4 ring-red-300'
-                    : 'bg-[#064e3b] hover:bg-emerald-900 text-white shadow-md'
-                }`}
-              >
-                {isListening ? <Mic className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
-              </button>
-              <div className="flex-1">
-                <p className="text-xs font-bold text-slate-900">{voiceStatus}</p>
-                {detectedText && <p className="text-[11px] font-extrabold text-emerald-700">Detected: "{detectedText}"</p>}
-              </div>
+            <div className="bg-white p-3 rounded-2xl border border-emerald-300">
+              <p className="text-xs font-bold text-slate-900">{voiceStatus}</p>
+              {detectedText && <p className="text-xs font-extrabold text-emerald-700 mt-1">Detected: "{detectedText}"</p>}
             </div>
 
             {/* Quick 1-Click Audio / Command Presets */}
             <div className="space-y-1.5 pt-1">
               <label className="text-[10px] font-extrabold text-emerald-900 uppercase block">
-                Quick Sound & Command Presets (1-Click Trigger):
+                Quick Sound Presets (1-Click Trigger):
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => handleTriggerSos(`Voice Trigger: EMERGENCY HELP REQUIRED`)}
-                  className="p-2.5 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-1.5 shadow-xs"
+                  className="p-3 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-2 shadow-xs cursor-pointer"
                 >
                   <Volume2 className="h-4 w-4 text-red-600 shrink-0" />
                   <span>🔊 "HELP! SOS"</span>
@@ -194,7 +202,7 @@ export const PatientSosView = () => {
                 <button
                   type="button"
                   onClick={() => handleTriggerSos(`Voice Trigger: ACCIDENT DISPATCH`)}
-                  className="p-2.5 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-1.5 shadow-xs"
+                  className="p-3 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-2 shadow-xs cursor-pointer"
                 >
                   <Volume2 className="h-4 w-4 text-emerald-700 shrink-0" />
                   <span>🔊 "AMBULANCE!"</span>
@@ -203,7 +211,7 @@ export const PatientSosView = () => {
             </div>
           </div>
 
-          {/* Pickup Address Card */}
+          {/* 4. Pickup Address Card */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">Pickup Location Address</span>
@@ -220,16 +228,6 @@ export const PatientSosView = () => {
               className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-600"
             />
           </div>
-
-          {/* ULTRA-HUGE BIGGER SOS BUTTON */}
-          <button
-            onClick={() => handleTriggerSos()}
-            type="button"
-            className="w-full py-12 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-3xl font-black text-2xl sm:text-3xl uppercase tracking-wider shadow-2xl flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer ring-8 ring-red-200"
-          >
-            <AlertCircle className="h-12 w-12 text-white animate-bounce shrink-0" />
-            <span>SOS – TRIGGER EMERGENCY</span>
-          </button>
 
           <p className="text-xs text-slate-500 font-medium pt-2">
             Emergency Toll-Free Direct Hotline: <strong className="text-emerald-900 font-black">108 / (123) 456-7890</strong>

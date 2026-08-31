@@ -34,7 +34,7 @@ export const INITIAL_TRAFFIC_SIGNALS = [
   {
     id: "sig-1",
     code: "TS-01",
-    name: "Grand Ave & 5th St Junction",
+    name: "Goripalayam Junction (Madurai)",
     location: { lat: 40.718000, lng: -73.950000 },
     blueLightActive: false,
     distanceToAmbulanceKm: null
@@ -42,7 +42,7 @@ export const INITIAL_TRAFFIC_SIGNALS = [
   {
     id: "sig-2",
     code: "TS-02",
-    name: "Healthcare Blvd Ring Crossing",
+    name: "Periyar Bus Stand Junction (Madurai)",
     location: { lat: 40.722000, lng: -73.945000 },
     blueLightActive: false,
     distanceToAmbulanceKm: null
@@ -50,7 +50,7 @@ export const INITIAL_TRAFFIC_SIGNALS = [
   {
     id: "sig-3",
     code: "TS-03",
-    name: "Midtown Expressway Gate",
+    name: "Mattuthavani Junction (Madurai)",
     location: { lat: 40.727000, lng: -73.939000 },
     blueLightActive: false,
     distanceToAmbulanceKm: null
@@ -58,12 +58,13 @@ export const INITIAL_TRAFFIC_SIGNALS = [
   {
     id: "sig-4",
     code: "TS-04",
-    name: "Hospital Main Entrance Approach",
+    name: "Kalavasal Junction (Madurai)",
     location: { lat: 40.730000, lng: -73.936000 },
     blueLightActive: false,
     distanceToAmbulanceKm: null
   }
 ];
+
 
 export const INITIAL_AMBULANCES = [
   {
