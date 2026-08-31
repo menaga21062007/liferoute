@@ -13,48 +13,49 @@ const BACKEND_URL = 'http://localhost:5000';
 
 const INITIAL_BEDS_BY_HOSPITAL = {
   'hosp-1': [
-    { id: 'h1-101', hospitalId: 'hosp-1', number: '101', type: 'ICU Bed', status: 'AVAILABLE' },
-    { id: 'h1-102', hospitalId: 'hosp-1', number: '102', type: 'ICU Bed', status: 'AVAILABLE' },
-    { id: 'h1-103', hospitalId: 'hosp-1', number: '103', type: 'ICU Bed', status: 'RESERVED' },
-    { id: 'h1-104', hospitalId: 'hosp-1', number: '104', type: 'ICU Bed', status: 'CLEANING' },
-    { id: 'h1-105', hospitalId: 'hosp-1', number: '105', type: 'ICU Bed', status: 'OCCUPIED' },
-    { id: 'h1-106', hospitalId: 'hosp-1', number: '106', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h1-107', hospitalId: 'hosp-1', number: '107', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h1-108', hospitalId: 'hosp-1', number: '108', type: 'Emergency Bed', status: 'RESERVED' },
-    { id: 'h1-109', hospitalId: 'hosp-1', number: '109', type: 'Emergency Bed', status: 'CLEANING' },
-    { id: 'h1-110', hospitalId: 'hosp-1', number: '110', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h1-111', hospitalId: 'hosp-1', number: '111', type: 'Trauma Bay', status: 'AVAILABLE' },
-    { id: 'h1-112', hospitalId: 'hosp-1', number: '112', type: 'Trauma Bay', status: 'OCCUPIED' }
+    { id: 'h1-101', hospitalId: 'hosp-1', number: '101', type: 'ICU Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h1-102', hospitalId: 'hosp-1', number: '102', type: 'ICU Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h1-103', hospitalId: 'hosp-1', number: '103', type: 'ICU Bed', status: 'RESERVED', patientName: 'Citizen Patient (AMB-101)' },
+    { id: 'h1-104', hospitalId: 'hosp-1', number: '104', type: 'ICU Bed', status: 'CLEANING', patientName: 'Sanitizing' },
+    { id: 'h1-105', hospitalId: 'hosp-1', number: '105', type: 'ICU Bed', status: 'OCCUPIED', patientName: 'Ramesh Kumar' },
+    { id: 'h1-106', hospitalId: 'hosp-1', number: '106', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h1-107', hospitalId: 'hosp-1', number: '107', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h1-108', hospitalId: 'hosp-1', number: '108', type: 'Emergency Bed', status: 'RESERVED', patientName: 'Sita Devi (AMB-102)' },
+    { id: 'h1-109', hospitalId: 'hosp-1', number: '109', type: 'Emergency Bed', status: 'CLEANING', patientName: 'Sanitizing' },
+    { id: 'h1-110', hospitalId: 'hosp-1', number: '110', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h1-111', hospitalId: 'hosp-1', number: '111', type: 'Trauma Bay', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h1-112', hospitalId: 'hosp-1', number: '112', type: 'Trauma Bay', status: 'OCCUPIED', patientName: 'Vikram Singh' }
   ],
   'hosp-2': [
-    { id: 'h2-201', hospitalId: 'hosp-2', number: '201', type: 'ICU Bed', status: 'AVAILABLE' },
-    { id: 'h2-202', hospitalId: 'hosp-2', number: '202', type: 'ICU Bed', status: 'AVAILABLE' },
-    { id: 'h2-203', hospitalId: 'hosp-2', number: '203', type: 'ICU Bed', status: 'AVAILABLE' },
-    { id: 'h2-204', hospitalId: 'hosp-2', number: '204', type: 'ICU Bed', status: 'RESERVED' },
-    { id: 'h2-205', hospitalId: 'hosp-2', number: '205', type: 'ICU Bed', status: 'CLEANING' },
-    { id: 'h2-206', hospitalId: 'hosp-2', number: '206', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h2-207', hospitalId: 'hosp-2', number: '207', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h2-208', hospitalId: 'hosp-2', number: '208', type: 'Emergency Bed', status: 'OCCUPIED' },
-    { id: 'h2-209', hospitalId: 'hosp-2', number: '209', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h2-210', hospitalId: 'hosp-2', number: '210', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h2-211', hospitalId: 'hosp-2', number: '211', type: 'Trauma Bay', status: 'CLEANING' },
-    { id: 'h2-212', hospitalId: 'hosp-2', number: '212', type: 'Trauma Bay', status: 'RESERVED' }
+    { id: 'h2-201', hospitalId: 'hosp-2', number: '201', type: 'ICU Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h2-202', hospitalId: 'hosp-2', number: '202', type: 'ICU Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h2-203', hospitalId: 'hosp-2', number: '203', type: 'ICU Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h2-204', hospitalId: 'hosp-2', number: '204', type: 'ICU Bed', status: 'RESERVED', patientName: 'Anand Sharma' },
+    { id: 'h2-205', hospitalId: 'hosp-2', number: '205', type: 'ICU Bed', status: 'CLEANING', patientName: 'Sanitizing' },
+    { id: 'h2-206', hospitalId: 'hosp-2', number: '206', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h2-207', hospitalId: 'hosp-2', number: '207', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h2-208', hospitalId: 'hosp-2', number: '208', type: 'Emergency Bed', status: 'OCCUPIED', patientName: 'Meena Reddy' },
+    { id: 'h2-209', hospitalId: 'hosp-2', number: '209', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h2-210', hospitalId: 'hosp-2', number: '210', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h2-211', hospitalId: 'hosp-2', number: '211', type: 'Trauma Bay', status: 'CLEANING', patientName: 'Sanitizing' },
+    { id: 'h2-212', hospitalId: 'hosp-2', number: '212', type: 'Trauma Bay', status: 'RESERVED', patientName: 'Karthik Raja' }
   ],
   'hosp-3': [
-    { id: 'h3-301', hospitalId: 'hosp-3', number: '301', type: 'ICU Bed', status: 'AVAILABLE' },
-    { id: 'h3-302', hospitalId: 'hosp-3', number: '302', type: 'ICU Bed', status: 'AVAILABLE' },
-    { id: 'h3-303', hospitalId: 'hosp-3', number: '303', type: 'ICU Bed', status: 'CLEANING' },
-    { id: 'h3-304', hospitalId: 'hosp-3', number: '304', type: 'ICU Bed', status: 'OCCUPIED' },
-    { id: 'h3-305', hospitalId: 'hosp-3', number: '305', type: 'ICU Bed', status: 'OCCUPIED' },
-    { id: 'h3-306', hospitalId: 'hosp-3', number: '306', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h3-307', hospitalId: 'hosp-3', number: '307', type: 'Emergency Bed', status: 'RESERVED' },
-    { id: 'h3-308', hospitalId: 'hosp-3', number: '308', type: 'Emergency Bed', status: 'RESERVED' },
-    { id: 'h3-309', hospitalId: 'hosp-3', number: '309', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h3-310', hospitalId: 'hosp-3', number: '310', type: 'Emergency Bed', status: 'AVAILABLE' },
-    { id: 'h3-311', hospitalId: 'hosp-3', number: '311', type: 'Trauma Bay', status: 'AVAILABLE' },
-    { id: 'h3-312', hospitalId: 'hosp-3', number: '312', type: 'Trauma Bay', status: 'CLEANING' }
+    { id: 'h3-301', hospitalId: 'hosp-3', number: '301', type: 'ICU Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h3-302', hospitalId: 'hosp-3', number: '302', type: 'ICU Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h3-303', hospitalId: 'hosp-3', number: '303', type: 'ICU Bed', status: 'CLEANING', patientName: 'Sanitizing' },
+    { id: 'h3-304', hospitalId: 'hosp-3', number: '304', type: 'ICU Bed', status: 'OCCUPIED', patientName: 'Sunita Patel' },
+    { id: 'h3-305', hospitalId: 'hosp-3', number: '305', type: 'ICU Bed', status: 'OCCUPIED', patientName: 'Abdul Rahman' },
+    { id: 'h3-306', hospitalId: 'hosp-3', number: '306', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h3-307', hospitalId: 'hosp-3', number: '307', type: 'Emergency Bed', status: 'RESERVED', patientName: 'Divya Nair' },
+    { id: 'h3-308', hospitalId: 'hosp-3', number: '308', type: 'Emergency Bed', status: 'RESERVED', patientName: 'Pooja Verma' },
+    { id: 'h3-309', hospitalId: 'hosp-3', number: '309', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h3-310', hospitalId: 'hosp-3', number: '310', type: 'Emergency Bed', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h3-311', hospitalId: 'hosp-3', number: '311', type: 'Trauma Bay', status: 'AVAILABLE', patientName: 'Unassigned' },
+    { id: 'h3-312', hospitalId: 'hosp-3', number: '312', type: 'Trauma Bay', status: 'CLEANING', patientName: 'Sanitizing' }
   ]
 };
+
 
 export const AppProvider = ({ children }) => {
   const [activeRole, setActiveRole] = useState('sos'); // Default primary view: Citizen SOS ('sos')
@@ -372,13 +373,19 @@ export const AppProvider = ({ children }) => {
     );
   };
 
-  // Update Bed Status (AVAILABLE, RESERVED, CLEANING, OCCUPIED) per hospital
-  const updateBedStatus = (hospitalId, bedId, newStatus) => {
+  // Update Bed Status (AVAILABLE, RESERVED, CLEANING, OCCUPIED) & Patient Name per hospital
+  const updateBedStatus = (hospitalId, bedId, newStatus, newPatientName = null) => {
     setHospitalBedsMap((prevMap) => {
       const hospitalBeds = prevMap[hospitalId] || [];
-      const updatedBeds = hospitalBeds.map((b) =>
-        b.id === bedId ? { ...b, status: newStatus } : b
-      );
+      const updatedBeds = hospitalBeds.map((b) => {
+        if (b.id === bedId) {
+          let updatedName = newPatientName !== null ? newPatientName : b.patientName;
+          if (newStatus === 'AVAILABLE') updatedName = 'Unassigned';
+          else if (newStatus === 'CLEANING') updatedName = 'Sanitizing';
+          return { ...b, status: newStatus, patientName: updatedName };
+        }
+        return b;
+      });
       const newMap = { ...prevMap, [hospitalId]: updatedBeds };
 
       // Update hospital availableBeds counter in state
@@ -392,6 +399,7 @@ export const AppProvider = ({ children }) => {
       return newMap;
     });
   };
+
 
   return (
     <AppContext.Provider

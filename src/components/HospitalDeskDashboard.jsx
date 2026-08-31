@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { Building2, Ambulance, Bed, Activity, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Building2, Ambulance, Bed, Activity, CheckCircle2, RefreshCw, User, Edit3 } from 'lucide-react';
 import L from 'leaflet';
 
 export const HospitalDeskDashboard = () => {
@@ -27,7 +27,6 @@ export const HospitalDeskDashboard = () => {
   // Initialize Leaflet Map Engine (Identical to GreenCorridorDemo.jsx)
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
-      // Clear any leftover Leaflet ID on DOM element
       if (mapRef.current._leaflet_id) {
         mapRef.current._leaflet_id = null;
       }
@@ -56,7 +55,7 @@ export const HospitalDeskDashboard = () => {
     };
   }, []);
 
-  // Update map markers, route polylines, and icons (Matching GreenCorridorDemo.jsx)
+  // Update map markers, route polylines, and icons
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layerGroup = layerGroupRef.current;
@@ -64,7 +63,7 @@ export const HospitalDeskDashboard = () => {
 
     layerGroup.clearLayers();
 
-    // 1. Draw All Hospitals on Map with Larger Icons
+    // Draw All Hospitals on Map
     hospitals.forEach((hosp) => {
       if (!hosp.location) return;
       const isSelected = hosp.id === currentHospital.id;
@@ -80,12 +79,11 @@ export const HospitalDeskDashboard = () => {
       layerGroup.addLayer(hm);
     });
 
-    // 2. Draw Active Ambulances + Route Lines
+    // Draw Active Ambulances + Route Lines
     ambulances.forEach((amb) => {
       if (!amb.currentLocation) return;
       const isIncomingToCurrent = amb.targetHospitalId === currentHospital.id && amb.patient;
 
-      // Draw Green Route Line if assigned
       if (amb.patient && amb.targetHospitalId) {
         const targetH = hospitals.find((h) => h.id === amb.targetHospitalId);
         if (targetH && targetH.location) {
@@ -115,18 +113,23 @@ export const HospitalDeskDashboard = () => {
       layerGroup.addLayer(am);
     });
 
-    // Pan map to selected hospital
     if (currentHospital && currentHospital.location) {
       map.panTo([currentHospital.location.lat, currentHospital.location.lng]);
     }
 
-    // Recalculate map container dimensions
     setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
     }, 200);
   }, [currentHospital, ambulances, hospitals]);
+
+  const handleEditPatientName = (bed) => {
+    const newName = prompt(`Enter Patient Name for Bed ${bed.number}:`, bed.patientName !== 'Unassigned' ? bed.patientName : '');
+    if (newName !== null && newName.trim() !== '') {
+      updateBedStatus(selectedHospitalId, bed.id, bed.status === 'AVAILABLE' ? 'OCCUPIED' : bed.status, newName.trim());
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4 text-slate-800">
@@ -202,53 +205,80 @@ export const HospitalDeskDashboard = () => {
 
       </div>
 
-      {/* Interactive Hospital Bed Board Management per Hospital */}
+      {/* Interactive Hospital Bed Board Management with Patient Names */}
       <div className="bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center space-x-2">
             <Bed className="h-4 w-4 text-emerald-700" />
-            <span>Interactive Bed Board — {currentHospital.name}</span>
+            <span>Interactive Bed Board & Patient Name Roster — {currentHospital.name}</span>
           </h2>
-          <span className="text-xs text-emerald-800 font-bold">1-Click Status Manager</span>
+          <span className="text-xs text-emerald-800 font-bold">Real-time Patient Roster</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {currentBeds.map((bed) => {
             let statusBg = 'bg-emerald-50 border-emerald-300 text-emerald-900';
             let badgeBg = 'bg-emerald-600 text-white';
+            let nameTagBg = 'bg-emerald-100 text-emerald-900 border-emerald-200';
+
             if (bed.status === 'RESERVED') {
               statusBg = 'bg-amber-50 border-amber-300 text-amber-900';
               badgeBg = 'bg-amber-600 text-white';
+              nameTagBg = 'bg-amber-100 text-amber-900 border-amber-300 font-bold';
             } else if (bed.status === 'CLEANING') {
               statusBg = 'bg-blue-50 border-blue-300 text-blue-900';
               badgeBg = 'bg-blue-600 text-white';
+              nameTagBg = 'bg-blue-100 text-blue-900 border-blue-200';
             } else if (bed.status === 'OCCUPIED') {
               statusBg = 'bg-red-50 border-red-300 text-red-900';
               badgeBg = 'bg-red-600 text-white';
+              nameTagBg = 'bg-red-100 text-red-900 border-red-300 font-extrabold';
             }
 
             return (
-              <div key={bed.id} className={`p-3 rounded-2xl border ${statusBg} space-y-2 flex flex-col justify-between shadow-xs transition-all`}>
+              <div key={bed.id} className={`p-3.5 rounded-2xl border ${statusBg} space-y-2.5 flex flex-col justify-between shadow-xs transition-all`}>
                 <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-xs font-serif">Bed {bed.number}</span>
-                  <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${badgeBg}`}>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="font-black text-sm font-serif">Bed {bed.number}</span>
+                    <span className="text-[10px] text-slate-500 font-bold">({bed.type})</span>
+                  </div>
+                  <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase ${badgeBg}`}>
                     {bed.status}
                   </span>
                 </div>
 
-                <p className="text-[10px] text-slate-600 font-medium">{bed.type}</p>
+                {/* Patient Name Display & Edit Trigger */}
+                <div className={`p-2 rounded-xl border text-xs flex items-center justify-between ${nameTagBg}`}>
+                  <div className="flex items-center space-x-1.5 overflow-hidden">
+                    <User className="h-3.5 w-3.5 shrink-0 text-slate-600" />
+                    <span className="truncate">
+                      <strong>Patient:</strong> {bed.patientName || 'Unassigned'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleEditPatientName(bed)}
+                    title="Edit Patient Name"
+                    className="p-1 hover:bg-white/60 rounded-md transition-colors shrink-0 cursor-pointer"
+                  >
+                    <Edit3 className="h-3 w-3 text-slate-700" />
+                  </button>
+                </div>
 
                 {/* Status Switcher Dropdown */}
-                <select
-                  value={bed.status}
-                  onChange={(e) => updateBedStatus(selectedHospitalId, bed.id, e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-1.5 py-1 text-[10px] font-bold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer"
-                >
-                  <option value="AVAILABLE">AVAILABLE</option>
-                  <option value="RESERVED">RESERVED</option>
-                  <option value="CLEANING">CLEANING</option>
-                  <option value="OCCUPIED">OCCUPIED</option>
-                </select>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-extrabold uppercase text-slate-500 block">Change Status:</label>
+                  <select
+                    value={bed.status}
+                    onChange={(e) => updateBedStatus(selectedHospitalId, bed.id, e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer"
+                  >
+                    <option value="AVAILABLE">AVAILABLE (Unassigned)</option>
+                    <option value="RESERVED">RESERVED (Patient En Route)</option>
+                    <option value="CLEANING">CLEANING (Sanitizing)</option>
+                    <option value="OCCUPIED">OCCUPIED (Patient Admitted)</option>
+                  </select>
+                </div>
               </div>
             );
           })}
@@ -305,7 +335,7 @@ export const HospitalDeskDashboard = () => {
           </div>
         </div>
 
-        {/* Right Column: Live Map Engine (Identical to GreenCorridorDemo.jsx) */}
+        {/* Right Column: Live Map Engine */}
         <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-2 h-[420px] relative overflow-hidden shadow-sm flex flex-col">
           <div className="text-[11px] font-bold text-emerald-900 px-3 py-1.5 bg-emerald-50 border-b border-emerald-200 rounded-t-2xl flex items-center justify-between">
             <span>Hospital Emergency Map Engine (Larger Markers)</span>
