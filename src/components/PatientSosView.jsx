@@ -171,7 +171,7 @@ export const PatientSosView = () => {
           
           <div>
             <h2 className="text-xl font-bold font-serif text-slate-900 mb-1">
-              Hands-Free Auto Voice & 1-Tap SOS
+              In-Built Android Google Voice Assistant & 1-Tap SOS
             </h2>
             <p className="text-xs text-slate-500 font-medium">
               Specifically built for speech-impaired & handicapped individuals. Speaks into device or press button below.
@@ -188,40 +188,23 @@ export const PatientSosView = () => {
             <span>SOS – TRIGGER EMERGENCY</span>
           </button>
 
-          {/* 2. ULTRA-HUGE HANDS-FREE VOICE ASSISTANT INDICATOR (AUTOMATICALLY ACTIVE / NO CLICK REQUIRED) */}
-          <div
-            onClick={startContinuousSpeechRecognition}
-            className="w-full py-10 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white rounded-3xl font-black text-2xl sm:text-3xl uppercase tracking-wider shadow-2xl flex flex-col items-center justify-center space-y-2 transition-all cursor-pointer ring-8 ring-emerald-300 relative overflow-hidden"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Mic className="h-12 w-12 text-white animate-bounce shrink-0" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full animate-ping" />
-              </div>
-              <span>🎙️ GOOGLE VOICE ASSISTANT</span>
-            </div>
-            <span className="text-xs font-bold text-emerald-200 tracking-normal normal-case flex items-center space-x-1.5">
-              <Radio className="h-4 w-4 text-red-400 animate-pulse" />
-              <span>In-Built Hands-Free Mode Active (Auto-Listening)</span>
-            </span>
-          </div>
-
-          {/* 3. VOICE ASSISTANT DESCRIPTION & PRESETS (GIVEN AFTER THE BUTTONS) */}
+          {/* 2. IN-BUILT GOOGLE VOICE ASSISTANT HANDS-FREE DESCRIPTION & AUTO-LISTENING MONITOR (NO EXTRA BUTTON) */}
           <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-4 text-left space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Accessibility className="h-5 w-5 text-emerald-800" />
                 <h3 className="font-extrabold text-xs text-emerald-900 uppercase tracking-wider">
-                  In-Built Google Assistant Hands-Free Description
+                  In-Built Android Google Voice Assistant Integration
                 </h3>
               </div>
-              <span className="bg-red-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase animate-pulse">
-                Auto-Listening Active
+              <span className="bg-red-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase animate-pulse flex items-center space-x-1">
+                <Radio className="h-3 w-3 text-white" />
+                <span>Auto-Listening Active</span>
               </span>
             </div>
 
             <p className="text-xs text-slate-700 font-medium">
-              <strong>How it works for handicapped / speech-impaired persons:</strong> You do NOT need to press any button! Your mobile's in-built Google Voice Assistant continuously monitors for emergency words ("HELP", "SOS", "AMBULANCE", "ACCIDENT") or distress sounds, and automatically transmits your GPS location signal directly to the Call Centre!
+              <strong>How it works for handicapped / speech-impaired persons:</strong> Android's in-built Google Voice Assistant continuously monitors for emergency voice commands ("HELP", "SOS", "AMBULANCE", "ACCIDENT") or distress sounds. No button clicks needed—saying "OK Google, open LifeRoute SOS" automatically transmits your location to the Call Centre!
             </p>
 
             {/* Live Audio Status Display Box */}
@@ -264,7 +247,7 @@ export const PatientSosView = () => {
             </div>
           </div>
 
-          {/* 4. Pickup Address Card */}
+          {/* 3. Pickup Address Card */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">Pickup Location Address</span>
