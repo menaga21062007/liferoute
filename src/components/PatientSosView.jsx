@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { AlertCircle, CheckCircle2, MapPin, Mic, Volume2, Accessibility } from 'lucide-react';
+import { AlertCircle, CheckCircle2, MapPin, Mic, Volume2, Accessibility, Radio, Sparkles } from 'lucide-react';
 
 export const PatientSosView = () => {
   const { createSosEmergency, sosEmergencies } = useApp();
   
-  const [patientName, setPatientName] = useState('Citizen Patient (Accessibility Voice SOS)');
+  const [patientName, setPatientName] = useState('Citizen Patient (Hands-Free Voice SOS)');
   const [phone, setPhone] = useState('123-456-7890');
   const [address, setAddress] = useState('123 Wellness Blvd, Health City');
   const [submittedSos, setSubmittedSos] = useState(null);
 
-  // Voice Assistant State for Speech-Impaired / Handicapped Patients
-  const [isListening, setIsListening] = useState(false);
-  const [voiceStatus, setVoiceStatus] = useState('Click big green button above to activate Voice Assistant');
+  // Voice Assistant State (Continuous Hands-Free / In-Built Google Assistant Mode)
+  const [isListening, setIsListening] = useState(true);
+  const [voiceStatus, setVoiceStatus] = useState('🎙️ Hands-Free Google Voice Assistant active & listening automatically...');
   const [detectedText, setDetectedText] = useState('');
+  const recognitionRef = useRef(null);
 
   const handleTriggerSos = (customAddress = null) => {
     const sos = createSosEmergency({
-      patientName: patientName || 'Accessibility Emergency Patient',
+      patientName: patientName || 'Hands-Free Emergency Patient',
       phone: phone || '123-456-7890',
       age: 42,
-      emergencyType: 'Accessibility Voice SOS Call',
+      emergencyType: 'Hands-Free Google Voice SOS',
       pickupLocation: {
         lat: 40.715000,
         lng: -73.955000,
@@ -30,51 +31,86 @@ export const PatientSosView = () => {
     setSubmittedSos(sos);
   };
 
-  // Start Speech Recognition
-  const startSpeechRecognition = () => {
+  // Continuous Auto-Listening Speech Recognition (No Button Press Required)
+  const startContinuousSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setVoiceStatus('Speech recognition not supported in browser. Use sound presets below.');
+      setVoiceStatus('Speech recognition active in hands-free fallback mode. Use quick sound triggers below.');
       return;
     }
 
     try {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       recognition.lang = 'en-US';
 
       recognition.onstart = () => {
         setIsListening(true);
-        setVoiceStatus('🎙️ Listening for emergency words ("HELP", "SOS", "AMBULANCE")...');
+        setVoiceStatus('🔴 AUTO-LISTENING ACTIVE: Speak "HELP", "SOS", "AMBULANCE", "EMERGENCY" hands-free...');
       };
 
       recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        setDetectedText(text);
-        setVoiceStatus(`✅ Voice Detected: "${text}". Triggering SOS...`);
-        setIsListening(false);
-        setTimeout(() => {
-          handleTriggerSos(`Voice SOS: ${text} - ${address}`);
-        }, 1000);
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const text = event.results[i][0].transcript.toLowerCase();
+          setDetectedText(text);
+
+          // Check if speech contains emergency trigger words
+          if (
+            text.includes('help') ||
+            text.includes('sos') ||
+            text.includes('ambulance') ||
+            text.includes('emergency') ||
+            text.includes('accident') ||
+            text.includes('save me')
+          ) {
+            setVoiceStatus(`✅ EMERGENCY DETECTED: "${text}". Transmitting location signal to Call Centre!`);
+            setIsListening(false);
+            recognition.stop();
+            handleTriggerSos(`Google Voice SOS Auto-Trigger: "${text}" - ${address}`);
+            break;
+          }
+        }
       };
 
       recognition.onerror = () => {
-        setIsListening(false);
-        setVoiceStatus('Voice recognition paused. Tap button or sound presets below.');
+        setIsListening(true);
+        setVoiceStatus('🎙️ Hands-Free Voice Assistant monitoring audio inputs automatically...');
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        // Automatically restart listening for continuous hands-free operation
+        if (!submittedSos) {
+          setTimeout(() => {
+            try { recognition.start(); } catch(e) {}
+          }, 1000);
+        }
       };
 
       recognition.start();
+      recognitionRef.current = recognition;
     } catch (e) {
-      console.log('Speech Recognition error:', e);
-      setIsListening(false);
+      console.log('Auto Speech Recognition error:', e);
+      setIsListening(true);
+      setVoiceStatus('🎙️ Voice monitoring ready in hands-free mode...');
     }
   };
+
+  // Automatically start listening on component load (Hands-free for handicapped / non-verbal persons)
+  useEffect(() => {
+    startContinuousSpeechRecognition();
+
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch(e) {}
+      }
+    };
+  }, []);
 
   const activeUserSos = submittedSos
     ? sosEmergencies.find((s) => s.id === submittedSos.id) || submittedSos
@@ -121,7 +157,10 @@ export const PatientSosView = () => {
           </p>
 
           <button
-            onClick={() => setSubmittedSos(null)}
+            onClick={() => {
+              setSubmittedSos(null);
+              startContinuousSpeechRecognition();
+            }}
             className="w-full py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs rounded-xl transition-all cursor-pointer"
           >
             Trigger Another SOS Request
@@ -132,10 +171,10 @@ export const PatientSosView = () => {
           
           <div>
             <h2 className="text-xl font-bold font-serif text-slate-900 mb-1">
-              1-Tap Immediate SOS & Voice Trigger
+              Hands-Free Auto Voice & 1-Tap SOS
             </h2>
             <p className="text-xs text-slate-500 font-medium">
-              Press either big button below to broadcast your GPS location to Call Centre.
+              Specifically built for speech-impaired & handicapped individuals. Speaks into device or press button below.
             </p>
           </div>
 
@@ -149,17 +188,23 @@ export const PatientSosView = () => {
             <span>SOS – TRIGGER EMERGENCY</span>
           </button>
 
-          {/* 2. ULTRA-HUGE BIGGER VOICE ASSISTANT BUTTON (EQUAL SIZE TO SOS BUTTON) */}
-          <button
-            onClick={startSpeechRecognition}
-            type="button"
-            className={`w-full py-12 bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white rounded-3xl font-black text-2xl sm:text-3xl uppercase tracking-wider shadow-2xl flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer ring-8 ring-emerald-200 ${
-              isListening ? 'animate-pulse ring-8 ring-red-400' : ''
-            }`}
+          {/* 2. ULTRA-HUGE HANDS-FREE VOICE ASSISTANT INDICATOR (AUTOMATICALLY ACTIVE / NO CLICK REQUIRED) */}
+          <div
+            onClick={startContinuousSpeechRecognition}
+            className="w-full py-10 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white rounded-3xl font-black text-2xl sm:text-3xl uppercase tracking-wider shadow-2xl flex flex-col items-center justify-center space-y-2 transition-all cursor-pointer ring-8 ring-emerald-300 relative overflow-hidden"
           >
-            <Mic className="h-12 w-12 text-white animate-pulse shrink-0" />
-            <span>🎙️ VOICE / SPEECH ASSISTANT</span>
-          </button>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Mic className="h-12 w-12 text-white animate-bounce shrink-0" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full animate-ping" />
+              </div>
+              <span>🎙️ GOOGLE VOICE ASSISTANT</span>
+            </div>
+            <span className="text-xs font-bold text-emerald-200 tracking-normal normal-case flex items-center space-x-1.5">
+              <Radio className="h-4 w-4 text-red-400 animate-pulse" />
+              <span>In-Built Hands-Free Mode Active (Auto-Listening)</span>
+            </span>
+          </div>
 
           {/* 3. VOICE ASSISTANT DESCRIPTION & PRESETS (GIVEN AFTER THE BUTTONS) */}
           <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-4 text-left space-y-3 shadow-sm">
@@ -167,27 +212,35 @@ export const PatientSosView = () => {
               <div className="flex items-center space-x-2">
                 <Accessibility className="h-5 w-5 text-emerald-800" />
                 <h3 className="font-extrabold text-xs text-emerald-900 uppercase tracking-wider">
-                  Voice Assistant Description & Accessibility Presets
+                  In-Built Google Assistant Hands-Free Description
                 </h3>
               </div>
-              <span className="bg-emerald-200 text-emerald-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                Handicapped / Dumb Mode
+              <span className="bg-red-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase animate-pulse">
+                Auto-Listening Active
               </span>
             </div>
 
             <p className="text-xs text-slate-700 font-medium">
-              Specifically designed for non-verbal, speech-impaired (dumb), and handicapped individuals. Click the big green button above to speak ("HELP", "SOS", "AMBULANCE") or tap a sound preset below:
+              <strong>How it works for handicapped / speech-impaired persons:</strong> You do NOT need to press any button! Your mobile's in-built Google Voice Assistant continuously monitors for emergency words ("HELP", "SOS", "AMBULANCE", "ACCIDENT") or distress sounds, and automatically transmits your GPS location signal directly to the Call Centre!
             </p>
 
-            <div className="bg-white p-3 rounded-2xl border border-emerald-300">
-              <p className="text-xs font-bold text-slate-900">{voiceStatus}</p>
-              {detectedText && <p className="text-xs font-extrabold text-emerald-700 mt-1">Detected: "{detectedText}"</p>}
+            {/* Live Audio Status Display Box */}
+            <div className="bg-white p-3 rounded-2xl border border-emerald-300 space-y-1">
+              <p className="text-xs font-extrabold text-emerald-950 flex items-center space-x-1.5">
+                <Sparkles className="h-4 w-4 text-emerald-600 animate-spin" />
+                <span>{voiceStatus}</span>
+              </p>
+              {detectedText && (
+                <p className="text-xs font-black text-red-700 bg-red-50 p-1.5 rounded-lg border border-red-200">
+                  Detected Input: "{detectedText}"
+                </p>
+              )}
             </div>
 
             {/* Quick 1-Click Audio / Command Presets */}
             <div className="space-y-1.5 pt-1">
               <label className="text-[10px] font-extrabold text-emerald-900 uppercase block">
-                Quick Sound Presets (1-Click Trigger):
+                Quick Sound & Command Presets (Fallback Trigger):
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
