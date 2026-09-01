@@ -4,24 +4,19 @@ import { Building2, Ambulance, Bed, Activity, CheckCircle2, RefreshCw, User, Edi
 import L from 'leaflet';
 
 export const HospitalDeskDashboard = () => {
-  const { hospitals = [], ambulances = [], trafficSignals = [], hospitalBedsMap = {}, updateBedStatus } = useApp();
+  const { hospitals, ambulances, hospitalBedsMap, updateBedStatus } = useApp();
   const [selectedHospitalId, setSelectedHospitalId] = useState(hospitals[0]?.id || 'hosp-1');
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const layerGroupRef = useRef(null);
 
-  const currentHospital = hospitals.find((h) => h.id === selectedHospitalId) || hospitals[0] || {
-    id: 'hosp-1',
-    name: 'Government Rajaji Hospital (Madurai GH)',
-    location: { lat: 9.9275, lng: 78.125 }
-  };
-  const currentBeds = (hospitalBedsMap && hospitalBedsMap[selectedHospitalId]) || [];
+  const currentHospital = hospitals.find((h) => h.id === selectedHospitalId) || hospitals[0];
+  const currentBeds = hospitalBedsMap[selectedHospitalId] || [];
 
   const incomingAmbulances = ambulances.filter(
-    (a) => a && currentHospital && a.targetHospitalId === currentHospital.id && a.patient
+    (a) => a.targetHospitalId === currentHospital.id && a.patient
   );
-
 
   // Compute live bed statistics for THIS selected hospital
   const availableBedsCount = currentBeds.filter((b) => b.status === 'AVAILABLE').length;
@@ -126,52 +121,16 @@ export const HospitalDeskDashboard = () => {
       layerGroup.addLayer(am);
     });
 
-    // Traffic Signal Markers (Madurai Traffic Light Icons)
-    trafficSignals.forEach((sig) => {
-      if (!sig.location) return;
-      const isBlue = sig.blueLightActive;
-      const signalIcon = L.divIcon({
-        className: 'custom-sig-icon',
-        html: `
-          <div style="
-            background: ${isBlue ? 'linear-gradient(135deg, #1e40af, #3b82f6)' : 'linear-gradient(135deg, #1e293b, #334155)'};
-            color: white;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            border: 3px solid ${isBlue ? '#60a5fa' : '#94a3b8'};
-            box-shadow: ${isBlue ? '0 0 20px #3b82f6, 0 0 40px #2563eb' : '0 4px 6px rgba(0,0,0,0.3)'};
-          ">
-            <span>${isBlue ? '🚨' : '🚦'}</span>
-            <span style="font-size: 9px; font-weight: 900; background: rgba(0,0,0,0.6); padding: 0 4px; border-radius: 4px; margin-top: -2px;">${sig.code}</span>
-          </div>
-        `,
-        iconSize: [44, 44],
-        iconAnchor: [22, 22]
-      });
-
-      const sm = L.marker([sig.location.lat, sig.location.lng], { icon: signalIcon });
-      sm.bindPopup(`<b>${sig.code} — ${sig.name}</b><br/>Blue Light: ${isBlue ? '🔵 ACTIVE GREEN CORRIDOR (<200m)' : '⚪ NORMAL (OFF)'}`);
-      layerGroup.addLayer(sm);
-    });
-
     if (currentHospital && currentHospital.location) {
       map.panTo([currentHospital.location.lat, currentHospital.location.lng]);
     }
-
 
     setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
     }, 200);
-  }, [currentHospital, ambulances, hospitals, trafficSignals]);
-
+  }, [currentHospital, ambulances, hospitals]);
 
   const handleEditPatientName = (bed) => {
     const newName = prompt(`Enter Patient Name for Bed ${bed.number}:`, bed.patientName !== 'Unassigned' ? bed.patientName : '');

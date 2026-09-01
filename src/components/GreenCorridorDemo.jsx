@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { TrafficCone, Radio } from 'lucide-react';
+import { TrafficCone, Radio, CheckCircle, AlertTriangle, ShieldCheck, Navigation } from 'lucide-react';
 import L from 'leaflet';
 
 export const GreenCorridorDemo = () => {
-  const { trafficSignals = [], ambulances = [], hospitals = [] } = useApp();
-
+  const { ambulances, hospitals, trafficSignals } = useApp();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const layerGroupRef = useRef(null);
@@ -19,14 +18,13 @@ export const GreenCorridorDemo = () => {
 
   const routePolyline = [
     [9.920000, 78.116000],
-    [9.929500, 78.126500],
     [9.917000, 78.113000],
-    [9.951000, 78.151000],
     [9.924000, 78.098000],
+    [9.929500, 78.126500],
+    [9.951000, 78.151000],
     [9.927500, 78.125000]
   ];
 
-  // Initialize Leaflet Map Engine
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       if (mapRef.current._leaflet_id) {
@@ -64,7 +62,6 @@ export const GreenCorridorDemo = () => {
     };
   }, []);
 
-  // Update map markers matching exact user reference image (media_1788282069351.png)
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layerGroup = layerGroupRef.current;
@@ -72,154 +69,89 @@ export const GreenCorridorDemo = () => {
 
     layerGroup.clearLayers();
 
-    // 1. Draw Polyline Green Corridor Route
-    const polyline = L.polyline(routePolyline, {
-      color: '#059669',
-      weight: 6,
-      opacity: 0.85,
-      dashArray: '8, 8'
-    });
+    // Green Corridor Polyline
+    const polyline = L.polyline(routePolyline, { color: '#059669', weight: 6, opacity: 0.85, dashArray: '10, 6' });
     layerGroup.addLayer(polyline);
 
-    // 2. Draw Hospitals on Map (Emerald Square Badge matching image)
-    hospitals.forEach((hosp) => {
-      if (!hosp.location) return;
-      const hospitalIcon = L.divIcon({
-        className: 'custom-hosp-icon-ref',
-        html: `
-          <div style="
-            background-color: #047857;
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 16px;
-            border: 2px solid white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-          ">🏥</div>
-        `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18]
-      });
-
-      const hm = L.marker([hosp.location.lat, hosp.location.lng], { icon: hospitalIcon });
-      hm.bindPopup(`<b>${hosp.name}</b><br/>Beds Available: ${hosp.availableBeds}/${hosp.totalBeds}`);
-      layerGroup.addLayer(hm);
-    });
-
-    // 3. Draw Pickup Point Marker
+    // Patient Pickup Marker
     const pickupIcon = L.divIcon({
-      className: 'custom-pickup-ref',
-      html: `
-        <div style="
-          background-color: #dc2626;
-          color: white;
-          width: 34px;
-          height: 34px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 900;
-          font-size: 14px;
-          border: 2.5px solid white;
-          box-shadow: 0 4px 10px rgba(220, 38, 38, 0.8);
-        ">📍</div>
-      `,
-      iconSize: [34, 34],
-      iconAnchor: [17, 17]
+      className: 'custom-pickup-marker',
+      html: `<div style="background-color: #dc2626; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid white; box-shadow: 0 4px 10px rgba(220,38,38,0.6);">📍</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
     const pm = L.marker([pickupCoords.lat, pickupCoords.lng], { icon: pickupIcon });
-    pm.bindPopup('Patient Pickup Point (Madurai Central)');
+    pm.bindPopup('<b>Patient Pickup Point</b><br/>Madurai Central');
     layerGroup.addLayer(pm);
 
-    // 4. Draw Active Ambulances (Blue Circle Badge matching reference image)
-    ambulances.forEach((amb) => {
-      if (!amb.currentLocation) return;
-      const isEmergencyActive = amb.status === 'EN_ROUTE_TO_PATIENT' || amb.status === 'PATIENT_ON_BOARD' || amb.status === 'ON_WAY_TO_HOSPITAL';
-      const ambIcon = L.divIcon({
-        className: 'custom-amb-icon-ref',
-        html: `
-          <div style="
-            background-color: ${isEmergencyActive ? '#dc2626' : '#2563eb'};
-            color: white;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 18px;
-            border: 3px solid white;
-            box-shadow: 0 0 14px ${isEmergencyActive ? 'rgba(220, 38, 38, 0.9)' : 'rgba(37, 99, 235, 0.9)'};
-          ">🚑</div>
-        `,
-        iconSize: [38, 38],
-        iconAnchor: [19, 19]
-      });
-
-      const am = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: ambIcon });
-      am.bindPopup(`<b>Ambulance ${amb.code}</b><br/>Status: ${amb.status}<br/>${amb.patient ? `Patient: ${amb.patient.name}` : 'Ready'}`);
-      layerGroup.addLayer(am);
+    // Government Hospital Drop Marker
+    const dropHospitalIcon = L.divIcon({
+      className: 'custom-drop-hosp-marker',
+      html: `<div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 4px 12px rgba(6,78,59,0.7);">🏥</div>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
     });
+    const hm = L.marker([hospitalCoords.lat, hospitalCoords.lng], { icon: dropHospitalIcon });
+    hm.bindPopup(`<b>${hospitals[0]?.name || 'Govt Hospital'}</b><br/>Emergency Bay Drop`);
+    layerGroup.addLayer(hm);
 
-    // 5. Draw Traffic Signal Markers (Exact Card matching reference image media_1788282069351.png)
+    // Moving Ambulance Marker
+    if (activeAmbulance && activeAmbulance.currentLocation) {
+      const movingAmbIcon = L.divIcon({
+        className: 'custom-moving-amb-marker',
+        html: `<div style="background-color: #059669; color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 0 16px rgba(5, 150, 105, 1);">🚑</div>`,
+        iconSize: [42, 42],
+        iconAnchor: [21, 21]
+      });
+      const am = L.marker([activeAmbulance.currentLocation.lat, activeAmbulance.currentLocation.lng], { icon: movingAmbIcon });
+      am.bindPopup(`<b>Ambulance ${activeAmbulance.code}</b><br/>Driver: ${activeAmbulance.driverName}`);
+      layerGroup.addLayer(am);
+    }
+
+    // PROMINENT HIGH-VISIBILITY TRAFFIC SIGNAL MARKERS
     trafficSignals.forEach((sig) => {
       if (!sig.location) return;
       const isBlue = sig.blueLightActive;
+
       const signalIcon = L.divIcon({
-        className: 'custom-sig-card-ref',
+        className: 'custom-traffic-signal-icon',
         html: `
           <div style="
-            background: ${isBlue ? 'linear-gradient(135deg, #1e3a8a, #2563eb)' : '#1e293b'};
+            background-color: ${isBlue ? '#1d4ed8' : '#334155'};
             color: white;
-            width: 50px;
-            height: 54px;
+            width: 44px;
+            height: 44px;
             border-radius: 12px;
-            border: 2px solid ${isBlue ? '#60a5fa' : '#475569'};
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-evenly;
-            padding: 3px 2px;
-            box-shadow: ${isBlue ? '0 0 20px #2563eb' : '0 4px 10px rgba(0,0,0,0.5)'};
-            position: relative;
+            justify-content: center;
+            font-weight: 900;
+            border: 3px solid ${isBlue ? '#93c5fd' : '#94a3b8'};
+            box-shadow: ${isBlue ? '0 0 20px #2563eb, 0 0 40px #2563eb' : '0 4px 8px rgba(0,0,0,0.3)'};
+            transition: all 0.3s ease;
           ">
-            <span style="font-size: 18px; line-height: 1;">${isBlue ? '🚨' : '🚦'}</span>
-            <div style="
-              background-color: #0f172a;
-              color: #f8fafc;
-              font-size: 10px;
-              font-weight: 900;
-              padding: 1px 5px;
-              border-radius: 4px;
-              border: 1px solid #334155;
-              letter-spacing: -0.5px;
-            ">${sig.code}</div>
-            ${isBlue ? '<span style="position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background: #60a5fa; border-radius: 50%; border: 2px solid white; animation: ping 1s infinite;"></span>' : ''}
+            <span style="font-size: 18px; line-height: 1;">${isBlue ? '🟦' : '🚦'}</span>
+            <span style="font-size: 9px; font-weight: 900; text-transform: uppercase; margin-top: 1px;">${sig.code}</span>
           </div>
         `,
-        iconSize: [50, 54],
-        iconAnchor: [25, 27]
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
       });
 
       const sm = L.marker([sig.location.lat, sig.location.lng], { icon: signalIcon });
-      sm.bindPopup(`<b>${sig.code} — ${sig.name}</b><br/>Blue Light Status: ${isBlue ? '🔵 ACTIVE GREEN CORRIDOR (<200m)' : '⚪ NORMAL (OFF)'}`);
+      sm.bindPopup(`
+        <div style="padding: 4px; text-align: center;">
+          <h4 style="margin: 0; color: #0f172a; font-size: 13px; font-weight: 800;">${sig.code} - ${sig.name}</h4>
+          <p style="margin: 4px 0 0 0; font-size: 11px; font-weight: 700; color: ${isBlue ? '#1d4ed8' : '#64748b'};">
+            ${isBlue ? '⚡ BLUE LIGHT ACTIVE (<200m)' : '🚦 SIGNAL NORMAL'}
+          </p>
+        </div>
+      `);
       layerGroup.addLayer(sm);
     });
 
-    setTimeout(() => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    }, 200);
-
-  }, [activeAmbulance, trafficSignals, hospitals, ambulances]);
+  }, [activeAmbulance, trafficSignals, hospitalCoords, pickupCoords]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4 text-slate-800">
@@ -236,81 +168,110 @@ export const GreenCorridorDemo = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 bg-emerald-800 border border-emerald-600 px-3.5 py-2 rounded-xl text-xs font-extrabold text-white shadow">
+        <div className="bg-emerald-900 px-4 py-2 rounded-2xl border border-emerald-600 text-xs font-bold flex items-center space-x-2">
           <Radio className="h-4 w-4 text-emerald-300 animate-pulse" />
-          <span>Active Dispatch Unit: <span className="text-emerald-200 font-black">{activeAmbulance ? activeAmbulance.code : 'AMB-101'}</span></span>
+          <span>Tracking Active Unit: <strong className="text-emerald-200">{activeAmbulance.code}</strong></span>
         </div>
       </div>
 
-      {/* Main Grid: Left Traffic Signal Monitor, Right Interactive Map */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        {/* Left 5 Cols: Signal Controller Panel */}
-        <div className="lg:col-span-5 bg-white border border-emerald-200 rounded-3xl p-5 shadow-sm space-y-4">
-          <div className="border-b border-emerald-100 pb-3">
-            <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-              Signal Blue Light Controller Monitor
-            </h2>
-            <p className="text-xs text-slate-500 font-medium">
-              4 Madurai Traffic Signals with automatic distance calculation
-            </p>
-          </div>
+        {/* Left Column: Traffic Signal Controller Table (5 cols) */}
+        <div className="lg:col-span-5 bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 uppercase tracking-wider font-serif">
+            Madurai Traffic Signal Controller Monitor
+          </h2>
 
           <div className="space-y-3">
             {trafficSignals.map((sig) => {
-              const isBlue = sig.blueLightActive;
+              const isBlueOn = sig.blueLightActive;
               return (
                 <div
                   key={sig.id}
-                  className={`p-4 rounded-2xl border-2 transition-all space-y-2 ${
-                    isBlue
-                      ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-200'
+                  className={`p-3.5 rounded-2xl border transition-all ${
+                    isBlueOn
+                      ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-300'
                       : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-extrabold text-xs text-slate-900 block">{sig.code} — {sig.name}</span>
-                      <span className="text-[11px] font-bold text-slate-500">
-                        Distance to Ambulance: <strong className="text-slate-800">{sig.distanceToAmbulanceKm !== null ? `${Math.round(sig.distanceToAmbulanceKm * 1000)} meters` : 'Calculating...'}</strong>
-                      </span>
+                    <div className="flex items-center space-x-2.5">
+                      <div
+                        className={`h-9 w-9 rounded-xl flex items-center justify-center font-black text-xs ${
+                          isBlueOn ? 'bg-blue-600 text-white animate-pulse' : 'bg-slate-700 text-white'
+                        }`}
+                      >
+                        {isBlueOn ? '🟦' : '🚦'}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-xs text-slate-900">{sig.code} - {sig.name}</h3>
+                        <p className="text-[10px] text-slate-500 font-semibold">Madurai Junction Signal</p>
+                      </div>
                     </div>
 
                     <span
-                      className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${
-                        isBlue
-                          ? 'bg-blue-600 text-white animate-pulse shadow-sm'
+                      className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                        isBlueOn
+                          ? 'bg-blue-600 text-white animate-bounce'
                           : 'bg-slate-200 text-slate-700'
                       }`}
                     >
-                      {isBlue ? 'BLUE LIGHT ON' : 'OFF'}
+                      {isBlueOn ? 'BLUE LIGHT ON' : 'NORMAL'}
                     </span>
                   </div>
 
-                  {isBlue && (
-                    <div className="bg-blue-100 border border-blue-300 rounded-xl p-2 text-[11px] font-bold text-blue-900 flex items-center space-x-1.5 animate-bounce">
-                      <span>🚨 Ambulance approaching (&lt;200m). Blue light activated automatically!</span>
-                    </div>
-                  )}
+                  <div className="mt-2 text-[11px] font-medium text-slate-600 flex justify-between items-center border-t border-slate-200/60 pt-1.5">
+                    <span>Distance to Ambulance:</span>
+                    <span className={`font-bold ${isBlueOn ? 'text-blue-700 text-xs' : 'text-slate-800'}`}>
+                      {sig.distanceToAmbulanceKm !== null && sig.distanceToAmbulanceKm !== undefined
+                        ? `${sig.distanceToAmbulanceKm} km`
+                        : 'Tracking...'}
+                    </span>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Right 7 Cols: Interactive Map matching exact user reference image */}
-        <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-3 shadow-sm min-h-[500px] flex flex-col">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-emerald-100 mb-2">
-            <span className="text-xs font-extrabold text-emerald-950 tracking-tight">Hospital Emergency Map Engine (Larger Markers)</span>
-            <span className="text-xs font-bold text-emerald-800">
-              Displaying Hospitals & Active Ambulances
-            </span>
+        {/* Right Column: Live Interactive Green Corridor Map (7 cols) */}
+        <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-4 shadow-sm flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center space-x-2">
+              <Navigation className="h-4 w-4 text-emerald-700" />
+              <span>Live Madurai Green Corridor Map View</span>
+            </h2>
+            <div className="flex items-center space-x-3 text-[10px] font-bold text-slate-600">
+              <span className="flex items-center space-x-1">
+                <span className="h-3 w-3 bg-red-600 rounded-full inline-block" />
+                <span>Pickup (P)</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <span className="h-3 w-3 bg-slate-700 rounded-sm inline-block" />
+                <span>Signal (🚦)</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <span className="h-3 w-3 bg-blue-600 rounded-sm inline-block" />
+                <span>Blue Light (🟦)</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <span className="h-3 w-3 bg-emerald-800 rounded-md inline-block" />
+                <span>Hospital (H)</span>
+              </span>
+            </div>
           </div>
 
           <div
             ref={mapRef}
-            className="w-full h-[520px] rounded-2xl overflow-hidden border border-slate-200 shadow-inner z-0"
+            className="w-full h-[440px] rounded-2xl border border-slate-200 shadow-inner z-0 overflow-hidden"
           />
+
+          <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-xs font-medium text-emerald-950 flex items-center space-x-2">
+            <ShieldCheck className="h-5 w-5 text-emerald-700 shrink-0" />
+            <span>
+              <strong>Green Corridor Protocol:</strong> When an active ambulance unit is within 200 metres (&lt;0.2km) of a Madurai traffic signal, the signal automatically activates its Blue Light signal to clear traffic.
+            </span>
+          </div>
         </div>
 
       </div>
