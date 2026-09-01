@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { AlertCircle, CheckCircle2, MapPin, Volume2, Accessibility, Radio, Sparkles } from 'lucide-react';
+import { AlertCircle, CheckCircle2, MapPin, Volume2, Accessibility, Radio, Sparkles, Mic } from 'lucide-react';
 
 export const PatientSosView = () => {
   const { createSosEmergency, sosEmergencies } = useApp();
@@ -10,9 +10,9 @@ export const PatientSosView = () => {
   const [address, setAddress] = useState('123 Wellness Blvd, Health City');
   const [submittedSos, setSubmittedSos] = useState(null);
 
-  // Voice Assistant State (Continuous Hands-Free / In-Built Google Assistant Mode)
-  const [isListening, setIsListening] = useState(true);
-  const [voiceStatus, setVoiceStatus] = useState('🎙️ Hands-Free Google Voice Assistant active...');
+  // Voice Assistant State
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState('🎙️ Click "TAP TO SPEAK" below to activate Voice Assistant');
   const [detectedText, setDetectedText] = useState('');
   const recognitionRef = useRef(null);
 
@@ -31,18 +31,18 @@ export const PatientSosView = () => {
     setSubmittedSos(sos);
   };
 
-  // Continuous Auto-Listening Speech Recognition (No Button Press Required)
-  const startContinuousSpeechRecognition = () => {
+  // Start Speech Recognition with user click permission
+  const startSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setVoiceStatus('Speech recognition active in hands-free fallback mode.');
+      setVoiceStatus('Speech recognition active in fallback mode. Click sound presets below.');
       return;
     }
 
     try {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try { recognitionRef.current.stop(); } catch(e) {}
       }
 
       const recognition = new SpeechRecognition();
@@ -52,7 +52,7 @@ export const PatientSosView = () => {
 
       recognition.onstart = () => {
         setIsListening(true);
-        setVoiceStatus('🔴 AUTO-LISTENING ACTIVE: Speak "HELP", "SOS", "AMBULANCE" hands-free...');
+        setVoiceStatus('🔴 VOICE LISTENING ACTIVE: Speak "HELP", "EMERGENCY", "AMBULANCE"...');
       };
 
       recognition.onresult = (event) => {
@@ -60,7 +60,6 @@ export const PatientSosView = () => {
           const text = event.results[i][0].transcript.toLowerCase();
           setDetectedText(text);
 
-          // Check if speech contains emergency trigger words
           if (
             text.includes('help') ||
             text.includes('sos') ||
@@ -69,40 +68,37 @@ export const PatientSosView = () => {
             text.includes('accident') ||
             text.includes('save me')
           ) {
-            setVoiceStatus(`✅ EMERGENCY DETECTED: "${text}". Transmitting to Call Centre!`);
+            setVoiceStatus(`✅ EMERGENCY DETECTED: "${text}". Transmitting signal to Call Centre!`);
             setIsListening(false);
             recognition.stop();
-            handleTriggerSos(`Google Voice SOS Auto-Trigger: "${text}" - ${address}`);
+            handleTriggerSos(`Google Voice SOS Trigger: "${text}" - ${address}`);
             break;
           }
         }
       };
 
-      recognition.onerror = () => {
-        setIsListening(true);
-        setVoiceStatus('🎙️ Hands-Free Voice Assistant monitoring audio automatically...');
+      recognition.onerror = (err) => {
+        console.log('Voice Recognition Error:', err);
+        setIsListening(false);
+        setVoiceStatus('🎙️ Tap microphone button below to re-activate voice assistant.');
       };
 
       recognition.onend = () => {
-        if (!submittedSos) {
-          setTimeout(() => {
-            try { recognition.start(); } catch(e) {}
-          }, 1000);
-        }
+        setIsListening(false);
       };
 
       recognition.start();
       recognitionRef.current = recognition;
     } catch (e) {
-      console.log('Auto Speech Recognition error:', e);
-      setIsListening(true);
-      setVoiceStatus('🎙️ Voice monitoring ready in hands-free mode...');
+      console.log('Speech Recognition init error:', e);
+      setIsListening(false);
+      setVoiceStatus('🎙️ Tap microphone button below to speak.');
     }
   };
 
-  // Automatically start listening on component load
+  // Auto-attempt startup on load
   useEffect(() => {
-    startContinuousSpeechRecognition();
+    startSpeechRecognition();
 
     return () => {
       if (recognitionRef.current) {
@@ -158,7 +154,7 @@ export const PatientSosView = () => {
           <button
             onClick={() => {
               setSubmittedSos(null);
-              startContinuousSpeechRecognition();
+              startSpeechRecognition();
             }}
             className="w-full py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs rounded-xl transition-all cursor-pointer"
           >
@@ -186,11 +182,27 @@ export const PatientSosView = () => {
                   In-Built Android Google Voice Assistant Integration
                 </h3>
               </div>
-              <span className="bg-red-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase animate-pulse flex items-center space-x-1 shrink-0">
+              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase flex items-center space-x-1 shrink-0 ${
+                isListening ? 'bg-red-600 text-white animate-pulse' : 'bg-emerald-700 text-white'
+              }`}>
                 <Radio className="h-3 w-3 text-white" />
-                <span>Auto-Listening Active</span>
+                <span>{isListening ? 'Listening Active' : 'Mic Ready'}</span>
               </span>
             </div>
+
+            {/* Tap to Speak Mic Trigger Button */}
+            <button
+              type="button"
+              onClick={startSpeechRecognition}
+              className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center space-x-2 shadow-md transition-all cursor-pointer ${
+                isListening
+                  ? 'bg-red-600 text-white animate-pulse ring-4 ring-red-300'
+                  : 'bg-[#064e3b] hover:bg-emerald-900 text-white'
+              }`}
+            >
+              <Mic className="h-5 w-5 animate-bounce" />
+              <span>{isListening ? '🎙️ LISTENING NOW... SPEAK "HELP"' : '🎙️ TAP TO SPEAK / START VOICE ASSISTANT'}</span>
+            </button>
 
             {/* Live Audio Status Display Box */}
             <div className="bg-white p-3 rounded-2xl border border-emerald-300 space-y-1">
@@ -208,7 +220,7 @@ export const PatientSosView = () => {
             {/* Quick 1-Click Audio / Command Presets */}
             <div className="space-y-1.5 pt-1">
               <label className="text-[10px] font-extrabold text-emerald-900 uppercase block">
-                Quick Sound & Command Presets (Fallback Trigger):
+                Quick Sound & Command Presets (Instant Trigger):
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
