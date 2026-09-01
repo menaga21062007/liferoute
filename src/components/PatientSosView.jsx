@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { AlertCircle, CheckCircle2, MapPin, Volume2, Accessibility, Radio, Sparkles, Smartphone, Wifi, Battery } from 'lucide-react';
+import { AlertCircle, CheckCircle2, MapPin, Volume2, Accessibility, Radio, Sparkles, Wifi, Battery } from 'lucide-react';
 
 export const PatientSosView = () => {
   const { createSosEmergency, sosEmergencies } = useApp();
@@ -182,24 +182,14 @@ export const PatientSosView = () => {
               
               <div>
                 <h2 className="text-base font-bold font-serif text-slate-900">
-                  Android Google Voice & 1-Tap SOS
+                  Android Google Voice Assistant SOS
                 </h2>
                 <p className="text-[10px] text-slate-500 font-medium">
-                  Built for speech-impaired & handicapped individuals.
+                  Hands-Free Emergency Response System
                 </p>
               </div>
 
-              {/* 1. ULTRA-HUGE BIGGER SOS BUTTON */}
-              <button
-                onClick={() => handleTriggerSos()}
-                type="button"
-                className="w-full py-8 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-2xl font-black text-xl uppercase tracking-wider shadow-xl flex items-center justify-center space-x-2 transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer ring-4 ring-red-200"
-              >
-                <AlertCircle className="h-8 w-8 text-white animate-bounce shrink-0" />
-                <span>SOS – TRIGGER EMERGENCY</span>
-              </button>
-
-              {/* 2. IN-BUILT GOOGLE VOICE ASSISTANT INTEGRATION BOX (PARAGRAPH REMOVED AS REQUESTED) */}
+              {/* IN-BUILT GOOGLE VOICE ASSISTANT INTEGRATION BOX */}
               <div className="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-3 text-left space-y-2.5 shadow-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1.5">
@@ -254,7 +244,7 @@ export const PatientSosView = () => {
                 </div>
               </div>
 
-              {/* 3. Pickup Address Card */}
+              {/* Pickup Address Card */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-left space-y-1.5 text-[11px]">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-700 uppercase text-[9px] tracking-wider">Pickup Location Address</span>
