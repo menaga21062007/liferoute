@@ -18,7 +18,8 @@ app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] } });
 
-let hospitals = JSON.parse(JSON.stringify(GOVERNMENT_HOSPITALS));
+let hospitals = JSON.parse(JSON.stringify(GOVERNMENT_HOSPITALS)).slice(0, 3);
+
 let ambulances = JSON.parse(JSON.stringify(INITIAL_AMBULANCES));
 let trafficSignals = JSON.parse(JSON.stringify(INITIAL_TRAFFIC_SIGNALS));
 let sosEmergencies = JSON.parse(JSON.stringify(INITIAL_SOS_EMERGENCIES));

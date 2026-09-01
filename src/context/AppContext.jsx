@@ -61,7 +61,8 @@ export const AppProvider = ({ children }) => {
   const [activeRole, setActiveRole] = useState('sos'); // Default primary view: Citizen SOS ('sos')
 
   const [selectedHospitalId, setSelectedHospitalId] = useState('hosp-1');
-  const [hospitals, setHospitals] = useState(GOVERNMENT_HOSPITALS);
+  const [hospitals, setHospitals] = useState(GOVERNMENT_HOSPITALS.slice(0, 3));
+
   const [ambulances, setAmbulances] = useState(INITIAL_AMBULANCES);
   const [trafficSignals, setTrafficSignals] = useState(INITIAL_TRAFFIC_SIGNALS);
   const [sosEmergencies, setSosEmergencies] = useState(INITIAL_SOS_EMERGENCIES);
