@@ -66,12 +66,11 @@ export const GreenCorridorDemo = () => {
     (a) => a.status === 'EN_ROUTE_TO_PATIENT' || a.status === 'PATIENT_ON_BOARD' || a.status === 'ON_WAY_TO_HOSPITAL'
   ) || ambulances[0];
 
-  const pickupCoords = { lat: 9.920000, lng: 78.116000 };
   const hospitalCoords = hospitals[0]?.location || { lat: 9.927500, lng: 78.125000 };
 
   // Multi-branch Green Corridor Route Polylines
   const primaryCorridorRoute = [
-    [9.920000, 78.116000], // Pickup (P)
+    [9.920000, 78.116000], 
     [9.917000, 78.113000], // TS-02 Periyar Junction
     [9.924000, 78.098000], // TS-04 Kalavasal Junction
     [9.929500, 78.126500], // TS-01 Goripalayam Junction
@@ -155,17 +154,7 @@ export const GreenCorridorDemo = () => {
     });
     routeLayer.addLayer(secondaryPolyline);
 
-    // 2. RENDER PATIENT PICKUP & HOSPITAL DROP MARKERS
-    const pickupIcon = L.divIcon({
-      className: 'custom-pickup-marker',
-      html: `<div style="background-color: #dc2626; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid white; box-shadow: 0 4px 10px rgba(220,38,38,0.6);">📍</div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
-    });
-    const pm = L.marker([pickupCoords.lat, pickupCoords.lng], { icon: pickupIcon });
-    pm.bindPopup('<b>Patient Pickup Point (P)</b><br/>Madurai Central');
-    ambLayer.addLayer(pm);
-
+    // 2. RENDER GOVERNMENT HOSPITAL DROP MARKER
     const dropHospitalIcon = L.divIcon({
       className: 'custom-drop-hosp-marker',
       html: `<div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 4px 12px rgba(6,78,59,0.7);">🏥</div>`,
@@ -250,7 +239,7 @@ export const GreenCorridorDemo = () => {
       signalLayer.addLayer(sm);
     });
 
-  }, [activeAmbulance, trafficSignals, hospitalCoords, pickupCoords]);
+  }, [activeAmbulance, trafficSignals, hospitalCoords]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4 text-slate-800">
@@ -342,10 +331,6 @@ export const GreenCorridorDemo = () => {
               <span>Live Madurai Green Corridor Map View</span>
             </h2>
             <div className="flex items-center space-x-3 text-[10px] font-bold text-slate-600">
-              <span className="flex items-center space-x-1">
-                <span className="h-3 w-3 bg-red-600 rounded-full inline-block" />
-                <span>Pickup (P)</span>
-              </span>
               <span className="flex items-center space-x-1">
                 <span className="h-3.5 w-3.5 bg-slate-900 border border-white rounded-sm inline-block text-[8px] text-center leading-none text-white">🚦</span>
                 <span>Signal (TS-##)</span>
