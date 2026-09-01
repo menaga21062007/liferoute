@@ -26,7 +26,7 @@ export const GreenCorridorDemo = () => {
     [9.927500, 78.125000]
   ];
 
-  // Initialize Leaflet Map Engine (Identical to Hospital Desk Dashboard)
+  // Initialize Leaflet Map Engine
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       if (mapRef.current._leaflet_id) {
@@ -64,7 +64,7 @@ export const GreenCorridorDemo = () => {
     };
   }, []);
 
-  // Update map markers, route polylines, and icons (Identical to Hospital Desk Map)
+  // Update map markers matching exact user reference image (media_1788282069351.png)
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layerGroup = layerGroupRef.current;
@@ -81,14 +81,29 @@ export const GreenCorridorDemo = () => {
     });
     layerGroup.addLayer(polyline);
 
-    // 2. Draw Hospitals on Map (Same as Hospital Desk)
+    // 2. Draw Hospitals on Map (Emerald Square Badge matching image)
     hospitals.forEach((hosp) => {
       if (!hosp.location) return;
       const hospitalIcon = L.divIcon({
-        className: 'custom-hosp-icon-lg',
-        html: `<div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid white; box-shadow: 0 0 14px rgba(6, 78, 59, 0.9);">🏥</div>`,
-        iconSize: [44, 44],
-        iconAnchor: [22, 22]
+        className: 'custom-hosp-icon-ref',
+        html: `
+          <div style="
+            background-color: #047857;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 16px;
+            border: 2px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+          ">🏥</div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
 
       const hm = L.marker([hosp.location.lat, hosp.location.lng], { icon: hospitalIcon });
@@ -98,23 +113,54 @@ export const GreenCorridorDemo = () => {
 
     // 3. Draw Pickup Point Marker
     const pickupIcon = L.divIcon({
-      className: 'custom-pickup-lg',
-      html: `<div style="background-color: #dc2626; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid white; box-shadow: 0 0 12px rgba(220, 38, 38, 0.8);">📍</div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      className: 'custom-pickup-ref',
+      html: `
+        <div style="
+          background-color: #dc2626;
+          color: white;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 900;
+          font-size: 14px;
+          border: 2.5px solid white;
+          box-shadow: 0 4px 10px rgba(220, 38, 38, 0.8);
+        ">📍</div>
+      `,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17]
     });
     const pm = L.marker([pickupCoords.lat, pickupCoords.lng], { icon: pickupIcon });
     pm.bindPopup('Patient Pickup Point (Madurai Central)');
     layerGroup.addLayer(pm);
 
-    // 4. Draw Active Ambulances (Same as Hospital Desk)
+    // 4. Draw Active Ambulances (Blue Circle Badge matching reference image)
     ambulances.forEach((amb) => {
       if (!amb.currentLocation) return;
+      const isEmergencyActive = amb.status === 'EN_ROUTE_TO_PATIENT' || amb.status === 'PATIENT_ON_BOARD' || amb.status === 'ON_WAY_TO_HOSPITAL';
       const ambIcon = L.divIcon({
-        className: 'custom-amb-icon-lg',
-        html: `<div style="background-color: #059669; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border: 3px solid white; box-shadow: 0 0 16px rgba(5, 150, 105, 1);">🚑</div>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+        className: 'custom-amb-icon-ref',
+        html: `
+          <div style="
+            background-color: ${isEmergencyActive ? '#dc2626' : '#2563eb'};
+            color: white;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            border: 3px solid white;
+            box-shadow: 0 0 14px ${isEmergencyActive ? 'rgba(220, 38, 38, 0.9)' : 'rgba(37, 99, 235, 0.9)'};
+          ">🚑</div>
+        `,
+        iconSize: [38, 38],
+        iconAnchor: [19, 19]
       });
 
       const am = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: ambIcon });
@@ -122,35 +168,44 @@ export const GreenCorridorDemo = () => {
       layerGroup.addLayer(am);
     });
 
-    // 5. Draw Traffic Signal Markers (Same as Hospital Desk)
+    // 5. Draw Traffic Signal Markers (Exact Card matching reference image media_1788282069351.png)
     trafficSignals.forEach((sig) => {
       if (!sig.location) return;
       const isBlue = sig.blueLightActive;
       const signalIcon = L.divIcon({
-        className: 'custom-sig-icon',
+        className: 'custom-sig-card-ref',
         html: `
           <div style="
-            background: ${isBlue ? 'linear-gradient(135deg, #1e40af, #3b82f6)' : 'linear-gradient(135deg, #1e293b, #334155)'};
+            background: ${isBlue ? 'linear-gradient(135deg, #1e3a8a, #2563eb)' : '#1e293b'};
             color: white;
-            width: 44px;
-            height: 44px;
+            width: 50px;
+            height: 54px;
             border-radius: 12px;
+            border: 2px solid ${isBlue ? '#60a5fa' : '#475569'};
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            border: 3px solid ${isBlue ? '#60a5fa' : '#94a3b8'};
-            box-shadow: ${isBlue ? '0 0 20px #3b82f6, 0 0 40px #2563eb' : '0 4px 6px rgba(0,0,0,0.3)'};
+            justify-content: space-evenly;
+            padding: 3px 2px;
+            box-shadow: ${isBlue ? '0 0 20px #2563eb' : '0 4px 10px rgba(0,0,0,0.5)'};
             position: relative;
           ">
-            <span>${isBlue ? '🚨' : '🚦'}</span>
-            <span style="font-size: 9px; font-weight: 900; background: rgba(0,0,0,0.6); padding: 0 4px; border-radius: 4px; margin-top: -2px;">${sig.code}</span>
-            ${isBlue ? '<span style="position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; background: #60a5fa; border-radius: 50%; border: 2px solid white; animation: ping 1s infinite;"></span>' : ''}
+            <span style="font-size: 18px; line-height: 1;">${isBlue ? '🚨' : '🚦'}</span>
+            <div style="
+              background-color: #0f172a;
+              color: #f8fafc;
+              font-size: 10px;
+              font-weight: 900;
+              padding: 1px 5px;
+              border-radius: 4px;
+              border: 1px solid #334155;
+              letter-spacing: -0.5px;
+            ">${sig.code}</div>
+            ${isBlue ? '<span style="position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background: #60a5fa; border-radius: 50%; border: 2px solid white; animation: ping 1s infinite;"></span>' : ''}
           </div>
         `,
-        iconSize: [44, 44],
-        iconAnchor: [22, 22]
+        iconSize: [50, 54],
+        iconAnchor: [25, 27]
       });
 
       const sm = L.marker([sig.location.lat, sig.location.lng], { icon: signalIcon });
@@ -243,7 +298,7 @@ export const GreenCorridorDemo = () => {
           </div>
         </div>
 
-        {/* Right 7 Cols: Interactive Map matching Hospital Desk Map */}
+        {/* Right 7 Cols: Interactive Map matching exact user reference image */}
         <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-3 shadow-sm min-h-[500px] flex flex-col">
           <div className="flex items-center justify-between px-3 py-2 border-b border-emerald-100 mb-2">
             <span className="text-xs font-extrabold text-emerald-950 tracking-tight">Hospital Emergency Map Engine (Larger Markers)</span>
@@ -251,7 +306,6 @@ export const GreenCorridorDemo = () => {
               Displaying Hospitals & Active Ambulances
             </span>
           </div>
-
 
           <div
             ref={mapRef}
