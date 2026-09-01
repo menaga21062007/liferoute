@@ -107,22 +107,43 @@ export const GreenCorridorDemo = () => {
       layerGroup.addLayer(am);
     }
 
-    // Traffic Signal Markers
+    // Traffic Signal Markers (Prominent Madurai Traffic Light Icons)
     trafficSignals.forEach((sig) => {
       if (!sig.location) return;
       const isBlue = sig.blueLightActive;
       const signalIcon = L.divIcon({
         className: 'custom-sig-icon',
-        html: `<div style="background-color: ${isBlue ? '#2563eb' : '#64748b'}; color: white; width: 26px; height: 26px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: ${isBlue ? '0 0 14px #2563eb' : 'none'};">${isBlue ? '🟦' : '🚦'}</div>`,
-        iconSize: [26, 26],
-        iconAnchor: [13, 13]
+        html: `
+          <div style="
+            background: ${isBlue ? 'linear-gradient(135deg, #1e40af, #3b82f6)' : 'linear-gradient(135deg, #1e293b, #334155)'};
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid ${isBlue ? '#60a5fa' : '#94a3b8'};
+            box-shadow: ${isBlue ? '0 0 20px #3b82f6, 0 0 40px #2563eb' : '0 4px 6px rgba(0,0,0,0.3)'};
+            position: relative;
+          ">
+            <span>${isBlue ? '🚨' : '🚦'}</span>
+            <span style="font-size: 9px; font-weight: 900; background: rgba(0,0,0,0.6); padding: 0 4px; border-radius: 4px; margin-top: -2px;">${sig.code}</span>
+            ${isBlue ? '<span style="position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; background: #60a5fa; border-radius: 50%; border: 2px solid white; animation: ping 1s infinite;"></span>' : ''}
+          </div>
+        `,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
       });
 
       const sm = L.marker([sig.location.lat, sig.location.lng], { icon: signalIcon });
-      sm.bindPopup(`<b>${sig.code} — ${sig.name}</b><br/>Blue Light: ${isBlue ? 'ACTIVE (<200m)' : 'OFF'}`);
+      sm.bindPopup(`<b>${sig.code} — ${sig.name}</b><br/>Blue Light Status: ${isBlue ? '🔵 ACTIVE GREEN CORRIDOR (<200m)' : '⚪ NORMAL (OFF)'}`);
       layerGroup.addLayer(sm);
     });
   }, [activeAmbulance, trafficSignals, hospitalCoords, pickupCoords]);
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 space-y-4 text-slate-800">

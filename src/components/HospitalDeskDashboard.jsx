@@ -121,9 +121,44 @@ export const HospitalDeskDashboard = () => {
       layerGroup.addLayer(am);
     });
 
+    // Traffic Signal Markers (Madurai Traffic Light Icons)
+    trafficSignals.forEach((sig) => {
+      if (!sig.location) return;
+      const isBlue = sig.blueLightActive;
+      const signalIcon = L.divIcon({
+        className: 'custom-sig-icon',
+        html: `
+          <div style="
+            background: ${isBlue ? 'linear-gradient(135deg, #1e40af, #3b82f6)' : 'linear-gradient(135deg, #1e293b, #334155)'};
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid ${isBlue ? '#60a5fa' : '#94a3b8'};
+            box-shadow: ${isBlue ? '0 0 20px #3b82f6, 0 0 40px #2563eb' : '0 4px 6px rgba(0,0,0,0.3)'};
+          ">
+            <span>${isBlue ? '🚨' : '🚦'}</span>
+            <span style="font-size: 9px; font-weight: 900; background: rgba(0,0,0,0.6); padding: 0 4px; border-radius: 4px; margin-top: -2px;">${sig.code}</span>
+          </div>
+        `,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+      });
+
+      const sm = L.marker([sig.location.lat, sig.location.lng], { icon: signalIcon });
+      sm.bindPopup(`<b>${sig.code} — ${sig.name}</b><br/>Blue Light: ${isBlue ? '🔵 ACTIVE GREEN CORRIDOR (<200m)' : '⚪ NORMAL (OFF)'}`);
+      layerGroup.addLayer(sm);
+    });
+
     if (currentHospital && currentHospital.location) {
       map.panTo([currentHospital.location.lat, currentHospital.location.lng]);
     }
+
 
     setTimeout(() => {
       if (mapInstanceRef.current) {
