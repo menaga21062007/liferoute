@@ -47,6 +47,16 @@ routerPost('/recommend-hospital', (req, res) => {
   res.json(recommendations);
 });
 
+routerPost('/sos', (req, res) => {
+  const { userId, latitude, longitude, timestamp, type } = req.body;
+  const incidentId = `INC-${Date.now().toString().slice(-4)}`;
+  const mapsLink = `https://maps.google.com/?q=${latitude},${longitude}`;
+
+  console.log(`[Netlify Serverless SOS] Incident ${incidentId} received from ${userId} at ${mapsLink}`);
+  res.json({ ok: true, incidentId });
+});
+
+
 routerPost('/marketplace/transfer', (req, res) => {
   const { resourceId, requestingHospitalName, requestedUnits } = req.body;
   const resItem = marketplaceResources.find(r => r.id === resourceId);
