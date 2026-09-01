@@ -139,14 +139,14 @@ export const PatientSosView = () => {
             <div className="h-9 w-9 rounded-xl bg-red-600 border border-red-400 flex items-center justify-center mx-auto shadow-sm">
               <AlertCircle className="h-5 w-5 text-white animate-bounce" />
             </div>
-            <h1 className="text-lg font-bold font-serif text-white tracking-tight">CITIZEN EMERGENCY SOS</h1>
+            <h1 className="text-lg font-bold font-serif text-white tracking-tight">PATIENT EMERGENCY PORTAL</h1>
             <p className="text-[10px] text-emerald-200 font-medium">WellCare Dispatch Network • Toll-Free 108</p>
           </div>
 
           {activeUserSos ? (
             <div className="bg-white border-2 border-emerald-600 rounded-2xl p-4 shadow-sm space-y-3 text-center">
               <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto animate-pulse" />
-              <h2 className="text-base font-bold font-serif text-slate-900">EMERGENCY SOS BROADCASTED!</h2>
+              <h2 className="text-base font-bold font-serif text-slate-900">PATIENT EMERGENCY BROADCASTED!</h2>
 
               <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-left space-y-1.5 text-[11px]">
                 <div className="flex justify-between border-b border-emerald-200 pb-1">
@@ -174,7 +174,7 @@ export const PatientSosView = () => {
                 }}
                 className="w-full py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs rounded-xl transition-all cursor-pointer"
               >
-                Trigger Another SOS Request
+                Trigger Another Emergency Request
               </button>
             </div>
           ) : (
@@ -182,12 +182,13 @@ export const PatientSosView = () => {
               
               <div>
                 <h2 className="text-base font-bold font-serif text-slate-900">
-                  Android Google Voice Assistant SOS
+                  Android Google Voice Assistant Emergency
                 </h2>
                 <p className="text-[10px] text-slate-500 font-medium">
                   Hands-Free Emergency Response System
                 </p>
               </div>
+
 
               {/* IN-BUILT GOOGLE VOICE ASSISTANT INTEGRATION BOX */}
               <div className="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-3 text-left space-y-2.5 shadow-xs">

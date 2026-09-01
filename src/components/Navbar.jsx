@@ -15,7 +15,8 @@ export const Navbar = () => {
   const { activeRole, setActiveRole } = useApp();
 
   const roles = [
-    { id: 'sos', label: '1. Patient SOS', icon: AlertCircle },
+    { id: 'sos', label: '1. Patient Emergency', icon: AlertCircle },
+
     { id: 'callcentre', label: '2. Call Centre', icon: PhoneCall },
     { id: 'ambulance', label: '3. Ambulance Crew', icon: Ambulance },
     { id: 'hospital', label: '4. Hospital Desk', icon: Building2 },
