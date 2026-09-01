@@ -31,85 +31,6 @@ app.get('/api/state', (req, res) => {
   res.json({ hospitals, ambulances, trafficSignals, sosEmergencies });
 });
 
-// Emergency SOS Endpoint with Twilio Call Centre Automated Calling & SMS Integration
-app.post('/api/sos', async (req, res) => {
-  const { userId, latitude, longitude, timestamp, type } = req.body;
-
-  if (latitude === undefined || longitude === undefined) {
-    return res.status(400).json({ ok: false, error: 'Missing latitude or longitude coordinates' });
-  }
-
-  const incidentId = `INC-${Date.now().toString().slice(-4)}`;
-  const mapsLink = `https://maps.google.com/?q=${latitude},${longitude}`;
-
-  const newIncident = {
-    id: incidentId,
-    userId: userId || 'device-user-108',
-    latitude,
-    longitude,
-    timestamp: timestamp || new Date().toISOString(),
-    type: type || 'MEDICAL',
-    status: 'OPEN',
-    createdAt: new Date().toISOString()
-  };
-
-  const sosRecord = {
-    id: incidentId,
-    patientName: `User (${newIncident.userId})`,
-    phone: '123-456-7890',
-    age: 42,
-    gender: 'Other',
-    emergencyType: newIncident.type,
-    pickupLocation: {
-      lat: latitude,
-      lng: longitude,
-      address: `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-    },
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    status: 'PENDING_DISPATCH',
-    assignedAmbulanceCode: null,
-    targetHospitalId: 'hosp-1'
-  };
-
-  sosEmergencies.unshift(sosRecord);
-  broadcastFullState();
-
-  // Twilio Call Centre Notification Integration
-  const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
-  const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
-  const twilioFromNumber = process.env.TWILIO_FROM_NUMBER;
-  const callCentreNumber = process.env.CALL_CENTRE_NUMBER || '+919876543210';
-
-  if (twilioAccountSid && twilioAuthToken && twilioFromNumber) {
-    try {
-      const twilioModule = await import('twilio');
-      const client = twilioModule.default(twilioAccountSid, twilioAuthToken);
-
-      // Automated Voice Call to Call Centre
-      await client.calls.create({
-        twiml: `<Response><Say voice="alice">New Emergency SOS alert from user ${newIncident.userId}. Location latitude ${latitude}, longitude ${longitude}. Please dispatch ambulance immediately.</Say></Response>`,
-        to: callCentreNumber,
-        from: twilioFromNumber
-      });
-
-      // SMS Notification with Google Maps Link
-      await client.messages.create({
-        body: `🚨 SOS Alert from ${newIncident.userId}! Type: ${newIncident.type}. Location: ${mapsLink}`,
-        to: callCentreNumber,
-        from: twilioFromNumber
-      });
-
-      console.log(`📞 Twilio Voice Call & SMS dispatched to Call Centre (${callCentreNumber})`);
-    } catch (err) {
-      console.log('Twilio Notification Error:', err.message);
-    }
-  } else {
-    console.log(`[Demo Notification] Voice call & SMS dispatched to Call Centre (${callCentreNumber}): SOS from ${newIncident.userId} at ${mapsLink}`);
-  }
-
-  res.json({ ok: true, incidentId });
-});
-
 // Citizen SOS Submission
 app.post('/api/sos/create', (req, res) => {
   const { patientName, phone, age, gender, emergencyType, pickupLocation } = req.body;
@@ -131,7 +52,6 @@ app.post('/api/sos/create', (req, res) => {
   broadcastFullState();
   res.json({ success: true, sos: newSos });
 });
-
 
 // Call Centre Ambulance Assignment
 app.post('/api/dispatch/assign', (req, res) => {

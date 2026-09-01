@@ -1,5 +1,5 @@
 {
   "appId": "com.liferoute.sos",
   "appName": "LifeRouteSOS",
-  "webDir": "dist"
+  "webDir": "www"
 }

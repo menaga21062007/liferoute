@@ -1,17 +1,30 @@
 import React from 'react';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
+import { Navbar } from './components/Navbar';
 import { PatientSosView } from './components/PatientSosView';
+import { CallCentreDashboard } from './components/CallCentreDashboard';
+import { AmbulanceCrewDashboard } from './components/AmbulanceCrewDashboard';
+import { HospitalDeskDashboard } from './components/HospitalDeskDashboard';
+import { GreenCorridorDemo } from './components/GreenCorridorDemo';
 
 const MainLayout = () => {
+  const { activeRole } = useApp();
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 selection:bg-emerald-600 selection:text-white justify-center items-center py-4">
-      <main className="w-full flex-1 flex flex-col justify-center items-center">
-        <PatientSosView />
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 selection:bg-emerald-600 selection:text-white pb-8">
+      <Navbar />
+
+      <main className="flex-1 py-4">
+        {activeRole === 'sos' && <PatientSosView />}
+        {activeRole === 'callcentre' && <CallCentreDashboard />}
+        {activeRole === 'ambulance' && <AmbulanceCrewDashboard />}
+        {activeRole === 'hospital' && <HospitalDeskDashboard />}
+        {activeRole === 'corridor' && <GreenCorridorDemo />}
       </main>
 
-      <footer className="w-full py-2 text-center text-[10px] text-slate-500 font-medium mt-auto">
-        WellCare Emergency Network • Toll-Free 108
+      <footer className="border-t border-emerald-800/80 bg-[#064e3b] py-3 text-center text-xs text-emerald-200 font-medium">
+        WellCare Medical Center & LifeRoute Emergency Response Network • Toll-Free 108 / (123) 456-7890
       </footer>
     </div>
   );
