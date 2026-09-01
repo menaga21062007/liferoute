@@ -1,89 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { PhoneCall, MapPin, Ambulance, Building2, Clock, CheckCircle2 } from 'lucide-react';
-import L from 'leaflet';
+import { PhoneCall, MapPin, Ambulance, Clock, CheckCircle2, ShieldCheck, User } from 'lucide-react';
 
 export const CallCentreDashboard = () => {
-  const { sosEmergencies, ambulances, assignAmbulance } = useApp();
+  const { sosEmergencies, ambulances, assignAmbulance, hospitals } = useApp();
   const [selectedSosId, setSelectedSosId] = useState(sosEmergencies[0]?.id || null);
   const [selectedAmbulanceCode, setSelectedAmbulanceCode] = useState('AMB-101');
 
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const layerGroupRef = useRef(null);
-
   const selectedSos = sosEmergencies.find((s) => s.id === selectedSosId) || sosEmergencies[0];
-
-  useEffect(() => {
-    if (mapRef.current && !mapInstanceRef.current) {
-      const map = L.map(mapRef.current, {
-        center: [9.9252, 78.1200],
-        zoom: 13,
-        zoomControl: true
-      });
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
-      }).addTo(map);
-
-      const layerGroup = L.layerGroup().addTo(map);
-      layerGroupRef.current = layerGroup;
-      mapInstanceRef.current = map;
-
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 200);
-
-    }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        layerGroupRef.current = null;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    const layerGroup = layerGroupRef.current;
-    if (!map || !layerGroup) return;
-
-    layerGroup.clearLayers();
-
-    // Patient Marker
-    if (selectedSos && selectedSos.pickupLocation) {
-      const patientIcon = L.divIcon({
-        className: 'custom-patient-icon',
-        html: `<div style="background-color: #dc2626; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);">SOS</div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
-      });
-
-      const m = L.marker([selectedSos.pickupLocation.lat, selectedSos.pickupLocation.lng], { icon: patientIcon });
-      m.bindPopup(`<b>${selectedSos.id}</b><br/>${selectedSos.patientName}`);
-      layerGroup.addLayer(m);
-    }
-
-    // Ambulance Markers
-    ambulances.forEach((amb) => {
-      if (!amb.currentLocation) return;
-      const ambIcon = L.divIcon({
-        className: 'custom-amb-icon',
-        html: `<div style="background-color: #059669; color: white; width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px rgba(5, 150, 105, 0.8);">AMB</div>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-      });
-
-      const m = L.marker([amb.currentLocation.lat, amb.currentLocation.lng], { icon: ambIcon });
-      m.bindPopup(`<b>${amb.code}</b><br/>Status: ${amb.status}`);
-      layerGroup.addLayer(m);
-    });
-  }, [selectedSos, ambulances]);
 
   const handleDispatch = (e) => {
     e.preventDefault();
@@ -102,7 +26,7 @@ export const CallCentreDashboard = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold font-serif text-white">AMBULANCE CALL CENTRE OPERATOR DESK</h1>
-            <p className="text-xs text-emerald-200 font-medium">City Emergency Control Room • Rapid Ambulance Dispatch Unit</p>
+            <p className="text-xs text-emerald-200 font-medium">Madurai Emergency Control Room • Rapid Dispatch Unit</p>
           </div>
         </div>
 
@@ -118,14 +42,14 @@ export const CallCentreDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        {/* Left Column: Active SOS List (5 cols) */}
-        <div className="lg:col-span-5 bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
+        {/* Left Column: Incoming Active SOS List (6 cols) */}
+        <div className="lg:col-span-6 bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
           <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 uppercase tracking-wider flex items-center justify-between font-serif">
-            <span>Incoming Active Emergency Requests</span>
+            <span>Incoming Emergency Queue</span>
             <span className="text-xs text-emerald-700 font-normal">Real-time Queue</span>
           </h2>
 
-          <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-[550px] overflow-y-auto pr-1">
             {sosEmergencies.map((sos) => {
               const isSelected = selectedSos?.id === sos.id;
               return (
@@ -170,23 +94,42 @@ export const CallCentreDashboard = () => {
           </div>
         </div>
 
-        {/* Right Column: Dispatch Panel & Map (7 cols) */}
-        <div className="lg:col-span-7 space-y-4">
+        {/* Right Column: Dispatch Action Control & Fleet Status (6 cols) */}
+        <div className="lg:col-span-6 space-y-4">
           
-          {/* Dispatch Control Form (Hospital Selection Removed) */}
+          {/* Dispatch Control Form */}
           {selectedSos && (
-            <form onSubmit={handleDispatch} className="bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
-              <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-wider border-b border-slate-100 pb-1">
-                Dispatch Ambulance to Emergency Request [{selectedSos.id}]
-              </h3>
+            <form onSubmit={handleDispatch} className="bg-white border border-emerald-200 rounded-3xl p-5 space-y-4 shadow-sm">
+              <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+                <h3 className="text-xs font-bold text-emerald-900 uppercase tracking-wider">
+                  Dispatch Control Desk [{selectedSos.id}]
+                </h3>
+                <span className="bg-red-100 text-red-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">
+                  {selectedSos.status}
+                </span>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Patient Details Card */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-700 flex items-center space-x-1">
+                    <User className="h-3.5 w-3.5 text-emerald-700" />
+                    <span>Patient: {selectedSos.patientName}</span>
+                  </span>
+                  <span className="text-slate-500 font-semibold">{selectedSos.phone}</span>
+                </div>
+                <p className="text-slate-600 font-medium">
+                  <strong>Pickup Location:</strong> {selectedSos.pickupLocation?.address}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="text-xs text-slate-700 font-bold block mb-1">Select Available Ambulance</label>
+                  <label className="text-xs text-slate-700 font-bold block mb-1">Select Available Ambulance Unit</label>
                   <select
                     value={selectedAmbulanceCode}
                     onChange={(e) => setSelectedAmbulanceCode(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer"
                   >
                     {ambulances.map((amb) => (
                       <option key={amb.id} value={amb.code}>
@@ -196,28 +139,59 @@ export const CallCentreDashboard = () => {
                   </select>
                 </div>
 
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex flex-col justify-center">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase block">Hospital Allocation Method</span>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col justify-center">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase block">Hospital Allocation Protocol</span>
                   <p className="text-xs font-extrabold text-emerald-900 flex items-center space-x-1 mt-0.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>Auto-Assigned by Bed Availability</span>
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Auto-Assigned by Bed Availability to Ambulance Crew</span>
                   </p>
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#064e3b] hover:bg-emerald-900 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                className="w-full py-3.5 bg-[#064e3b] hover:bg-emerald-900 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer"
               >
-                <Ambulance className="h-4 w-4" />
+                <Ambulance className="h-4 w-4 text-emerald-200" />
                 <span>DISPATCH AMBULANCE {selectedAmbulanceCode} TO {selectedSos.patientName}</span>
               </button>
             </form>
           )}
 
-          {/* Direct DOM Leaflet Map Container */}
-          <div className="bg-white border border-emerald-200 rounded-3xl p-2 h-[420px] relative overflow-hidden shadow-sm">
-            <div ref={mapRef} className="w-full h-full rounded-2xl z-0" />
+          {/* Ambulance Fleet Units Status Board */}
+          <div className="bg-white border border-emerald-200 rounded-3xl p-4 space-y-3 shadow-sm">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 font-serif">
+              Government Ambulance Units Overview
+            </h3>
+
+            <div className="space-y-2">
+              {ambulances.map((amb) => (
+                <div key={amb.id} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="p-2 bg-emerald-100 rounded-xl text-emerald-900 font-black">
+                      <Ambulance className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900">{amb.code} — {amb.unitName}</h4>
+                      <p className="text-[10px] text-slate-500 font-medium">Driver: {amb.driverName} • Paramedic: {amb.paramedicName}</p>
+                    </div>
+                  </div>
+
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase ${
+                    amb.status === 'AVAILABLE' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-blue-100 text-blue-900 border border-blue-300'
+                  }`}>
+                    {amb.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs text-emerald-950 flex items-center space-x-2">
+            <ShieldCheck className="h-5 w-5 text-emerald-700 shrink-0" />
+            <span>
+              <strong>Operator Dispatch Active:</strong> Once dispatched, the designated ambulance receives auto-allocated hospital bed confirmation.
+            </span>
           </div>
 
         </div>
