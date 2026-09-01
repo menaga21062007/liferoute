@@ -4,19 +4,24 @@ import { Building2, Ambulance, Bed, Activity, CheckCircle2, RefreshCw, User, Edi
 import L from 'leaflet';
 
 export const HospitalDeskDashboard = () => {
-  const { hospitals, ambulances, hospitalBedsMap, updateBedStatus } = useApp();
+  const { hospitals = [], ambulances = [], trafficSignals = [], hospitalBedsMap = {}, updateBedStatus } = useApp();
   const [selectedHospitalId, setSelectedHospitalId] = useState(hospitals[0]?.id || 'hosp-1');
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const layerGroupRef = useRef(null);
 
-  const currentHospital = hospitals.find((h) => h.id === selectedHospitalId) || hospitals[0];
-  const currentBeds = hospitalBedsMap[selectedHospitalId] || [];
+  const currentHospital = hospitals.find((h) => h.id === selectedHospitalId) || hospitals[0] || {
+    id: 'hosp-1',
+    name: 'Government Rajaji Hospital (Madurai GH)',
+    location: { lat: 9.9275, lng: 78.125 }
+  };
+  const currentBeds = (hospitalBedsMap && hospitalBedsMap[selectedHospitalId]) || [];
 
   const incomingAmbulances = ambulances.filter(
-    (a) => a.targetHospitalId === currentHospital.id && a.patient
+    (a) => a && currentHospital && a.targetHospitalId === currentHospital.id && a.patient
   );
+
 
   // Compute live bed statistics for THIS selected hospital
   const availableBedsCount = currentBeds.filter((b) => b.status === 'AVAILABLE').length;
@@ -165,7 +170,8 @@ export const HospitalDeskDashboard = () => {
         mapInstanceRef.current.invalidateSize();
       }
     }, 200);
-  }, [currentHospital, ambulances, hospitals]);
+  }, [currentHospital, ambulances, hospitals, trafficSignals]);
+
 
   const handleEditPatientName = (bed) => {
     const newName = prompt(`Enter Patient Name for Bed ${bed.number}:`, bed.patientName !== 'Unassigned' ? bed.patientName : '');
