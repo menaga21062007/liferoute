@@ -41,7 +41,8 @@ app.post('/api/sos/create', (req, res) => {
     age: age || 45,
     gender: gender || "Male",
     emergencyType: emergencyType || "Accident",
-    pickupLocation: pickupLocation || { lat: 40.715000, lng: -73.955000, address: "Suburban Pickup Point" },
+    pickupLocation: pickupLocation || { lat: 9.920000, lng: 78.116000, address: "West Masi Street, Periyar, Madurai, Tamil Nadu, India" },
+
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     status: "PENDING_DISPATCH",
     assignedAmbulanceCode: null,

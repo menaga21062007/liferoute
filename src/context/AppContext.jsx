@@ -224,14 +224,14 @@ export const AppProvider = ({ children }) => {
   };
 
   // Automatically find nearest hospital with available beds
-  const findBestAvailableHospital = (pickupLocation = { lat: 40.715000, lng: -73.955000 }) => {
+  const findBestAvailableHospital = (pickupLocation = { lat: 9.920000, lng: 78.116000 }) => {
     const openHospitals = hospitals.filter((h) => h.availableBeds > 0);
     const candidates = openHospitals.length > 0 ? openHospitals : hospitals;
 
     const ranked = candidates.map((h) => {
       const dist = calculateDistanceKm(
-        pickupLocation.lat || 40.715000,
-        pickupLocation.lng || -73.955000,
+        pickupLocation.lat || 9.920000,
+        pickupLocation.lng || 78.116000,
         h.location.lat,
         h.location.lng
       );
@@ -284,7 +284,7 @@ export const AppProvider = ({ children }) => {
               gender: sos?.gender || 'Male',
               phone: sos?.phone || '9876543210',
               emergencyType: sos?.emergencyType || 'Accident',
-              pickupLocation: sos?.pickupLocation || { lat: 40.715000, lng: -73.955000 }
+              pickupLocation: sos?.pickupLocation || { lat: 9.920000, lng: 78.116000 }
             }
           };
         }
@@ -292,6 +292,7 @@ export const AppProvider = ({ children }) => {
       })
     );
   };
+
 
 
   // Ambulance crew scene vitals entry (connected to backend)

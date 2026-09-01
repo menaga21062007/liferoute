@@ -14,25 +14,26 @@ export const GreenCorridorDemo = () => {
     (a) => a.status === 'EN_ROUTE_TO_PATIENT' || a.status === 'PATIENT_ON_BOARD' || a.status === 'ON_WAY_TO_HOSPITAL'
   ) || ambulances[0];
 
-  const pickupCoords = { lat: 40.715000, lng: -73.955000 };
-  const hospitalCoords = hospitals[0]?.location || { lat: 40.730610, lng: -73.935242 };
+  const pickupCoords = { lat: 9.920000, lng: 78.116000 };
+  const hospitalCoords = hospitals[0]?.location || { lat: 9.927500, lng: 78.125000 };
 
   const routePolyline = [
-    [40.715000, -73.955000],
-    [40.718000, -73.950000],
-    [40.722000, -73.945000],
-    [40.727000, -73.939000],
-    [40.730000, -73.936000],
-    [40.730610, -73.935242]
+    [9.920000, 78.116000],
+    [9.929500, 78.126500],
+    [9.917000, 78.113000],
+    [9.951000, 78.151000],
+    [9.924000, 78.098000],
+    [9.927500, 78.125000]
   ];
 
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       const map = L.map(mapRef.current, {
-        center: [40.722, -73.945],
+        center: [9.9252, 78.1200],
         zoom: 13,
         zoomControl: true
       });
+
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'

@@ -99,7 +99,8 @@ export const MapView = ({ focusedAmbulanceId = null, height = "h-full" }) => {
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       const map = L.map(mapRef.current, {
-        center: [40.732000, -73.960000],
+        center: [9.9252, 78.1200],
+
         zoom: 13,
         zoomControl: false
       });

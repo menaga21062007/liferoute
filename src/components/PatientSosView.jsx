@@ -7,7 +7,7 @@ export const PatientSosView = () => {
   
   const [patientName, setPatientName] = useState('Citizen Patient (Hands-Free Voice SOS)');
   const [phone, setPhone] = useState('123-456-7890');
-  const [address, setAddress] = useState('123 Wellness Blvd, Health City');
+  const [address, setAddress] = useState('123 West Masi Street, Madurai, Tamil Nadu, India');
   const [submittedSos, setSubmittedSos] = useState(null);
 
   // Voice Assistant State
@@ -23,13 +23,14 @@ export const PatientSosView = () => {
       age: 42,
       emergencyType: 'Hands-Free Google Voice SOS',
       pickupLocation: {
-        lat: 40.715000,
-        lng: -73.955000,
-        address: customAddress || address || '123 Wellness Blvd, Health City'
+        lat: 9.920000,
+        lng: 78.116000,
+        address: customAddress || address || '123 West Masi Street, Madurai, Tamil Nadu, India'
       }
     });
     setSubmittedSos(sos);
   };
+
 
   // Start Speech Recognition with user click permission
   const startSpeechRecognition = () => {

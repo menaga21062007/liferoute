@@ -141,7 +141,8 @@ export const UniversalSharedMap = ({
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       const map = L.map(mapRef.current, {
-        center: [40.735000, -73.965000],
+        center: [9.9252, 78.1200],
+
         zoom: isMiniMap ? 11 : 12,
         zoomControl: !isMiniMap,
         dragging: !isMiniMap,

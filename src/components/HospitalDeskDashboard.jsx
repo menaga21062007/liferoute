@@ -32,7 +32,8 @@ export const HospitalDeskDashboard = () => {
       }
 
       const map = L.map(mapRef.current, {
-        center: [40.722, -73.945],
+        center: [9.9252, 78.1200],
+
         zoom: 13,
         zoomControl: true
       });
