@@ -100,6 +100,31 @@ export const PatientSosView = () => {
     }
   };
 
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallApp = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the app install prompt');
+        }
+        setDeferredPrompt(null);
+      });
+    } else {
+      alert("📱 To install this SOS page as a Standalone App on your phone:\n\n1. Android Chrome: Tap top 3-dots menu ➔ Tap 'Add to Home screen' or 'Install App'.\n\n2. iPhone Safari: Tap Share button ➔ Tap 'Add to Home Screen'.");
+    }
+  };
+
   // Automatically start listening on component load
   useEffect(() => {
     startContinuousSpeechRecognition();
@@ -135,6 +160,15 @@ export const PatientSosView = () => {
           <h1 className="text-lg font-bold font-serif text-white uppercase tracking-tight">CITIZEN SOS APP</h1>
           <p className="text-[10px] text-emerald-200 font-medium">WellCare Emergency Dispatch • Toll-Free 108</p>
         </div>
+
+        {/* 📲 1-CLICK INSTALL AS MOBILE APP BUTTON */}
+        <button
+          onClick={handleInstallApp}
+          className="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer border border-emerald-500"
+        >
+          <span>📱 INSTALL AS STANDALONE PHONE APP</span>
+        </button>
+
 
         {activeUserSos ? (
           <div className="bg-white border-2 border-emerald-600 rounded-2xl p-5 shadow-sm space-y-3 text-center">
