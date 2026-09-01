@@ -152,17 +152,9 @@ export const AmbulanceCrewDashboard = () => {
 
           </div>
 
-          {/* Native Phone Map Launcher Button */}
-          <button
-            onClick={handleNativeNavigation}
-            className="w-full py-3.5 bg-[#064e3b] hover:bg-emerald-900 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer"
-          >
-            <Navigation className="h-4 w-4 text-emerald-300" />
-            <span>NAVIGATE TO PATIENT (OPEN PHONE MAPS)</span>
-          </button>
-
           {/* Action Buttons: Mark On Board & Arrived */}
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+
             <button
               onClick={handleMarkPatientOnBoard}
               className="py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl uppercase shadow-sm cursor-pointer"
