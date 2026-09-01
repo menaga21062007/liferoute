@@ -1,0 +1,13 @@
+{
+  "appId": "com.liferoute.app",
+  "appName": "LifeRoute",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorCookies": {
+      "enabled": true
+    }
+  }
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LifeRoute</string>
+    <string name="title_activity_main">LifeRoute</string>
+    <string name="package_name">com.liferoute.app</string>
+    <string name="custom_url_scheme">com.liferoute.app</string>
+</resources>
