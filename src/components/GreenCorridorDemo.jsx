@@ -246,11 +246,12 @@ export const GreenCorridorDemo = () => {
         {/* Right 7 Cols: Interactive Map matching Hospital Desk Map */}
         <div className="lg:col-span-7 bg-white border border-emerald-200 rounded-3xl p-3 shadow-sm min-h-[500px] flex flex-col">
           <div className="flex items-center justify-between px-3 py-2 border-b border-emerald-100 mb-2">
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Live Green Corridor Map Tracking</span>
-            <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-              Madurai, Tamil Nadu
+            <span className="text-xs font-extrabold text-emerald-950 tracking-tight">Hospital Emergency Map Engine (Larger Markers)</span>
+            <span className="text-xs font-bold text-emerald-800">
+              Displaying Hospitals & Active Ambulances
             </span>
           </div>
+
 
           <div
             ref={mapRef}
