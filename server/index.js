@@ -148,8 +148,9 @@ setInterval(() => {
         sig.location.lng
       );
       sig.distanceToAmbulanceKm = parseFloat(distKm.toFixed(2));
-      // Turn BLUE LIGHT ON if within 200 meters (0.2 km)
-      sig.blueLightActive = distKm <= 0.2;
+      // Turn BLUE LIGHT ON if within signal approach range (<= 0.45 km)
+      sig.blueLightActive = distKm <= 0.45;
+
     } else {
       sig.blueLightActive = false;
       sig.distanceToAmbulanceKm = null;

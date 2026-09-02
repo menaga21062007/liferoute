@@ -5,12 +5,10 @@ import L from 'leaflet';
 
 /**
  * ============================================================================
- * TRAFFIC SIGNAL DATA CONFIGURATION (GREEN CORRIDOR DEMO)
+ * TRAFFIC SIGNAL DATA CONFIGURATION (MADURAI STRAIGHT CORRIDOR)
  * ============================================================================
- * How to Edit Signal Points:
- * 1. Add/Remove signal objects in this array with `id`, `code`, `name`, `lat`, `lng`, `status`.
- * 2. Position signal points directly along green corridor route polylines.
- * 3. The `trafficSignalLayer` renders these as custom dark navy 🚦 badges matching reference spec.
+ * 4 Traffic Signals Aligned in a Straight Line (TS-01 -> TS-02 -> TS-03 -> TS-04)
+ * Government Hospital is positioned directly at the end of the 4th Signal (TS-04).
  * ============================================================================
  */
 export const GREEN_CORRIDOR_SIGNALS_CONFIG = [
@@ -18,37 +16,37 @@ export const GREEN_CORRIDOR_SIGNALS_CONFIG = [
     id: "sig-01",
     code: "TS-01",
     name: "Goripalayam Junction (Madurai)",
-    lat: 9.929500,
-    lng: 78.126500,
+    lat: 9.920000,
+    lng: 78.115000,
     status: "active",
-    branch: "North-East Corridor"
+    branch: "Signal 1"
   },
   {
     id: "sig-02",
     code: "TS-02",
     name: "Periyar Bus Stand Junction (Madurai)",
-    lat: 9.917000,
-    lng: 78.113000,
+    lat: 9.925000,
+    lng: 78.125000,
     status: "active",
-    branch: "Central Corridor"
+    branch: "Signal 2"
   },
   {
     id: "sig-03",
     code: "TS-03",
     name: "Mattuthavani Junction (Madurai)",
-    lat: 9.951000,
-    lng: 78.151000,
+    lat: 9.930000,
+    lng: 78.135000,
     status: "active",
-    branch: "North Corridor"
+    branch: "Signal 3"
   },
   {
     id: "sig-04",
     code: "TS-04",
     name: "Kalavasal Junction (Madurai)",
-    lat: 9.924000,
-    lng: 78.098000,
+    lat: 9.935000,
+    lng: 78.145000,
     status: "active",
-    branch: "West Corridor"
+    branch: "Signal 4 (Hospital Entrance)"
   }
 ];
 
@@ -66,21 +64,17 @@ export const GreenCorridorDemo = () => {
     (a) => a.status === 'EN_ROUTE_TO_PATIENT' || a.status === 'PATIENT_ON_BOARD' || a.status === 'ON_WAY_TO_HOSPITAL'
   ) || ambulances[0];
 
-  const hospitalCoords = hospitals[0]?.location || { lat: 9.927500, lng: 78.125000 };
+  // Government Hospital is placed at the end of the 4th Signal (TS-04)
+  const hospitalCoords = { lat: 9.938000, lng: 78.150000 };
 
-  // Multi-branch Green Corridor Route Polylines
-  const primaryCorridorRoute = [
-    [9.920000, 78.116000], 
-    [9.917000, 78.113000], // TS-02 Periyar Junction
-    [9.924000, 78.098000], // TS-04 Kalavasal Junction
-    [9.929500, 78.126500], // TS-01 Goripalayam Junction
-    [9.927500, 78.125000]  // Govt Hospital Drop (H)
-  ];
-
-  const secondaryCorridorBranch = [
-    [9.929500, 78.126500], // TS-01
-    [9.951000, 78.151000], // TS-03 Mattuthavani Junction
-    [9.927500, 78.125000]  // Govt Hospital Drop (H)
+  // Perfectly Straight Line Green Corridor Route connecting Signal 1 -> Signal 2 -> Signal 3 -> Signal 4 -> Hospital
+  const straightCorridorRoute = [
+    [9.915000, 78.105000], // Start / Pickup
+    [9.920000, 78.115000], // TS-01 (Signal 1)
+    [9.925000, 78.125000], // TS-02 (Signal 2)
+    [9.930000, 78.135000], // TS-03 (Signal 3)
+    [9.935000, 78.145000], // TS-04 (Signal 4)
+    [9.938000, 78.150000]  // Govt Hospital Drop at the end of Signal 4
   ];
 
   useEffect(() => {
@@ -90,7 +84,7 @@ export const GreenCorridorDemo = () => {
       }
 
       const map = L.map(mapRef.current, {
-        center: [9.9252, 78.1200],
+        center: [9.9265, 78.1275],
         zoom: 13,
         zoomControl: true
       });
@@ -100,7 +94,7 @@ export const GreenCorridorDemo = () => {
         maxZoom: 19
       }).addTo(map);
 
-      // Create Dedicated Layer Groups in order: Route Polylines -> Signal Markers -> Ambulance/Hospital Markers
+      // Create Dedicated Layer Groups in order: Route Polyline -> Signal Markers -> Ambulance/Hospital Markers
       routePolylineLayerRef.current = L.layerGroup().addTo(map);
       trafficSignalLayerRef.current = L.layerGroup().addTo(map);
       ambulanceMarkerLayerRef.current = L.layerGroup().addTo(map);
@@ -137,24 +131,16 @@ export const GreenCorridorDemo = () => {
     signalLayer.clearLayers();
     ambLayer.clearLayers();
 
-    // 1. RENDER GREEN CORRIDOR ROUTE POLYLINES (BOTH BRANCHES)
-    const primaryPolyline = L.polyline(primaryCorridorRoute, {
+    // 1. RENDER PERFECTLY STRAIGHT GREEN CORRIDOR ROUTE POLYLINE
+    const straightPolyline = L.polyline(straightCorridorRoute, {
       color: '#059669',
-      weight: 6,
-      opacity: 0.85,
-      dashArray: '10, 6'
+      weight: 7,
+      opacity: 0.9,
+      dashArray: '12, 6'
     });
-    routeLayer.addLayer(primaryPolyline);
+    routeLayer.addLayer(straightPolyline);
 
-    const secondaryPolyline = L.polyline(secondaryCorridorBranch, {
-      color: '#10b981',
-      weight: 5,
-      opacity: 0.7,
-      dashArray: '8, 8'
-    });
-    routeLayer.addLayer(secondaryPolyline);
-
-    // 2. RENDER GOVERNMENT HOSPITAL DROP MARKER
+    // 2. RENDER GOVERNMENT HOSPITAL DROP MARKER (AT THE END OF THE 4TH SIGNAL)
     const dropHospitalIcon = L.divIcon({
       className: 'custom-drop-hosp-marker',
       html: `<div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 4px 12px rgba(6,78,59,0.7);">🏥</div>`,
@@ -162,7 +148,7 @@ export const GreenCorridorDemo = () => {
       iconAnchor: [22, 22]
     });
     const hm = L.marker([hospitalCoords.lat, hospitalCoords.lng], { icon: dropHospitalIcon });
-    hm.bindPopup(`<b>${hospitals[0]?.name || 'Govt Rajaji Hospital'}</b><br/>Emergency Bay Drop`);
+    hm.bindPopup(`<b>${hospitals[0]?.name || 'Govt Rajaji Hospital'}</b><br/>Emergency Bay Drop (At end of Signal 4)`);
     ambLayer.addLayer(hm);
 
     // 3. RENDER MOVING AMBULANCE MARKER
@@ -178,7 +164,7 @@ export const GreenCorridorDemo = () => {
       ambLayer.addLayer(am);
     }
 
-    // 4. RENDER TRAFFIC SIGNAL MARKERS ON DEDICATED trafficSignalLayer (MATCHING REFERENCE IMAGE SPEC)
+    // 4. RENDER TRAFFIC SIGNAL MARKERS IN A STRAIGHT LINE ON DEDICATED trafficSignalLayer
     // Dark navy rounded badge + vertical 3-dot traffic light (🔴🟡🟢) + bold signal code label (TS-##)
     GREEN_CORRIDOR_SIGNALS_CONFIG.forEach((sigConfig) => {
       const stateSignal = trafficSignals.find((s) => s.code === sigConfig.code) || sigConfig;
@@ -191,9 +177,9 @@ export const GreenCorridorDemo = () => {
             background-color: #0f172a;
             border: 2.5px solid ${isBlue ? '#60a5fa' : '#ffffff'};
             border-radius: 12px;
-            width: 36px;
+            width: 38px;
             padding: 4px 2px 2px 2px;
-            box-shadow: ${isBlue ? '0 0 18px #2563eb, 0 0 35px #2563eb' : '0 4px 12px rgba(0,0,0,0.4)'};
+            box-shadow: ${isBlue ? '0 0 20px #2563eb, 0 0 40px #2563eb' : '0 4px 12px rgba(0,0,0,0.4)'};
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -222,15 +208,15 @@ export const GreenCorridorDemo = () => {
             </div>
           </div>
         `,
-        iconSize: [36, 48],
-        iconAnchor: [18, 24]
+        iconSize: [38, 48],
+        iconAnchor: [19, 24]
       });
 
       const sm = L.marker([sigConfig.lat, sigConfig.lng], { icon: signalDivIcon, zIndexOffset: 800 });
       sm.bindPopup(`
         <div style="padding: 6px; text-align: center; font-family: sans-serif;">
           <h4 style="margin: 0; color: #0f172a; font-size: 13px; font-weight: 900;">${sigConfig.code} — ${sigConfig.name}</h4>
-          <p style="margin: 4px 0 2px 0; font-size: 11px; font-weight: 700; color: #64748b;">Branch: ${sigConfig.branch}</p>
+          <p style="margin: 4px 0 2px 0; font-size: 11px; font-weight: 700; color: #64748b;">Sequence: ${sigConfig.branch}</p>
           <div style="margin-top: 6px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; background: ${isBlue ? '#dbeafe' : '#f1f5f9'}; color: ${isBlue ? '#1d4ed8' : '#334155'};">
             ${isBlue ? '⚡ BLUE LIGHT ACTIVE (<200m)' : '🚦 SIGNAL NORMAL (CLEAR)'}
           </div>
@@ -252,7 +238,7 @@ export const GreenCorridorDemo = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold font-serif text-white">GREEN CORRIDOR AUTOMATED SIGNAL DEMO</h1>
-            <p className="text-xs text-emerald-200 font-medium">Automatic Traffic Signal Blue Light Activation (Distance Threshold &lt; 200m)</p>
+            <p className="text-xs text-emerald-200 font-medium">Automatic Traffic Signal Blue Light Activation (Straight Line Corridor TS-01 ➔ TS-02 ➔ TS-03 ➔ TS-04 ➔ Hospital)</p>
           </div>
         </div>
 
@@ -328,7 +314,7 @@ export const GreenCorridorDemo = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center space-x-2">
               <Navigation className="h-4 w-4 text-emerald-700" />
-              <span>Live Madurai Green Corridor Map View</span>
+              <span>Straight Corridor Map (TS-01 ➔ TS-02 ➔ TS-03 ➔ TS-04 ➔ Hospital)</span>
             </h2>
             <div className="flex items-center space-x-3 text-[10px] font-bold text-slate-600">
               <span className="flex items-center space-x-1">
@@ -341,7 +327,7 @@ export const GreenCorridorDemo = () => {
               </span>
               <span className="flex items-center space-x-1">
                 <span className="h-3 w-3 bg-emerald-800 rounded-md inline-block" />
-                <span>Hospital (H)</span>
+                <span>Hospital (End of Signal 4)</span>
               </span>
             </div>
           </div>
@@ -354,7 +340,7 @@ export const GreenCorridorDemo = () => {
           <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-xs font-medium text-emerald-950 flex items-center space-x-2">
             <ShieldCheck className="h-5 w-5 text-emerald-700 shrink-0" />
             <span>
-              <strong>Green Corridor Protocol:</strong> When an active ambulance unit is within 200 metres (&lt;0.2km) of a Madurai traffic signal, the signal automatically activates its Blue Light signal to clear traffic.
+              <strong>Straight Green Corridor Protocol:</strong> Ambulance travels straight through Signal 1 (TS-01) ➔ Signal 2 (TS-02) ➔ Signal 3 (TS-03) ➔ Signal 4 (TS-04) and reaches Government Rajaji Hospital at the end of the 4th signal.
             </span>
           </div>
         </div>
