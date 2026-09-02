@@ -210,7 +210,7 @@ export const GreenCorridorDemo = () => {
     am.bindPopup(`<b>Ambulance ${activeAmbulance.code}</b><br/>Driver: ${activeAmbulance.driverName}<br/>Status: MOVING ON GREEN CORRIDOR`);
     ambLayer.addLayer(am);
 
-    // RENDER TRAFFIC SIGNAL MARKERS WITH ANIMATED BLUE BEACON GLOW (< 0.35 km / 350m)
+    // RENDER ULTRA-HIGHLIGHTED TRAFFIC SIGNAL MARKERS (< 0.35 km / 350m)
     GREEN_CORRIDOR_SIGNALS_CONFIG.forEach((sigConfig) => {
       const distKm = calcDistKm(
         currentAmbLocation.lat,
@@ -223,25 +223,65 @@ export const GreenCorridorDemo = () => {
       const signalDivIcon = L.divIcon({
         className: 'traffic-signal-badge-icon',
         html: `
-          <div className="${isBlue ? 'animate-blue-beacon' : ''}" style="
-            background-color: ${isBlue ? '#1e3a8a' : '#0f172a'};
-            border: 2.5px solid ${isBlue ? '#60a5fa' : '#ffffff'};
-            border-radius: 12px;
-            width: 38px;
-            padding: 4px 2px 2px 2px;
-            box-shadow: ${isBlue ? '0 0 25px #2563eb, 0 0 50px #2563eb' : '0 4px 12px rgba(0,0,0,0.4)'};
+          <div style="
+            position: relative;
+            background-color: ${isBlue ? '#1d4ed8' : '#0f172a'};
+            border: 3px solid ${isBlue ? '#93c5fd' : '#ffffff'};
+            border-radius: 14px;
+            width: 44px;
+            padding: 5px 2px 3px 2px;
+            box-shadow: ${isBlue ? '0 0 30px #2563eb, 0 0 60px #2563eb, 0 0 90px #60a5fa' : '0 4px 12px rgba(0,0,0,0.4)'};
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-          ">
-            <!-- Vertical Traffic Light Dots (Red, Yellow, Green) -->
-            <div style="display: flex; flex-direction: column; items-center; justify-content: center; gap: 2px; background: #020617; padding: 3px 5px; border-radius: 6px; width: 22px;">
-              <span style="width: 7px; height: 7px; border-radius: 50%; background-color: #ef4444; display: block; box-shadow: 0 0 4px #ef4444;"></span>
-              <span style="width: 7px; height: 7px; border-radius: 50%; background-color: #eab308; display: block; box-shadow: 0 0 4px #eab308;"></span>
-              <span style="width: 7px; height: 7px; border-radius: 50%; background-color: ${isBlue ? '#3b82f6' : '#22c55e'}; display: block; box-shadow: 0 0 6px ${isBlue ? '#3b82f6' : '#22c55e'};"></span>
+            transform: ${isBlue ? 'scale(1.28)' : 'scale(1.0)'};
+          " class="${isBlue ? 'animate-blue-beacon' : ''}">
+            
+            <!-- HIGHLY HIGHLIGHTED BLUE LIGHT BEACON / SIREN ON TOP WHEN ACTIVE -->
+            <div style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 3px;
+              background: ${isBlue ? '#020617' : '#020617'};
+              padding: 4px 6px;
+              border-radius: 8px;
+              width: 28px;
+            ">
+              <!-- TOP GLOWING BLUE SIREN LIGHT -->
+              <span style="
+                width: ${isBlue ? '12px' : '7px'};
+                height: ${isBlue ? '12px' : '7px'};
+                border-radius: 50%;
+                background-color: ${isBlue ? '#60a5fa' : '#ef4444'};
+                display: block;
+                box-shadow: ${isBlue ? '0 0 14px #60a5fa, 0 0 24px #3b82f6' : '0 0 4px #ef4444'};
+                transition: all 0.3s ease;
+              "></span>
+
+              <!-- MIDDLE LIGHT -->
+              <span style="
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background-color: ${isBlue ? '#93c5fd' : '#eab308'};
+                display: block;
+                box-shadow: ${isBlue ? '0 0 8px #93c5fd' : '0 0 4px #eab308'};
+              "></span>
+
+              <!-- BOTTOM LIGHT -->
+              <span style="
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background-color: ${isBlue ? '#2563eb' : '#22c55e'};
+                display: block;
+                box-shadow: ${isBlue ? '0 0 8px #2563eb' : '0 0 4px #22c55e'};
+              "></span>
             </div>
             
             <!-- Signal Code Label (e.g. TS-01, TS-02) -->
@@ -256,19 +296,38 @@ export const GreenCorridorDemo = () => {
             ">
               ${sigConfig.code}
             </div>
+
+            <!-- HIGHLY VISIBLE "BLUE ON" BADGE BELOW MARKER -->
+            ${isBlue ? `
+              <div style="
+                position: absolute;
+                bottom: -18px;
+                background: #2563eb;
+                color: #ffffff;
+                font-size: 8px;
+                font-weight: 900;
+                padding: 1px 4px;
+                border-radius: 4px;
+                border: 1px solid #93c5fd;
+                white-space: nowrap;
+                box-shadow: 0 0 10px #2563eb;
+              ">
+                BLUE ON ⚡
+              </div>
+            ` : ''}
           </div>
         `,
-        iconSize: [38, 48],
-        iconAnchor: [19, 24]
+        iconSize: [44, 54],
+        iconAnchor: [22, 27]
       });
 
-      const sm = L.marker([sigConfig.lat, sigConfig.lng], { icon: signalDivIcon, zIndexOffset: isBlue ? 900 : 800 });
+      const sm = L.marker([sigConfig.lat, sigConfig.lng], { icon: signalDivIcon, zIndexOffset: isBlue ? 950 : 800 });
       sm.bindPopup(`
         <div style="padding: 6px; text-align: center; font-family: sans-serif;">
           <h4 style="margin: 0; color: #0f172a; font-size: 13px; font-weight: 900;">${sigConfig.code} — ${sigConfig.name}</h4>
           <p style="margin: 4px 0 2px 0; font-size: 11px; font-weight: 700; color: #64748b;">Distance: ${distKm.toFixed(2)} km</p>
-          <div style="margin-top: 6px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; background: ${isBlue ? '#dbeafe' : '#f1f5f9'}; color: ${isBlue ? '#1d4ed8' : '#334155'};">
-            ${isBlue ? '⚡ BLUE LIGHT ACTIVE (<200m)' : '🚦 SIGNAL NORMAL (CLEAR)'}
+          <div style="margin-top: 6px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 900; background: ${isBlue ? '#2563eb' : '#f1f5f9'}; color: ${isBlue ? '#ffffff' : '#334155'}; shadow: ${isBlue ? '0 0 12px #2563eb' : 'none'};">
+            ${isBlue ? '⚡ ULTRA BLUE LIGHT ACTIVE (<200m)' : '🚦 SIGNAL NORMAL (CLEAR)'}
           </div>
         </div>
       `);
@@ -321,39 +380,39 @@ export const GreenCorridorDemo = () => {
                   key={sigConfig.id}
                   className={`p-3.5 rounded-2xl border transition-all duration-300 ${
                     isBlueOn
-                      ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-400 scale-[1.02] animate-pulse'
+                      ? 'bg-blue-600 border-blue-400 text-white shadow-xl shadow-blue-600/40 ring-4 ring-blue-300 scale-[1.03] animate-pulse'
                       : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2.5">
                       <div
-                        className={`h-9 w-9 rounded-xl flex items-center justify-center font-black text-xs transition-all ${
-                          isBlueOn ? 'bg-blue-600 text-white animate-pulse shadow-lg shadow-blue-500/50' : 'bg-slate-900 text-white border border-slate-700'
+                        className={`h-10 w-10 rounded-xl flex items-center justify-center font-black text-sm transition-all ${
+                          isBlueOn ? 'bg-white text-blue-700 animate-bounce shadow-lg shadow-white/80' : 'bg-slate-900 text-white border border-slate-700'
                         }`}
                       >
                         {isBlueOn ? '🟦' : '🚦'}
                       </div>
                       <div>
-                        <h3 className="font-bold text-xs text-slate-900">{sigConfig.code} - {sigConfig.name}</h3>
-                        <p className="text-[10px] text-slate-500 font-semibold">{sigConfig.branch}</p>
+                        <h3 className={`font-black text-xs ${isBlueOn ? 'text-white' : 'text-slate-900'}`}>{sigConfig.code} - {sigConfig.name}</h3>
+                        <p className={`text-[10px] font-semibold ${isBlueOn ? 'text-blue-100' : 'text-slate-500'}`}>{sigConfig.branch}</p>
                       </div>
                     </div>
 
                     <span
-                      className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider transition-all ${
+                      className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider transition-all ${
                         isBlueOn
-                          ? 'bg-blue-600 text-white shadow-md animate-bounce'
+                          ? 'bg-white text-blue-900 shadow-md font-extrabold animate-bounce'
                           : 'bg-slate-200 text-slate-700'
                       }`}
                     >
-                      {isBlueOn ? 'BLUE LIGHT ON' : 'NORMAL'}
+                      {isBlueOn ? '⚡ BLUE LIGHT ON' : 'NORMAL'}
                     </span>
                   </div>
 
-                  <div className="mt-2 text-[11px] font-medium text-slate-600 flex justify-between items-center border-t border-slate-200/60 pt-1.5">
+                  <div className={`mt-2 text-[11px] font-medium flex justify-between items-center border-t pt-1.5 ${isBlueOn ? 'border-blue-400/80 text-blue-100' : 'border-slate-200/60 text-slate-600'}`}>
                     <span>Distance to Ambulance:</span>
-                    <span className={`font-bold ${isBlueOn ? 'text-blue-700 text-xs' : 'text-slate-800'}`}>
+                    <span className={`font-extrabold ${isBlueOn ? 'text-white text-xs underline decoration-2' : 'text-slate-800'}`}>
                       {distKm.toFixed(2)} km
                     </span>
                   </div>
@@ -376,8 +435,8 @@ export const GreenCorridorDemo = () => {
                 <span>Signal (TS-##)</span>
               </span>
               <span className="flex items-center space-x-1">
-                <span className="h-3 w-3 bg-blue-600 rounded-sm inline-block" />
-                <span>Blue Light (🟦)</span>
+                <span className="h-3 w-3 bg-blue-600 rounded-sm inline-block shadow-sm shadow-blue-500" />
+                <span className="text-blue-700 font-extrabold">Blue Light (🟦)</span>
               </span>
               <span className="flex items-center space-x-1">
                 <span className="h-3 w-3 bg-emerald-800 rounded-md inline-block" />
