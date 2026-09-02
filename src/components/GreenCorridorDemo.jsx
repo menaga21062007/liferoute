@@ -447,16 +447,10 @@ export const GreenCorridorDemo = () => {
 
           <div
             ref={mapRef}
-            className="w-full h-[440px] rounded-2xl border border-slate-200 shadow-inner z-0 overflow-hidden"
+            className="w-full h-[480px] rounded-2xl border border-slate-200 shadow-inner z-0 overflow-hidden"
           />
-
-          <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-xs font-medium text-emerald-950 flex items-center space-x-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-700 shrink-0" />
-            <span>
-              <strong>Straight Green Corridor Protocol:</strong> Ambulance moves continuously straight through Signal 1 (TS-01) ➔ Signal 2 (TS-02) ➔ Signal 3 (TS-03) ➔ Signal 4 (TS-04) and reaches Government Rajaji Hospital at the end of the 4th signal.
-            </span>
-          </div>
         </div>
+
 
       </div>
 
