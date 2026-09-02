@@ -148,9 +148,8 @@ setInterval(() => {
         sig.location.lng
       );
       sig.distanceToAmbulanceKm = parseFloat(distKm.toFixed(2));
-      // Turn BLUE LIGHT ON if within signal approach range (<= 0.45 km)
-      sig.blueLightActive = distKm <= 0.45;
-
+      // Turn BLUE LIGHT ON when ambulance reaches / approaches signal (<= 0.35 km / 350m)
+      sig.blueLightActive = distKm <= 0.35;
     } else {
       sig.blueLightActive = false;
       sig.distanceToAmbulanceKm = null;
@@ -158,7 +157,8 @@ setInterval(() => {
   });
 
   if (stateChanged) broadcastFullState();
-}, 3000);
+}, 1500);
+
 
 io.on("connection", (socket) => {
   socket.emit("STATE_UPDATE", { hospitals, ambulances, trafficSignals, sosEmergencies });

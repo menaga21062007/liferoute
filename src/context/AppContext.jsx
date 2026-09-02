@@ -149,12 +149,12 @@ export const AppProvider = ({ children }) => {
           return amb;
         })
       );
-    }, 3000);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Update distance & blue light state for signals based on active ambulance distance (<200m = 0.2km)
+  // Update distance & blue light state for signals based on active ambulance distance (<= 0.35 km)
   useEffect(() => {
     const activeAmbulance = ambulances.find(
       (a) =>
@@ -175,9 +175,10 @@ export const AppProvider = ({ children }) => {
           return {
             ...sig,
             distanceToAmbulanceKm: parseFloat(distKm.toFixed(2)),
-            blueLightActive: distKm <= 0.2
+            blueLightActive: distKm <= 0.35
           };
         }
+
         return {
           ...sig,
           distanceToAmbulanceKm: null,

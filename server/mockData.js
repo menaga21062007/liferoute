@@ -30,7 +30,7 @@ export const GOVERNMENT_HOSPITALS = [
   }
 ];
 
-// 4 SIGNALS ALIGNED IN A STRAIGHT LINE
+// 4 SIGNALS ALIGNED IN A PERFECTLY STRAIGHT LINE
 export const INITIAL_TRAFFIC_SIGNALS = [
   {
     id: "sig-1",
@@ -112,28 +112,36 @@ export const INITIAL_AMBULANCES = [
   }
 ];
 
-// STRAIGHT LINE WAYPOINTS (TS-01 -> TS-02 -> TS-03 -> TS-04 -> HOSPITAL AT END OF 4TH SIGNAL)
+// HIGH DENSITY SMOOTH ROUTE WAYPOINTS VISITING TS-01 -> TS-02 -> TS-03 -> TS-04 -> HOSPITAL AT END OF 4TH SIGNAL
 export const SAMPLE_ROUTE_WAYPOINTS = [
-  { lat: 9.915000, lng: 78.105000, name: "Pickup Point (Madurai West)" },
-  
-  // 1. Visit TS-01 (Signal 1)
+  { lat: 9.915000, lng: 78.105000, name: "Start Pickup Point" },
+  { lat: 9.916500, lng: 78.108000, name: "Madurai West Corridor" },
   { lat: 9.918000, lng: 78.111000, name: "Approaching TS-01" },
-  { lat: 9.920000, lng: 78.115000, name: "TS-01 Goripalayam Junction (<200m - BLUE LIGHT ON)" },
   
-  // 2. Visit TS-02 (Signal 2)
+  // TS-01 (Signal 1) - EXACT MATCH
+  { lat: 9.920000, lng: 78.115000, name: "TS-01 Goripalayam Junction (REACHED - BLUE LIGHT ON)" },
+  
+  { lat: 9.921500, lng: 78.118000, name: "Leaving TS-01" },
   { lat: 9.923000, lng: 78.121000, name: "Approaching TS-02" },
-  { lat: 9.925000, lng: 78.125000, name: "TS-02 Periyar Junction (<200m - BLUE LIGHT ON)" },
   
-  // 3. Visit TS-03 (Signal 3)
+  // TS-02 (Signal 2) - EXACT MATCH
+  { lat: 9.925000, lng: 78.125000, name: "TS-02 Periyar Junction (REACHED - BLUE LIGHT ON)" },
+  
+  { lat: 9.926500, lng: 78.128000, name: "Leaving TS-02" },
   { lat: 9.928000, lng: 78.131000, name: "Approaching TS-03" },
-  { lat: 9.930000, lng: 78.135000, name: "TS-03 Mattuthavani Junction (<200m - BLUE LIGHT ON)" },
   
-  // 4. Visit TS-04 (Signal 4)
+  // TS-03 (Signal 3) - EXACT MATCH
+  { lat: 9.930000, lng: 78.135000, name: "TS-03 Mattuthavani Junction (REACHED - BLUE LIGHT ON)" },
+  
+  { lat: 9.931500, lng: 78.138000, name: "Leaving TS-03" },
   { lat: 9.933000, lng: 78.141000, name: "Approaching TS-04" },
-  { lat: 9.935000, lng: 78.145000, name: "TS-04 Kalavasal Junction (<200m - BLUE LIGHT ON)" },
   
-  // 5. Hospital at the end of the 4th Signal
-  { lat: 9.938000, lng: 78.150000, name: "Government Rajaji Hospital Drop (End of 4th Signal)" }
+  // TS-04 (Signal 4) - EXACT MATCH
+  { lat: 9.935000, lng: 78.145000, name: "TS-04 Kalavasal Junction (REACHED - BLUE LIGHT ON)" },
+  
+  { lat: 9.936500, lng: 78.148000, name: "Entering Hospital Entrance" },
+  // Hospital Drop at the end of Signal 4
+  { lat: 9.938000, lng: 78.150000, name: "Government Rajaji Hospital Emergency Bay Drop" }
 ];
 
 export const INITIAL_SOS_EMERGENCIES = [
