@@ -52,6 +52,51 @@
   to { opacity: 1; transform: scale(1); }
 }
 
+/* GREEN CORRIDOR SPECIAL MAP ANIMATION EFFECTS */
+@keyframes polylineFlow {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-polyline-flow {
+  stroke-dasharray: 14, 10;
+  animation: polylineFlow 1s linear infinite;
+}
+
+@keyframes ambRipple {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.animate-amb-ripple {
+  animation: ambRipple 1.4s ease-out infinite;
+}
+
+@keyframes blueBeaconGlow {
+  0%, 100% {
+    box-shadow: 0 0 16px #2563eb, 0 0 32px #2563eb;
+    transform: scale(1.12);
+  }
+  50% {
+    box-shadow: 0 0 32px #3b82f6, 0 0 64px #3b82f6, 0 0 90px #93c5fd;
+    transform: scale(1.25);
+  }
+}
+
+.animate-blue-beacon {
+  animation: blueBeaconGlow 1s ease-in-out infinite;
+}
+
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }

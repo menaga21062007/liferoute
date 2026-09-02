@@ -169,19 +169,24 @@ export const GreenCorridorDemo = () => {
     signalLayer.clearLayers();
     ambLayer.clearLayers();
 
-    // RENDER STRAIGHT GREEN CORRIDOR ROUTE POLYLINE
+    // RENDER ANIMATED FLOWING GREEN CORRIDOR ROUTE POLYLINE
     const straightPolyline = L.polyline(straightCorridorRoute, {
+      className: 'animate-polyline-flow',
       color: '#059669',
-      weight: 7,
-      opacity: 0.9,
-      dashArray: '12, 6'
+      weight: 8,
+      opacity: 0.95
     });
     routeLayer.addLayer(straightPolyline);
 
-    // RENDER GOVERNMENT HOSPITAL DROP MARKER (AT THE END OF THE 4TH SIGNAL)
+    // RENDER GOVERNMENT HOSPITAL DROP MARKER WITH PULSING AURA (AT THE END OF THE 4TH SIGNAL)
     const dropHospitalIcon = L.divIcon({
       className: 'custom-drop-hosp-marker',
-      html: `<div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 4px 12px rgba(6,78,59,0.7);">🏥</div>`,
+      html: `
+        <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; inset: -8px; background: rgba(6, 78, 59, 0.35); border-radius: 16px;" class="animate-pulse"></div>
+          <div style="background-color: #064e3b; color: white; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 0 20px rgba(6,78,59,0.9); z-index: 10;">🏥</div>
+        </div>
+      `,
       iconSize: [44, 44],
       iconAnchor: [22, 22]
     });
@@ -189,10 +194,15 @@ export const GreenCorridorDemo = () => {
     hm.bindPopup(`<b>${hospitals[0]?.name || 'Govt Rajaji Hospital'}</b><br/>Emergency Bay Drop (At end of Signal 4)`);
     ambLayer.addLayer(hm);
 
-    // RENDER MOVING AMBULANCE MARKER AT currentAmbLocation
+    // RENDER MOVING AMBULANCE MARKER WITH EXPANDING RIPPLE ANIMATION
     const movingAmbIcon = L.divIcon({
       className: 'custom-moving-amb-marker',
-      html: `<div style="background-color: #059669; color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 0 20px #059669; transition: all 0.3s ease;">🚑</div>`,
+      html: `
+        <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; inset: -12px; background: rgba(5, 150, 105, 0.45); border-radius: 50%;" class="animate-amb-ripple"></div>
+          <div style="background-color: #059669; color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; border: 3px solid white; box-shadow: 0 0 24px #059669; z-index: 10;">🚑</div>
+        </div>
+      `,
       iconSize: [44, 44],
       iconAnchor: [22, 22]
     });
@@ -200,7 +210,7 @@ export const GreenCorridorDemo = () => {
     am.bindPopup(`<b>Ambulance ${activeAmbulance.code}</b><br/>Driver: ${activeAmbulance.driverName}<br/>Status: MOVING ON GREEN CORRIDOR`);
     ambLayer.addLayer(am);
 
-    // RENDER TRAFFIC SIGNAL MARKERS & CALCULATE BLUE LIGHT GLOW (< 0.35 km / 350m)
+    // RENDER TRAFFIC SIGNAL MARKERS WITH ANIMATED BLUE BEACON GLOW (< 0.35 km / 350m)
     GREEN_CORRIDOR_SIGNALS_CONFIG.forEach((sigConfig) => {
       const distKm = calcDistKm(
         currentAmbLocation.lat,
@@ -213,20 +223,19 @@ export const GreenCorridorDemo = () => {
       const signalDivIcon = L.divIcon({
         className: 'traffic-signal-badge-icon',
         html: `
-          <div style="
+          <div className="${isBlue ? 'animate-blue-beacon' : ''}" style="
             background-color: ${isBlue ? '#1e3a8a' : '#0f172a'};
             border: 2.5px solid ${isBlue ? '#60a5fa' : '#ffffff'};
             border-radius: 12px;
             width: 38px;
             padding: 4px 2px 2px 2px;
-            box-shadow: ${isBlue ? '0 0 22px #2563eb, 0 0 45px #2563eb' : '0 4px 12px rgba(0,0,0,0.4)'};
+            box-shadow: ${isBlue ? '0 0 25px #2563eb, 0 0 50px #2563eb' : '0 4px 12px rgba(0,0,0,0.4)'};
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            transform: ${isBlue ? 'scale(1.15)' : 'scale(1.0)'};
           ">
             <!-- Vertical Traffic Light Dots (Red, Yellow, Green) -->
             <div style="display: flex; flex-direction: column; items-center; justify-content: center; gap: 2px; background: #020617; padding: 3px 5px; border-radius: 6px; width: 22px;">
@@ -312,7 +321,7 @@ export const GreenCorridorDemo = () => {
                   key={sigConfig.id}
                   className={`p-3.5 rounded-2xl border transition-all duration-300 ${
                     isBlueOn
-                      ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-400 scale-[1.02]'
+                      ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-400 scale-[1.02] animate-pulse'
                       : 'bg-slate-50 border-slate-200'
                   }`}
                 >
